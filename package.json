@@ -19,7 +19,6 @@
     "date-picker": "^0.5.0",
     "install": "^0.13.0",
     "jotai": "^2.15.1",
-    "jotai-devtools": "^0.13.0",
     "jotai-utils": "^0.0.0",
     "lodash": "^4.17.21",
     "npm": "^11.6.3",

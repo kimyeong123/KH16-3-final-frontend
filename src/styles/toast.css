@@ -1,0 +1,20 @@
+/* src/styles/toast-colors.css - Flatly 테마용 */
+.Toastify__toast--success {
+  background-color: #18bc9c !important; /* Flatly Success */
+  border-left-color: #15a589 !important;
+}
+
+.Toastify__toast--error {
+  background-color: #e74c3c !important; /* Flatly Danger */
+  border-left-color: #c0392b !important;
+}
+
+.Toastify__toast--warning {
+  background-color: #f39c12 !important; /* Flatly Warning */
+  border-left-color: #d68910 !important;
+}
+
+.Toastify__toast--info {
+  background-color: #3498db !important; /* Flatly Primary / Info */
+  border-left-color: #2980b9 !important;
+}

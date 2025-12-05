@@ -1,0 +1,89 @@
+.google-icon {
+    background: conic-gradient(
+        #4285F4 0deg 50deg,
+        #EA4335 50deg 180deg,
+        #FBBC05 180deg 270deg,
+        #34A853 270deg 360deg 
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700; 
+    font-size: 2rem; 
+    display: inline-block;
+    transition: transform 0.2s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+.youtube-icon {
+    background: linear-gradient(45deg, #FF0000, #FF4D4D); /* YouTube Red 계열로 포인트 */
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent;
+    font-size: 2.1rem; /* 기존 2rem에서 5% 증가 */
+    display: inline-block;
+    transition: transform 0.2s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+
+
+
+
+.facebook-icon {
+	background: linear-gradient(45deg, #1877F2, #42A5F5);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.instagram-icon {
+	background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%
+		, #285AEB 90%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.kakao-icon-link {
+  display: inline-block;
+  background-color: #FFEB00;
+  border-radius: 50%;      
+  width: 35px;
+  height: 35px;
+  text-align: center;
+  line-height: 40px; 
+}
+
+.kakao-icon-link .kakaotalk-icon {
+  color: #3C1E1E; 
+  font-size: 20px;
+}
+
+.footer-container .d-flex a:hover i {
+    transform: scale(1.1);
+    filter: brightness(1.1);
+}
+.footer-container {
+    background-color: #f8f9fa; /* 전체 푸터 배경색 */
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+.footer-title {
+    color: #2C3E50; /* 큰 제목 색상 */
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.footer-text {
+    color: #7f8c8d; /* 작은 글 회색 */
+    margin-bottom: 5px;
+}
+
+.footer-container a {
+    text-decoration: none;
+}
+
+/* 아이콘 호버 효과 */
+.footer-container i {
+    transition: transform 0.2s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+
+.footer-container i:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
