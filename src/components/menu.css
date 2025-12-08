@@ -61,3 +61,12 @@
 .nav-link:hover::after {
     width: 100%;
 }
+
+.navbar-nav .nav-link {
+    font-size: 1.1rem; 
+    padding: 12px 20px; 
+}
+
+.navbar-nav .nav-item {
+    margin-right: 15px;   
+}
