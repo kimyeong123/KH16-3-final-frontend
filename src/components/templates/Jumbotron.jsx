@@ -33,6 +33,7 @@ export default function Jumbotron({ subject = "제목", detail = "" }) {
               fontSize: "1.25rem",
             }}
           >
+            {detail}
           </h4>
         </div>
       </div>

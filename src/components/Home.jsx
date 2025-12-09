@@ -10,6 +10,30 @@ export default function Home() {
 
 			<div className="container mt-5">
 
+					{/* 추천 경매 아이템 */}
+				<section className="mb-5">
+					<div className="d-flex justify-content-between align-items-center mb-3">
+						<h3>추천 경매 아이템</h3>
+						<a href="/auctions" className="text-secondary text-decoration-none">
+							더보기 <i className="fa-solid fa-arrow-right"></i>
+						</a>
+					</div>
+					<div className="row">
+						{[1, 2, 3, 4].map((item) => (
+							<div className="col-md-3 mb-3" key={item}>
+								<div className="card h-100 shadow-sm">
+									<img src={`https://picsum.photos/300/200?random=${item + 10}`} className="card-img-top" alt="아이템 이미지" />
+									<div className="card-body d-flex flex-column">
+										<h5 className="card-title text-truncate">아이템 {item}</h5>
+										<p className="card-text text-truncate">현재 입찰가: {Math.floor(Math.random() * 5000)} 원</p>
+										<a href={`/auction/${item}`} className="btn btn-outline-primary mt-auto">입찰하기</a>
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</section>
+
 				{/* 최근 게시글 */}
 				<section className="mb-5">
 					<div className="d-flex justify-content-between align-items-center mb-3">
@@ -51,29 +75,6 @@ export default function Home() {
 					</ul>
 				</section>
 
-				{/* 추천 경매 아이템 */}
-				<section className="mb-5">
-					<div className="d-flex justify-content-between align-items-center mb-3">
-						<h3>추천 경매 아이템</h3>
-						<a href="/auctions" className="text-secondary text-decoration-none">
-							더보기 <i className="fa-solid fa-arrow-right"></i>
-						</a>
-					</div>
-					<div className="row">
-						{[1, 2, 3, 4].map((item) => (
-							<div className="col-md-3 mb-3" key={item}>
-								<div className="card h-100 shadow-sm">
-									<img src={`https://picsum.photos/300/200?random=${item + 10}`} className="card-img-top" alt="아이템 이미지" />
-									<div className="card-body d-flex flex-column">
-										<h5 className="card-title text-truncate">아이템 {item}</h5>
-										<p className="card-text text-truncate">현재 입찰가: {Math.floor(Math.random() * 5000)} 원</p>
-										<a href={`/auction/${item}`} className="btn btn-outline-primary mt-auto">입찰하기</a>
-									</div>
-								</div>
-							</div>
-						))}
-					</div>
-				</section>
 
 				{/* 명예의 전당 */}
 				<section className="mb-5">

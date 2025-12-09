@@ -27,7 +27,6 @@
     text-shadow: 0 1px rgba(0,0,0,0.1);
 }
 /* -------------------------버튼----------------------- */
-/* 빨강 */
 .btn-red {
     background: linear-gradient(to bottom, var(--red) 0%, var(--red-dark) 100%);
     border: 2px solid var(--red-dark);
@@ -39,7 +38,6 @@
     transform: translateY(-2px);
 }
 
-/* 주황 */
 .btn-orange {
     background: linear-gradient(to bottom, var(--orange) 0%, var(--orange-dark) 100%);
     border: 2px solid var(--orange-dark);
@@ -51,7 +49,6 @@
     transform: translateY(-2px);
 }
 
-/* 노랑 */
 .btn-yellow {
     background: linear-gradient(to bottom, var(--yellow) 0%, var(--yellow-dark) 100%);
     color: #000;
@@ -64,7 +61,6 @@
     transform: translateY(-2px);
 }
 
-/* 초록 */
 .btn-green {
     background: linear-gradient(to bottom, var(--green) 0%, var(--green-dark) 100%);
     border: 2px solid var(--green-dark);
@@ -76,7 +72,6 @@
     transform: translateY(-2px);
 }
 
-/* 파랑 */
 .btn-blue {
     background: linear-gradient(to bottom, var(--blue) 0%, var(--blue-dark) 100%);
     border: 2px solid var(--blue-dark);
@@ -88,7 +83,6 @@
     transform: translateY(-2px);
 }
 
-/* 회색 */
 .btn-gray {
     background: linear-gradient(to bottom, var(--gray) 0%, var(--gray-dark) 100%);
     border: 2px solid var(--gray-dark);
@@ -100,7 +94,6 @@
     transform: translateY(-2px);
 }
 
-/* 검정 */
 .btn-black {
     background: linear-gradient(to bottom, var(--black) 0%, var(--black-dark) 100%);
     border: 2px solid var(--black-dark);
@@ -109,5 +102,70 @@
     background: linear-gradient(to bottom, var(--black-dark) 0%, var(--black) 100%);
     border-color: var(--black);
     box-shadow: 0 4px 8px rgba(0,0,0,0.25);
-    transform: translateY(-2px);
+    transform: translateY(-2px);    
 }
+
+/* -------------------------텍스트 색상----------------------- */
+.text-red {
+    color: var(--red);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.text-red:hover {
+    color: var(--red-dark);
+}
+
+.text-orange {
+    color: var(--orange);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.text-orange:hover {
+    color: var(--orange-dark);
+}
+
+.text-yellow {
+    color: var(--yellow);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.text-yellow:hover {
+    color: var(--yellow-dark);
+}
+
+.text-green {
+    color: var(--green);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.text-green:hover {
+    color: var(--green-dark);
+}
+
+.text-blue {
+    color: var(--blue);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.text-blue:hover {
+    color: var(--blue-dark);
+}
+
+.text-gray {
+    color: var(--gray);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.text-gray:hover {
+    color: var(--gray-dark);
+}
+
+.text-black {
+    color: var(--black);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.text-black:hover {
+    color: var(--black-dark);
+}
+
