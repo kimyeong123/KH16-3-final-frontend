@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-
+import { FaBell } from "react-icons/fa";
 
 export default function MessageBadge() {
 
@@ -14,5 +14,6 @@ export default function MessageBadge() {
     //render
     return (<>
     
+        <FaBell />
     </>)
 }
