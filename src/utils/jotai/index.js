@@ -20,7 +20,7 @@ export const loginIdState = atomWithStorage("loginIdState", "", sessionStorage);
 
 //export const loginLevelState = atom({key : "loginLevelState", default : null});//recoil
 //export const loginLevelState = atom(null);//jotai
-export const loginLevelState = atomWithStorage("loginLevelState", "", sessionStorage);//jotai + persist
+export const loginRoleState = atomWithStorage("loginRoleState", "", sessionStorage);//jotai + persist
 
 //accessToken
 export const accessTokenState = atomWithStorage("accessTokenState", "", sessionStorage);
@@ -38,16 +38,16 @@ export const refreshTokenState = atomWithStorage("refreshToken", "", sessionStor
 // });
 export const loginState = atom(get=>{//jotai
     const loginId = get(loginIdState);
-    const loginLevel = get(loginLevelState);
+    const loginRole = get(loginRoleState);
     //return loginId !== "" && loginLevel !== "";
-    return loginId?.length > 0 && loginLevel?.length > 0;
+    return loginId?.length > 0 && loginRole?.length > 0;
 });
 
 export const adminState = atom(get=>{//jotai
     const loginId = get(loginIdState);
-    const loginLevel = get(loginLevelState);
+    const loginRole = get(loginRoleState);
     //return loginId !== "" && loginLevel === "관리자";
-    return loginId?.length > 0 && loginLevel === "관리자";
+    return loginId?.length > 0 && loginRole === "admin";
 });
 
 //로그인 관련 state를 초기화하는 함수 (쓰기 함수)
@@ -56,7 +56,7 @@ export const clearLoginState = atom(
     null, //읽는건 필요없고
     (get, set)=>{//변경만 하겠다!
         set(loginIdState, "");
-        set(loginLevelState, "");
+        set(loginRoleState, "");
         set(accessTokenState, "");
         set(refreshTokenState, "");
     }
@@ -67,7 +67,7 @@ export const loginCompleteState = atom(false);
 
 //DevTools에서 확인하기 위한 이름 설정
 loginIdState.debugLabel = "loginIdState";
-loginLevelState.debugLabel = "loginLevelState";
+loginRoleState.debugLabel = "loginRoleState";
 loginState.debugLabel = "loginState";
 adminState.debugLabel = "adminState";
 accessTokenState.debugLabel = "accessTokenState";
