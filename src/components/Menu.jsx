@@ -58,18 +58,15 @@ export default function Menu() {
                         <li className="nav-item">
                             <Link className="nav-link fs-4" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />경매</Link>
                         </li>
-                        <li className="nav-item">
-                            <Link className="nav-link fs-4" to="/about" onClick={closeMenu}>커뮤니티</Link>
-                        </li>
                     </ul>
 
                     {/* 우측 메뉴 */}
                     <ul className="navbar-nav ms-auto ms-3">
                            <li className="nav-item">
-                            <Link className="nav-link fs-6" to="/contact" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>이용가이드</Link>
+                            <Link className="nav-link fs-6" to="/board" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-5 me-1" />문의사항</Link>
+                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-5 me-1" />문의하기</Link>
                         </li>
                         <li className="nav-item">
                             <Link className="nav-link fs-6" to="/member/login" onClick={closeMenu}>
