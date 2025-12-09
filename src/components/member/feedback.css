@@ -1,45 +1,29 @@
 /* feedback.css */
 
-/* ---------------------------
-   기본 스타일 초기화
---------------------------- */
 
 /* 브라우저 기본 체크/엑스 제거 */
 input.is-valid,
 input.is-invalid {
-  background-image: none !important; /* 브라우저 기본 제거 */
-  padding-right: 2.25rem; /* 아이콘 공간 확보 */
+  background-image: none !important; 
+  padding-right: 2.25rem;
 }
 
-/* ---------------------------
-   성공 input
---------------------------- */
 .is-valid {
   border-color: #2c3e50 !important; /* Flatly 남색 */
 }
-
-/* 성공 input focus */
 .is-valid:focus {
   border-color: #1a252f !important;
   box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25) !important;
 }
-
-/* ---------------------------
-   실패 input
---------------------------- */
 .is-invalid {
   border-color: #a94442 !important; /* 진한 빨간색 */
 }
 
-/* 실패 input focus */
 .is-invalid:focus {
   border-color: #843534 !important;
   box-shadow: 0 0 0 0.2rem rgba(169, 68, 66, 0.25) !important;
 }
 
-/* ---------------------------
-   피드백 메시지
---------------------------- */
 .valid-feedback {
   color: #2c3e50 !important; /* 남색 */
   font-weight: 500;
@@ -49,11 +33,6 @@ input.is-invalid {
   color: #a94442 !important; /* 진한 빨간색 */
   font-weight: 500;
 }
-
-/* ---------------------------
-   우측 체크/엑스 아이콘
-   input을 감싸는 div에 class="input-icon"
---------------------------- */
 .input-icon {
   position: relative;
 }
@@ -62,12 +41,6 @@ input.is-invalid {
   padding-right: 2rem; /* 아이콘 공간 확보 */
 }
 
-
-
-
-/* ---------------------------
-   DatePicker input 적용
---------------------------- */
 .react-datepicker-wrapper input.is-valid {
   border-color: #2c3e50 !important;
 }
@@ -75,9 +48,7 @@ input.is-invalid {
 .react-datepicker-wrapper input.is-invalid {
   border-color: #a94442 !important;
 }
-/* ---------------------------
-   중복 피드백 메시지
---------------------------- */
+
 .member-duplicate-feedback {
     font-size: 1.6rem;               /* 기존 valid/invalid보다 크게 */
     font-weight: 600;               /* 조금 더 굵게 */
@@ -92,14 +63,90 @@ input.is-invalid {
     color: #843534 !important;     /* 진한 빨강, 기존보다 진하게 */
 }
 
-/* 체크/엑스 아이콘 색상 적용 */
-input.is-valid:focus ~ .member-duplicate-feedback::before,
-input.is-valid ~ .member-duplicate-feedback::before {
-    color: #1a252f !important;      /* 남색 진하게 */
+/* 전체 페이지 배경 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
 }
 
-input.is-invalid:focus ~ .member-duplicate-feedback::before,
-input.is-invalid ~ .member-duplicate-feedback::before {
-    color: #843534 !important;      /* 빨강 진하게 */
+/* 로그인 카드 컨테이너 (책장 느낌) */
+.member-container {
+    max-width: 800px;
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15), 0 0 10px rgba(0,0,0,0.05);
+    padding: 2rem;
+    border: 1px solid #dee2e6;
+    margin: 5vh auto;
+    transition: transform 0.3s ease;
+}
+.member-container:hover {
+    /* transform 제거 */
+    background: linear-gradient(145deg, #e9ecef, #f8f9fa); /* 색상 반전 */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 0 12px rgba(0,0,0,0.05);
+}
+
+.member-container .row {
+    display: flex;
+    align-items: center; 
+    flex-wrap: wrap;     
+}
+.member-container .form-control ~ .valid-feedback,
+.member-container .form-control ~ .invalid-feedback {
+    width: 75%;        /* input과 동일 폭 */
+    margin-top: 0.25rem;
+}
+
+/* 폼 레이블 */
+.col-form-label {
+    font-weight: 500;
+    color: #1a252f;
+    width: 25%;
+}
+
+.member-container .form-control {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+    width: 75%; /* 레이블 옆에 맞춤 */
+}
+.member-container .form-control:focus {
+    border-color: #18bc9c;
+    box-shadow: 0 0 8px rgba(24,188,156,0.3);
+}
+
+/* 로그인 버튼 */
+.member-container .btn-success {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+.member-container .btn-success:hover {
+    background-color: #15a589;
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* 책장 칸 느낌: 행 사이 구분선 */
+.member-container .row + .row {
+    border-top: 1px dashed #ced4da;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+/* 버튼과 회원가입 링크 중앙 정렬 */
+.member-container .row .col {
+    display: flex;
+    justify-content: center;
+}
+
+.member-container .form-row.no-border + .form-row {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
 }
 

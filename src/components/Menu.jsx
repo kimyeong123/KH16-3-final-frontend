@@ -3,6 +3,10 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import './menu.css';
 import logo2 from '../assets/logo2.png';
 import { useCallback, useEffect, useRef, useState } from "react";
+import { RiLoginBoxFill } from "react-icons/ri";
+import { MdSupportAgent } from "react-icons/md";
+import { RiAuctionLine } from "react-icons/ri";
+import { MdOutlineDocumentScanner } from "react-icons/md";
 
 export default function Menu() {
     const navigate = useNavigate();
@@ -31,7 +35,7 @@ export default function Menu() {
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" data-bs-type="light">
             <div className="container-fluid">
-                <Link className="navbar-brand fw-bold fs-3 d-flex align-items-center" to="/">
+                <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center" to="/">
                     <img
                         src={logo2}
                         style={{ width: '80px', height: '80px', marginRight: '20px' }}
@@ -52,26 +56,25 @@ export default function Menu() {
                     {/* 좌측 메뉴 */}
                     <ul className="navbar-nav me-auto ms-3">
                         <li className="nav-item">
-                            <Link className="nav-link" to="/auction" onClick={closeMenu}>경매</Link>
+                            <Link className="nav-link fs-4" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />경매</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" to="/about" onClick={closeMenu}>커뮤니티</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/contact" onClick={closeMenu}>이용가이드</Link>
+                            <Link className="nav-link fs-4" to="/about" onClick={closeMenu}>커뮤니티</Link>
                         </li>
                     </ul>
 
                     {/* 우측 메뉴 */}
                     <ul className="navbar-nav ms-auto ms-3">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="#" onClick={closeMenu}>문의사항</Link>
+                           <li className="nav-item">
+                            <Link className="nav-link fs-6" to="/contact" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>이용가이드</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link me-2" to="/member/login" onClick={closeMenu}>
-                                <span className="d-flex align-items-center">
+                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-5 me-1" />문의사항</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link className="nav-link fs-6" to="/member/login" onClick={closeMenu}>
+                            <RiLoginBoxFill  className="fs-4 me-1"/>
                                     로그인
-                                </span>
                             </Link>
                         </li>
                     </ul>
