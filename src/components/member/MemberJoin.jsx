@@ -371,8 +371,8 @@ export default function MemberJoin() {
     if (!memberValid) return;
 
     try {
-      await axios.post("/member/", member);
-      navigate("/member/joinFinish");
+     await axios.post("http://localhost:8080/member/register", member);
+      navigate("/");
     } catch (err) {
       console.error("회원 가입 실패", err);
     }
