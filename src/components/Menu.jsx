@@ -6,19 +6,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RiLoginBoxFill, RiLogoutBoxFill } from "react-icons/ri";
 import { MdSupportAgent, MdOutlineDocumentScanner } from "react-icons/md";
 import { RiAuctionLine } from "react-icons/ri";
+import { FaUserCircle } from "react-icons/fa";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import axios from "axios";
-import { loginIdState, loginRoleState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState } from "../utils/jotai";
+import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState, loginNoState } from "../utils/jotai";
 
 
 export default function Menu() {
     const navigate = useNavigate();
 
     // jotai state
+    const [loginNo] = useAtom(loginNoState);
     const [loginId] = useAtom(loginIdState);
     const [loginRole] = useAtom(loginRoleState);
     const [accessToken] = useAtom(accessTokenState);
     const [, setLoginComplete] = useAtom(loginCompleteState);
+    const [loginNickname] = useAtom(loginNicknameState);
 
     // jotai selector
     const [isLogin] = useAtom(loginState);
@@ -100,10 +103,7 @@ export default function Menu() {
                             <Link className="nav-link fs-6" to="/board" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-5 me-1" />문의하기</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-5 me-1" />문의사항</Link>
+                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-4 me-1" />문의하기</Link>
                         </li>
 
                         {/* 로그인 상태에 따른 조건부 렌더링 */}
@@ -111,8 +111,8 @@ export default function Menu() {
                             <>
                                 {/* 로그인 상태: ID 및 Role 표시 */}
                                 <li className="nav-item">
-                                    <Link className="nav-link fs-6 fw-bold text-success" to="/member/mypage" onClick={closeMenu}>
-                                        {loginId}님 ({loginRole})
+                                    <Link className="nav-link fs-6 fw-bold text-primary" to="/member/mypage" onClick={closeMenu}>
+                                        <FaUserCircle className="fs-4 me-1"/>{loginNickname ? loginNickname : loginId}님 ({loginRole})
                                     </Link>
                                 </li>
 
