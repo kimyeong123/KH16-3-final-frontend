@@ -6,7 +6,7 @@ import Menu from "./components/Menu"
 import {BrowserRouter, HashRouter, useNavigate} from "react-router-dom"
 import { Provider, useAtom, useSetAtom } from "jotai";
 import React, { useState } from "react";
-
+import Header from "./components/Header"
 
 
 
@@ -19,6 +19,8 @@ import'./styles/toast.css';
 import'./styles/sweetalert2-flatly.css';
 function App() {
   const [count, setCount] = useState(0)
+  
+  const contentPaddingStyle = { paddingTop: '150px' };
 
   return (
     <>
@@ -31,9 +33,10 @@ function App() {
           */}
           {/* {process.env.NODE_ENV === "development" && <DevTools/>} */}
 
-          <Menu/>
+          <Header/>
 
-          <div className="container-fluid my-5  pt-5">
+          {/* Main있던 자리 */}
+          <div className="container-fluid my-5  pt-5" style={contentPaddingStyle}>
             <Content/>
             <hr/>
             <Footer/>

@@ -1,3 +1,5 @@
+// src/components/Menu.js
+
 import { Link, useNavigate } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './menu.css';
@@ -7,9 +9,12 @@ import { RiLoginBoxFill, RiLogoutBoxFill } from "react-icons/ri";
 import { MdSupportAgent, MdOutlineDocumentScanner } from "react-icons/md";
 import { RiAuctionLine } from "react-icons/ri";
 import { FaUserCircle } from "react-icons/fa";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import axios from "axios";
+
+// 💡 Git 충돌 해결 및 FaReceipt 아이콘 import 추가
 import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState, loginNoState } from "../utils/jotai";
+import { FaReceipt } from "react-icons/fa6";
 
 
 export default function Menu() {
@@ -71,15 +76,8 @@ export default function Menu() {
     }, [open, closeMenu]);
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" data-bs-type="light">
+        <nav className="navbar navbar-expand-lg navbar-dark bg-primary" data-bs-type="light">
             <div className="container-fluid">
-                <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center" to="/">
-                    <img
-                        src={logo2}
-                        style={{ width: '80px', height: '80px', marginRight: '20px' }}
-                    />
-                    bidHouse
-                </Link>
 
                 <button className="navbar-toggler" type="button"
                     aria-controls="menu-body" aria-expanded={open} aria-label="Toggle navigation" onClick={toggleMenu}>
@@ -95,12 +93,19 @@ export default function Menu() {
                         <li className="nav-item">
                             <Link className="nav-link fs-4" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />경매</Link>
                         </li>
+                        <li className="nav-item">
+                            <Link className="nav-link fs-4" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />대충 카테고리</Link>
+                        </li>
                     </ul>
 
                     {/* 우측 메뉴 (단일 ul 태그로 간결화) */}
                     <ul className="navbar-nav ms-auto ms-3">
-                           <li className="nav-item">
-                            <Link className="nav-link fs-6" to="/board" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
+                            <li className="nav-item">
+                                {/* 💡 /board/list 대신 /board 경로로 수정 (RESTful API 기준) */}
+                                <Link className="nav-link fs-6" to="/board" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
+                            </li>
+                        <li className="nav-item">
+                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><FaReceipt className="fs-5 me-1" />이용가이드</Link>
                         </li>
                         <li className="nav-item">
                             <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-4 me-1" />문의하기</Link>
