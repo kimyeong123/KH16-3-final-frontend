@@ -1,3 +1,5 @@
+// src/components/Menu.js
+
 import { Link, useNavigate } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './menu.css';
@@ -6,9 +8,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RiLoginBoxFill, RiLogoutBoxFill } from "react-icons/ri";
 import { MdSupportAgent, MdOutlineDocumentScanner } from "react-icons/md";
 import { RiAuctionLine } from "react-icons/ri";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { FaUserCircle } from "react-icons/fa";
+import { useAtom, useSetAtom } from "jotai";
 import axios from "axios";
-import { loginIdState, loginRoleState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState } from "../utils/jotai";
+
+// 💡 Git 충돌 해결 및 FaReceipt 아이콘 import 추가
+import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState, loginNoState } from "../utils/jotai";
 import { FaReceipt } from "react-icons/fa6";
 
 
@@ -16,10 +21,12 @@ export default function Menu() {
     const navigate = useNavigate();
 
     // jotai state
+    const [loginNo] = useAtom(loginNoState);
     const [loginId] = useAtom(loginIdState);
     const [loginRole] = useAtom(loginRoleState);
     const [accessToken] = useAtom(accessTokenState);
     const [, setLoginComplete] = useAtom(loginCompleteState);
+    const [loginNickname] = useAtom(loginNicknameState);
 
     // jotai selector
     const [isLogin] = useAtom(loginState);
@@ -93,14 +100,60 @@ export default function Menu() {
 
                     {/* 우측 메뉴 (단일 ul 태그로 간결화) */}
                     <ul className="navbar-nav ms-auto ms-3">
-                           <li className="nav-item">
-                            <Link className="nav-link fs-6" to="/board/list" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
-                        </li>
+                            <li className="nav-item">
+                                {/* 💡 /board/list 대신 /board 경로로 수정 (RESTful API 기준) */}
+                                <Link className="nav-link fs-6" to="/board" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
+                            </li>
                         <li className="nav-item">
                             <Link className="nav-link fs-6" to="#" onClick={closeMenu}><FaReceipt className="fs-5 me-1" />이용가이드</Link>
                         </li>
+                        <li className="nav-item">
+                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-4 me-1" />문의하기</Link>
+                        </li>
 
-                        
+                        {/* 로그인 상태에 따른 조건부 렌더링 */}
+                        {isLogin ? (
+                            <>
+                                {/* 로그인 상태: ID 및 Role 표시 */}
+                                <li className="nav-item">
+                                    <Link className="nav-link fs-6 fw-bold text-primary" to="/member/mypage" onClick={closeMenu}>
+                                        <FaUserCircle className="fs-4 me-1"/>{loginNickname ? loginNickname : loginId}님 ({loginRole})
+                                    </Link>
+                                </li>
+
+                                {/* 로그인 상태: 로그아웃 버튼 */}
+                                <li className="nav-item">
+                                    <Link className="nav-link fs-6" onClick={logout}>
+                                        <RiLogoutBoxFill className="fs-4 me-1" />
+                                        로그아웃
+                                    </Link>
+                                </li>
+
+                                {/* 관리자 메뉴 */}
+                                {isAdmin && (
+                                    <li className="nav-item">
+                                        <Link className="nav-link fs-6" to="/admin" onClick={closeMenu}>관리자</Link>
+                                    </li>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                {/* 로그아웃 상태: 로그인 버튼 */}
+                                <li className="nav-item">
+                                    <Link className="nav-link fs-6" to="/member/login" onClick={closeMenu}>
+                                        <RiLoginBoxFill className="fs-4 me-1" />
+                                        로그인
+                                    </Link>
+                                </li>
+                                {/* 로그아웃 상태: 회원가입 버튼 */}
+                                <li className="nav-item">
+                                    <Link className="nav-link fs-6" to="/member/join" onClick={closeMenu}>
+                                        <i className="fa-solid fa-user-plus me-2"></i>
+                                        회원가입
+                                    </Link>
+                                </li>
+                            </>
+                        )}
                     </ul>
                 </div>
 

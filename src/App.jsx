@@ -8,6 +8,8 @@ import { Provider, useAtom, useSetAtom } from "jotai";
 import React, { useState } from "react";
 import Header from "./components/Header"
 
+
+
 //Jotai 개발자 도구 설정
 // import { DevTools, useAtomDevtools } from "jotai-devtools";//도구
 import axios from "axios";

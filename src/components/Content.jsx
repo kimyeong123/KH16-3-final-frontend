@@ -11,6 +11,8 @@ import BoardEdit from "./board/BoardEdit";
 import QnaWrite from "./qna/QnaWrite";
 import QnaDetail from "./qna/QnaDetail";
 import QnaList from "./qna/QnaList";
+import MemberJoinFinish from "./member/MemberJoinFinish";
+import MemberMypage from "./member/MemberMypage";
 
 export default function Content() {
 
@@ -24,6 +26,8 @@ export default function Content() {
                         {/* 회원 관련 페이지들 */}
                         <Route path="/member/join" element={<MemberJoin />}></Route>
                         <Route path="/member/login" element={<MemberLogin />}></Route>
+                        <Route path="/member/joinfinish" element={<MemberJoinFinish />}></Route>
+                        <Route path="/member/mypage" element={<MemberMypage />}></Route>
                     
                         {/* 게시글 페이지 */}
                         <Route path="board/write" element={<BoardWrite/>}></Route>

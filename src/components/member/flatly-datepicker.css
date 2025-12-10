@@ -1,9 +1,7 @@
-/* Datepicker - Custom Theme to Match Your Navbar Colors */
 
-/* 전체 배경과 글꼴 */
 .react-datepicker {
   font-family: 'Arial', sans-serif;
-  background-color: #f8f9fa; /* 밝은 배경 */
+  background-color: #f8f9fa; 
   border: 1px solid #ced4da; 
   border-radius: 0.25rem;
   padding: 0.5rem;
@@ -48,43 +46,37 @@
   color: #fff;
 }
 
-
 .react-datepicker__day--today {
-  position: relative;               /* ::after 위치 지정 */
+  position: relative;   
   font-weight: 700;
   color: #fff;
-  background-color: #18bc9c;       /* Flatly primary */
+  background-color: #18bc9c; 
   border-radius: 50%;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
   transition: all 0.2s ease;
 }
 
-/* 오늘 날짜 강조 */
 .react-datepicker__day--today {
-  position: relative;               /* ::after 위치 지정 */
+  position: relative; 
   font-weight: 700;
-  color: #F8F9FA;                  /* 글자색을 지난날짜 호버와 통일 */
-  background-color: #2C3E50;       /* 지난날짜 호버 색상과 통일 */
-  border-radius: 0.25rem;           /* 호버 스타일과 통일 */
+  color: #F8F9FA;  
+  background-color: #2C3E50; 
+  border-radius: 0.25rem;  
   box-shadow: 0 0 4px rgba(0,0,0,0.2); 
 }
 
 /* 오늘 표시 라벨 추가 */
 .react-datepicker__day--today::after {
-  content: "오늘";                  /* 작은 텍스트 */
+  content: "오늘";     
   position: absolute;
-  bottom: -22px;                    /* 날짜 아래에 표시 */
+  bottom: -22px;             
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.65rem;
-  color: #2C3E50;                   /* 배경색과 톤 맞춤 */
+  color: #2C3E50;           
   font-weight: bold;
 }
 
-
-
-
-/* 주말 스타일 optional */
 .react-datepicker__day--weekend {
   color: #2C3E50;
 }
