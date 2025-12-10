@@ -62,29 +62,6 @@ export default function MemberJoin() {
     const replacement = e.target.value.replace(/[^0-9]+/g, "");//숫자가 아닌 항목을 제거한 뒤
     setCertNumber(replacement);//설정
   }, []);
-  const sendCertCheck = useCallback(async (e) => {
-    try {
-      const { data } = await axios.post("/cert/check", {
-        certEmail: member.memberEmail, certNumber: certNumber
-      });
-      //data 안에는 result(확인결과)와 message(상태메세지)가 있다
-      if (data.result === true) {//인증이 성공했다면
-        setCertNumberClass("is-valid");//성공 표시
-        setMemberClass(prev => ({ ...prev, memberEmail: "is-valid" }));//이메일 검사 완료 표시
-        setSending(null);//화면 숨김
-      }
-      else {//인증이 실패했다면
-        setCertNumberClass("is-invalid");//실패 표시
-        setCertNumberFeedback(data.message);
-      }
-    }
-    catch (err) {
-      setCertNumberClass("is-invalid");//실패 표시
-      setCertNumberFeedback("인증번호 형식이 부적합합니다");
-    }
-  }, [member.memberEmail, certNumber]);
-
-
   const [showPassword, setShowPassword] = useState(false);
 
 
@@ -209,37 +186,74 @@ export default function MemberJoin() {
   // 이메일
   const [emailId, setEmailId] = useState("");
   const [emailDomain, setEmailDomain] = useState("");
+  const [isEmailCertified, setIsEmailCertified] = useState(false);
+  const [sending, setSending] = useState(null); // null, true, false
+
+  // 이메일 유효성 체크
   const checkMemberEmail = useCallback(() => {
     const full = `${emailId.trim()}@${emailDomain.trim()}`;
     const regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
     const valid = regex.test(full);
-    setMember(prev => ({ ...prev, memberEmail: full }));
-    setMemberClass(prev => ({ ...prev, memberEmail: valid ? "is-valid" : "is-invalid" }));
-    setMemberEmailFeedback(valid ? "" : "올바른 이메일 형식이 아닙니다");
-  }, [emailId, emailDomain]);
-  //이메일
-  const [sending, setSending] = useState(null);//null(보낸적없음), true(발송중), false(발송완료)
-  const sendCertEmail = useCallback(async () => {//이메일 인증
-    resetMemberEmail();//이메일 관련 상태를 모두 초기화
-    const regex = /^[a-z0-9]+@[a-z0-9.]+$/;
-    const valid = regex.test(member.memberEmail);
-    if (valid === false) {
-      Swal.fire({
-        title: "이메일 인증 오류",
-        text: "입력한 이메일 형식이 부적합합니다",
-        icon: "error",
-        confirmButtonColor: "#17a2b8",
-        confirmButtonText: "확인",
-        allowOutsideClick: false,//외부 클릭 금지
-      });
-      return;
-    }
 
-    //1. 서버에 이메일 전송을 요청(ajax)
+    // 인증 완료 시 email 클래스는 유지
+    setMember(prev => ({ ...prev, memberEmail: full }));
+    setMemberClass(prev => ({
+      ...prev,
+      memberEmail: isEmailCertified ? "is-valid" : valid ? "is-valid" : "is-invalid"
+    }));
+    setMemberEmailFeedback(valid ? "" : "올바른 이메일 형식이 아닙니다");
+  }, [emailId, emailDomain, isEmailCertified]);
+
+  // 이메일 전송
+  const sendCertEmail = useCallback(async () => {
+    checkMemberEmail();
+
+    const fullEmail = `${emailId.trim()}@${emailDomain.trim()}`;
+    const regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
+    const valid = regex.test(fullEmail);
+    if (!valid) return;
+
+    // 이메일 관련 초기화 (인증번호 관련 상태는 초기화하지 않음)
+    setCertNumber("");
+    setCertNumberClass("");
+    setCertNumberFeedback("");
+
     setSending(true);
-    const response = await axios.post("/cert/send", { certEmail: member.memberEmail });
-    setSending(false);
-  }, [member]);
+    try {
+      await axios.post("/cert/send", { certEmail: fullEmail });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSending(false);
+    }
+  }, [emailId, emailDomain]);
+
+  // 인증번호 확인
+  const sendCertCheck = useCallback(async () => {
+    const fullEmail = `${emailId.trim()}@${emailDomain.trim()}`;
+    try {
+      const response = await axios.post("/cert/check", {
+        certEmail: fullEmail,
+        certNumber
+      });
+
+      if (response.data.result === true) {
+        setIsEmailCertified(true);
+        setMemberClass(prev => ({ ...prev, memberEmail: "is-valid" }));
+        setCertNumberClass("is-valid");
+        setCertNumberFeedback("인증번호 확인이 완료되었습니다.");
+      } else {
+        setCertNumberClass("is-invalid");
+        setCertNumberFeedback(response.data.message || "인증번호가 일치하지 않습니다.");
+      }
+    } catch (error) {
+      console.error("인증번호 확인 통신 오류:", error);
+      setCertNumberClass("is-invalid");
+      setCertNumberFeedback("서버와 통신 중 오류가 발생했습니다.");
+    }
+  }, [emailId, emailDomain, certNumber]);
+
+  //주소
   const open = useDaumPostcodePopup("//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js");
   const searchAddress = useCallback(() => {
     open({
@@ -355,8 +369,8 @@ export default function MemberJoin() {
     if (memberClass.memberPw !== "is-valid") return false;
     if (memberClass.memberPw2 !== "is-valid") return false;
     if (memberClass.memberNickname !== "is-valid") return false;
-    // if (memberClass.memberEmail !== "is-valid") return false;
-    // if (certNumberClass !== "is-valid") return false;
+    if (memberClass.memberEmail !== "is-valid") return false;
+    if (certNumberClass !== "is-valid") return false;
 
     if (memberClass.memberBirth === "is-invalid") return false;
     if (memberClass.memberContact === "is-invalid") return false;
@@ -371,7 +385,7 @@ export default function MemberJoin() {
     if (!memberValid) return;
 
     try {
-     await axios.post("http://localhost:8080/member/register", member);
+      await axios.post("http://localhost:8080/member/register", member);
       navigate("/");
     } catch (err) {
       console.error("회원 가입 실패", err);
@@ -467,26 +481,35 @@ export default function MemberJoin() {
             <div className="invalid-feedback">{memberNicknameFeedback}</div>
           </div>
         </div>
-
         {/* 이메일 */}
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label">
             <div className="d-inline-flex align-items-center">
-              이메일 <FaExclamationCircle className="text-secondary ms-1" /></div>
+              이메일 <FaExclamationCircle className="text-secondary ms-1" />
+            </div>
           </label>
           <div className="col-sm-9">
             <div className={`input-group ${memberClass.memberEmail}`}>
-              <input type="text" className="form-control" placeholder="아이디"
-                value={emailId} onChange={e => { setEmailId(e.target.value); checkMemberEmail(); }} />
+              <input
+                type="text"
+                className="form-control"
+                placeholder="아이디"
+                value={emailId}
+                onChange={e => { setEmailId(e.target.value); checkMemberEmail(true); }}
+              />
               <span className="input-group-text">@</span>
-              <input type="text" className="form-control" placeholder="도메인"
-                value={emailDomain} onChange={e => { setEmailDomain(e.target.value); checkMemberEmail(); }} />
-              {/* sending의 여부에 따라 버튼의 상태를 변경 */}
+              <input
+                type="text"
+                className="form-control"
+                placeholder="도메인"
+                value={emailDomain}
+                onChange={e => { setEmailDomain(e.target.value); checkMemberEmail(true); }}
+              />
               <button
                 type="button"
                 className="btn btn-primary ms-2 d-inline-flex align-items-center"
                 onClick={sendCertEmail}
-                disabled={sending === true}
+                disabled={sending === true || memberClass.memberEmail === "is-invalid"}
               >
                 {sending === true ? (
                   <FaSpinner className="fa-spin custom-spinner" />
@@ -494,29 +517,46 @@ export default function MemberJoin() {
                   <RiMailSendFill />
                 )}
                 <span className="ms-2 d-none d-sm-inline">
-                  {sending === true ? "인증번호 발송중" : "인증번호 보내기"}
+                  {sending === true ? "인증번호 발송중"
+                    : (sending === false ? "다시 보내기" : "인증번호 보내기")}
                 </span>
               </button>
-              <div className="valid-feedback">이메일 인증이 완료되었습니다</div>
-              <div className="invalid-feedback">{memberEmailFeedback}</div>
             </div>
-            {sending === false && (
-              <div className="col-sm-9 offset-sm-3 d-flex flex-wrap text-nowrap mt-2">
-                <input type="text" inputMode="numeric"
-                  className={`form-control w-auto ${certNumberClass}`}
-                  placeholder="인증번호 입력"
-                  value={certNumber} onChange={changeCertNumber} />
-                <button type="button" className="btn btn-primary ms-2" onClick={sendCertCheck}>
+            {(sending === false || isEmailCertified) && (
+              <div className="col-sm-9 offset-sm-3 d-flex align-items-center flex-wrap text-nowrap mt-3 ms-4">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={`form-control w-auto me-2 ${certNumberClass}`}
+                  placeholder="인증번호 입력" 
+                  value={certNumber}
+                  onChange={changeCertNumber}
+                  disabled={isEmailCertified} // 완료되면 입력 막기
+                />
+                <button
+                  type="button"
+                  className="btn btn-primary ms-2"
+                  onClick={sendCertCheck}
+                  disabled={isEmailCertified} // 완료되면 버튼 막기
+                >
                   <FaKey />
                   <span className="ms-2 d-none d-sm-inline">인증번호 확인</span>
                 </button>
+
+                {certNumberClass === "is-valid" && (
+                  <div className="valid-feedback d-block ms-2 text-success">
+                    인증번호 확인이 완료되었습니다.
+                  </div>
+                )}
+
                 <div className="invalid-feedback">{certNumberFeedback}</div>
               </div>
             )}
-            <div className="valid-feedback">올바른 이메일 형식입니다</div>
+
             <div className="invalid-feedback">{memberEmailFeedback}</div>
           </div>
         </div>
+
         {/* 주소(우편번호, 기본주소, 상세주소) */}
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label">주소</label>

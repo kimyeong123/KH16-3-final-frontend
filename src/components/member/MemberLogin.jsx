@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAtom } from 'jotai';
 import axios from 'axios';
-import { loginIdState, loginRoleState, accessTokenState, refreshTokenState, loginCompleteState } from "../../utils/jotai"; 
+import { loginIdState, loginRoleState, accessTokenState, refreshTokenState, loginCompleteState } from "../../utils/jotai";
 import "./feedback.css";
 import Jumbotron from "../templates/Jumbotron";
 
@@ -67,8 +67,8 @@ export default function MemberLogin() {
                 </div>
 
                 {result === false && (
-                    <div className="row mt-4">
-                        <div className="col-sm-9 offset-sm-3 text-red">
+                    <div className="row mt-4 justify-content-center">
+                        <div className="col-auto text-red text-center">
                             입력하신 정보가 올바르지 않습니다.
                         </div>
                     </div>
