@@ -1,0 +1,201 @@
+.member-join-finish {
+  background: linear-gradient(145deg, #2C3E50, #18BC9C); 
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.finish-card {
+  background: white;
+  max-width: 600px;
+  width: 100%;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  animation: fadeInDown 0.8s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px); /* 위에서 시작 */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.icon-container {
+  display: flex;
+  justify-content: center;
+}
+
+.check-icon {
+  color: #18BC9C;
+  transition: transform 0.3s;
+}
+
+.check-icon.bounce {
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%,20%,50%,80%,100% { transform: translateY(0); }
+  40%,60% { transform: translateY(-7px); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+input.is-valid,
+input.is-invalid {
+  background-image: none !important; 
+  padding-right: 2.25rem;
+}
+
+.is-valid {
+  border-color: #2c3e50 !important;
+}
+
+.is-valid:focus {
+  border-color: #1a252f !important;
+  box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25) !important;
+}
+
+.is-invalid {
+  border-color: #a94442 !important;
+}
+
+.is-invalid:focus {
+  border-color: #843534 !important;
+  box-shadow: 0 0 0 0.2rem rgba(169, 68, 66, 0.25) !important;
+}
+
+.valid-feedback {
+  color: #2c3e50 !important;
+  font-weight: 500;
+}
+
+.invalid-feedback {
+  color: #a94442 !important;
+  font-weight: 500;
+}
+
+.input-icon {
+  position: relative;
+}
+
+.input-icon input {
+  padding-right: 2rem;
+}
+
+.react-datepicker-wrapper input.is-valid {
+  border-color: #2c3e50 !important;
+}
+
+.react-datepicker-wrapper input.is-invalid {
+  border-color: #a94442 !important;
+}
+
+.member-duplicate-feedback {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.member-duplicate-feedback.valid {
+  color: #1a252f !important;
+}
+
+.member-duplicate-feedback.invalid {
+  color: #843534 !important;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+.member-container {
+  max-width: 800px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15), 0 0 10px rgba(0,0,0,0.05);
+  padding: 2rem;
+  border: 1px solid #dee2e6;
+  margin: 5vh auto;
+  transition: transform 0.3s ease;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.member-container:hover {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 0 12px rgba(0,0,0,0.05);
+}
+
+.member-container .row {
+  display: flex;
+  align-items: center; 
+  flex-wrap: wrap;     
+}
+
+.member-container .form-control ~ .valid-feedback,
+.member-container .form-control ~ .invalid-feedback {
+  width: 75%;
+  margin-top: 0.25rem;
+}
+
+.col-form-label {
+  font-weight: 500;
+  color: #1a252f;
+  width: 25%;
+}
+
+.member-container .form-control {
+  font-size: 0.95rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ced4da;
+  transition: all 0.3s ease;
+  width: 75%;
+}
+
+.member-container .form-control:focus {
+  border-color: #18bc9c;
+  box-shadow: 0 0 8px rgba(24,188,156,0.3);
+}
+
+.member-container .btn-success {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.member-container .btn-success:hover {
+  background-color: #15a589;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.member-container .row + .row {
+  border-top: 1px dashed #ced4da;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.member-container .row .col {
+  display: flex;
+  justify-content: center;
+}
+
+.member-container .form-row.no-border + .form-row {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}

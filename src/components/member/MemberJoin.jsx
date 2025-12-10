@@ -1,22 +1,24 @@
 import { useNavigate } from "react-router-dom";
 import Jumbotron from "../templates/Jumbotron";
 import { FaEye, FaEyeSlash, FaKey, FaMagnifyingGlass, FaSpinner, FaUser } from "react-icons/fa6";
+import { FaToggleOff } from "react-icons/fa";
+import { FaToggleOn } from "react-icons/fa";
 import { FaExclamationCircle } from "react-icons/fa";
 import { RiMailSendFill } from "react-icons/ri";
 import { FaEraser } from "react-icons/fa";
 import { useCallback, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
 import { format, parse } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import { registerLocale } from "react-datepicker";
 import ko from "date-fns/locale/ko";
 import "./flatly-datepicker.css";
-import "./feedback.css";
+import "./Member.css";
 import { Modal, Button } from "react-bootstrap";
 import { useMemo } from "react";
 import { useRef } from "react";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 
 //다음 우편번호 API
 import { useDaumPostcodePopup } from "react-daum-postcode";
@@ -129,7 +131,7 @@ export default function MemberJoin() {
     setMemberClass(prev => ({ ...prev, memberPw: valid ? "is-valid" : "is-invalid" }));
 
     if (!member.memberPw) {
-      setMemberPwFeedback("사용할 비밀번호를 입력하세요");
+      setMemberPwFeedback("비밀번호 확인을 해주세요");
       setMemberClass(prev => ({ ...prev, memberPw2: "is-invalid" }));
     } else {
       const match = member.memberPw === member.memberPw2;
@@ -403,7 +405,14 @@ export default function MemberJoin() {
           <label className="col-sm-3 col-form-label">
             <div className="d-inline-flex align-items-center">
               아이디
-              <FaExclamationCircle className="text-secondary ms-1" />
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
             </div>
           </label>
           <div className="col-sm-9">
@@ -424,9 +433,17 @@ export default function MemberJoin() {
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label">
             <div className="d-inline-flex align-items-center">
-              비밀번호 <FaExclamationCircle className="text-secondary ms-1" />
-              {showPassword ? <FaEye className="ms-3" onClick={() => setShowPassword(false)} />
-                : <FaEyeSlash className="ms-3" onClick={() => setShowPassword(true)} />}</div>
+              비밀번호
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
+              {showPassword ? <FaToggleOn className="ms-3 fs-4" onClick={() => setShowPassword(false)} />
+                : <FaToggleOff className="ms-3 fs-4" onClick={() => setShowPassword(true)} />}</div>
           </label>
           <div className="col-sm-9">
             <input type={showPassword ? "text" : "password"} className={`form-control ${memberClass.memberPw}`}
@@ -441,7 +458,18 @@ export default function MemberJoin() {
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label">
             <div className="d-inline-flex align-items-center">
-              비밀번호 확인 <FaExclamationCircle className="text-secondary ms-1" /></div>
+              비밀번호 확인
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
+            </div>
+
+
           </label>
           <div className="col-sm-9">
             <input type={showPassword ? "text" : "password"} className={`form-control ${memberClass.memberPw2}`}
@@ -456,7 +484,16 @@ export default function MemberJoin() {
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label ">
             <div className="d-inline-flex align-items-center">
-              이름 <FaExclamationCircle className="text-secondary ms-1" /></div>
+              이름
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
+            </div>
           </label>
           <div className="col-sm-9">
             <input type="text" className={`form-control ${memberClass.memberName}`}
@@ -471,7 +508,16 @@ export default function MemberJoin() {
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label">
             <div className="d-inline-flex align-items-center">
-              닉네임 <FaExclamationCircle className="text-secondary ms-1" /></div>
+              닉네임
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
+            </div>
           </label>
           <div className="col-sm-9">
             <input type="text" className={`form-control ${memberClass.memberNickname}`}
@@ -485,7 +531,15 @@ export default function MemberJoin() {
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label">
             <div className="d-inline-flex align-items-center">
-              이메일 <FaExclamationCircle className="text-secondary ms-1" />
+              이메일
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+               <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
             </div>
           </label>
           <div className="col-sm-9">
@@ -528,7 +582,7 @@ export default function MemberJoin() {
                   type="text"
                   inputMode="numeric"
                   className={`form-control w-auto me-2 ${certNumberClass}`}
-                  placeholder="인증번호 입력" 
+                  placeholder="인증번호 입력"
                   value={certNumber}
                   onChange={changeCertNumber}
                   disabled={isEmailCertified} // 완료되면 입력 막기
@@ -626,7 +680,7 @@ export default function MemberJoin() {
               name="memberContact" value={member.memberContact}
               onChange={changeStrValue}
               onBlur={checkMemberContact} />
-            <div className="invalid-feedback">11자리 휴대전화번호를 입력하세요</div>
+            <div className="invalid-feedback">11자리 숫자로 입력해주세요</div>
           </div>
         </div>
 
