@@ -51,11 +51,7 @@ export default function MemberLogin() {
             setLoginCreatedTime(data.createdTime);
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
-            setLoginComplete(true);
-
             
-            // axios 기본 헤더도 설정
-            axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
             console.log("로그인 응답:", data);
 
             navigate("/");
@@ -63,7 +59,7 @@ export default function MemberLogin() {
             console.error("로그인 실패:", err);
             setResult(false);
         }
-    }, [member, setLoginId, setLoginRole, setAccessToken, setRefreshToken, setLoginComplete, navigate]);
+    }, [member, navigate]);
 
     return (
         <>

@@ -6,7 +6,7 @@ import Content from "./components/Content"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
 import {BrowserRouter} from "react-router-dom"
-import { Provider, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import React, { useEffect } from "react";
 import axios from "axios";
 
@@ -14,84 +14,77 @@ import 'react-toastify/dist/ReactToastify.css';
 import'./styles/toast.css';
 import'./styles/sweetalert2-flatly.css';
 
-// 💡 Jotai 아톰 경로를 맞게 수정하세요.
-import { adminState, loginCompleteState, loginState } from "./utils/jotai"; 
+// jotai.js에서 인증 상태 관리용 atom들을 임포트합니다.
+import { accessTokenState, clearLoginState, loginCompleteState } from "./utils/jotai"; 
 
-
-// ----------------------------------------------------
-// 💡 인증 상태 복구 로직을 담당하는 컴포넌트 (AuthRoot)
-// ----------------------------------------------------
 function AuthRoot() {
-    const setLoginComplete = useSetAtom(loginCompleteState);
-    const setAdmin = useSetAtom(adminState);
-    const setIsLogin = useSetAtom(loginState);
-    
-    // 새로고침 시 딱 한 번 실행되어 Jotai 상태를 복구합니다.
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                // [1] 서버에 토큰 유효성 검사 요청 (Header에 JWT 포함되어야 함)
-                // 서버는 토큰을 확인하고, 유효하다면 사용자 정보(loginLevel 포함)를 반환해야 합니다.
-                const response = await axios.post("/member/check-token"); 
-                
-                // [2] 성공 시 상태 업데이트
-                const loginLevel = response.data.loginLevel; // 서버에서 받은 권한 레벨
-                
-                setIsLogin(true);
-                // 응답에서 관리자 여부를 판단하여 Jotai 아톰에 저장
-                setAdmin(loginLevel === 'ADMIN');
-                
-            } catch (error) {
-                // [3] 실패 시 (토큰 없음/만료) 상태 초기화
-                setIsLogin(false);
-                setAdmin(false); 
-            } finally {
-                // [4]  로딩 상태 해제 (성공 여부와 관계없이 완료를 알려야 Admin이 동작함)
-                setLoginComplete(true); 
-            }
-        };
-        
-        checkAuth(); 
-        
-    }, [setLoginComplete, setAdmin, setIsLogin]); 
-    
-    const contentPaddingStyle = { paddingTop: '150px' };
+  const setLoginComplete = useSetAtom(loginCompleteState);
+  const clearLogin = useSetAtom(clearLoginState); 
+  const currentAccessToken = useAtomValue(accessTokenState);
+  const isLoginComplete = useAtomValue(loginCompleteState);
 
-    return (
-        <BrowserRouter>
-            <Provider>
-                <Header/>
-                <div className="container-fluid my-5 pt-5" style={contentPaddingStyle}>
-                    <Content/> {/* 라우팅(Routes)이 포함된 컴포넌트 */}
-                    <hr/>
-                    <Footer/>
-                </div>
-            </Provider>
-        </BrowserRouter>
-    );
+  // 앱 로드/새로고침 시 Jotai 상태를 복구하고 인증 상태를 확인합니다.
+  useEffect(() => {
+    console.log("AuthRoot 실행. 현재 AccessToken:", currentAccessToken);
+    
+    // Access Token이 없으면 (null 또는 "")
+    if (currentAccessToken === null || currentAccessToken === "") {
+      clearLogin(); // 로그인 정보 (ID, Role, Token 등)를 초기화합니다.
+      
+      // 토큰이 없으므로, 로딩 완료 상태를 true로 설정하여 스피너를 해제하고 비로그인 콘텐츠를 표시합니다.
+      setLoginComplete(true); 
+      return;
+    }
+
+    // Access Token이 존재하면, 즉시 로딩 완료 처리합니다.
+    // 토큰의 유효성 검사 및 갱신은 axiosSetup.js의 인터셉터가 담당합니다.
+    setLoginComplete(true); 
+
+  }, [currentAccessToken, clearLogin, setLoginComplete]);
+
+  const contentPaddingStyle = { paddingTop: '150px' };
+
+  // isLoginComplete가 true가 될 때까지 로딩 스피너를 표시합니다.
+  if (!isLoginComplete) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <div className="spinner-border text-success" role="status"></div>
+        <span className="sr-only">인증 상태 복구 중...</span>
+      </div>
+    );
+  }
+
+  // 로딩이 완료되면 앱의 주요 콘텐츠를 렌더링합니다.
+  return (
+    <BrowserRouter>
+      <Header/>
+      <div className="container-fluid my-5 pt-5" style={contentPaddingStyle}>
+        <Content/>
+        <hr/>
+        <Footer/>
+      </div>
+    </BrowserRouter>
+  );
 }
 
-
 function App() {
-    return (
-        <>
-            <AuthRoot/> {/* AuthRoot를 렌더링 */}
-            
-            {/* 토스트 메세지 컨테이너 */}
-            <ToastContainer
-                position="bottom-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                closeOnClick={false}
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-                transition={Bounce}
-            />
-        </>
-    )
+  return (
+    <>
+      <AuthRoot />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
+    </>
+  )
 }
 
 export default App
