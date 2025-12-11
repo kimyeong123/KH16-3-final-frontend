@@ -23,6 +23,7 @@ export default function MemberLogin() {
     const [, setLoginPoint] = useAtom(loginPointState);
     const [, setLoginContact] = useAtom(loginContactState);
     const [, setLoginCreatedTime] = useAtom(loginCreatedTimeState);
+    
 
 
     const [member, setMember] = useState({ memberId: "", memberPw: "" });
@@ -51,6 +52,8 @@ export default function MemberLogin() {
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
             setLoginComplete(true);
+
+            
             // axios 기본 헤더도 설정
             axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
             console.log("로그인 응답:", data);
