@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAtom } from 'jotai';
 import axios from 'axios';
-import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, refreshTokenState, loginCompleteState, loginEmailState, loginAddress1State, loginAddress2State, loginCreatedTimeState, loginPointState, loginContactState, loginNoState, adminState } from "../../utils/jotai";
+import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, refreshTokenState, loginCompleteState, loginEmailState, loginPostState, loginAddress1State, loginAddress2State, loginCreatedTimeState, loginPointState, loginContactState, loginNoState } from "../../utils/jotai";
 import "./Member.css";
 import Jumbotron from "../templates/Jumbotron";
 
@@ -17,6 +17,7 @@ export default function MemberLogin() {
     const [, setLoginComplete] = useAtom(loginCompleteState);
     const [, setLoginNickname] = useAtom(loginNicknameState);
     const [, setLoginEmail] = useAtom(loginEmailState);
+    const [, setLoginPost] = useAtom(loginPostState);
     const [, setLoginAddress1] = useAtom(loginAddress1State);
     const [, setLoginAddress2] = useAtom(loginAddress2State);
     const [, setLoginPoint] = useAtom(loginPointState);
@@ -42,6 +43,7 @@ export default function MemberLogin() {
             setLoginRole(data.loginLevel);
             setLoginNickname(data.nickname);
             setLoginEmail(data.email);
+            setLoginPost(data.post);
             setLoginAddress1(data.address1);
             setLoginAddress2(data.address2);
             setLoginContact(data.contact);

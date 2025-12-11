@@ -56,7 +56,7 @@ axios.interceptors.response.use((response) => {
         //clearLogin();//모든 jotai state 초기화(컴포넌트 내부에서만 가능한 코드)
         store.set(clearLoginState);//모든 jotai state 초기화(컴포넌트 외부에서만 가능한 코드)
         //navigate("/account/login");//로그인 페이지로 이동 (사용불가... Routes 외부)
-        location.href = "/account/login";
+        location.href = "/member/login";
     }
     return Promise.reject(error);//에러 발생 처리
 });

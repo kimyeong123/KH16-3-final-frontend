@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { FaTrash } from "react-icons/fa";
-import { FaUserLock } from "react-icons/fa";
+import { FaTrash, FaUserLock } from "react-icons/fa";
 import { FaUserPen } from "react-icons/fa6";
 import {
-    loginNoState, loginIdState, loginRoleState, loginNicknameState,
+    loginNoState, loginIdState, loginRoleState, loginNicknameState, loginPostState,
     loginAddress1State, loginAddress2State, loginEmailState,
     loginPointState, loginContactState, loginCreatedTimeState,
-    clearLoginState, accessTokenState, refreshTokenState
+    clearLoginState, accessTokenState
 } from "../../utils/jotai";
 import Jumbotron from "../templates/Jumbotron";
 import axios from "axios";
@@ -19,25 +18,62 @@ export default function MemberMypage() {
     const [loginId] = useAtom(loginIdState);
     const [loginRole] = useAtom(loginRoleState);
     const [nickname] = useAtom(loginNicknameState);
-    const [email] = useAtom(loginEmailState);
-    const [address1] = useAtom(loginAddress1State);
+    const [email, setLoginEmail] = useAtom(loginEmailState);
+    const [post, setLoginPost] = useAtom(loginPostState);
+    const [address1, setLoginAddress1] = useAtom(loginAddress1State);
     const [address2] = useAtom(loginAddress2State);
     const [point] = useAtom(loginPointState);
-    const [contact] = useAtom(loginContactState);
+    const [contact, setLoginContact] = useAtom(loginContactState);
     const [createdTime] = useAtom(loginCreatedTimeState);
 
     // 토큰 상태
     const [accessToken] = useAtom(accessTokenState);
-    const [refreshToken] = useAtom(refreshTokenState);
 
     // 로그인 상태 초기화 함수
     const [, clearLogin] = useAtom(clearLoginState);
 
+    // 회원 탈퇴 패널 열림/닫힘 상태
+    const [showDeletePanel, setShowDeletePanel] = useState(false);
+
     // 비밀번호 입력 상태
     const [password, setPassword] = useState("");
 
-    // 회원 탈퇴 패널 열림/닫힘 상태
-    const [showDeletePanel, setShowDeletePanel] = useState(false);
+    // 수정 모드 상태
+    const [isEditing, setIsEditing] = useState(false);
+
+    // 수정할 필드 상태
+    const [editEmail, setEditEmail] = useState(email || "");
+    const [editAddress1, setEditAddress1] = useState(address1 || "");
+    const [editContact, setEditContact] = useState(contact || "");
+
+    // 회원정보 수정 저장
+    const handleUpdateInfo = async () => {
+        try {
+            // ① 보내기 전 데이터 확인
+            const dataToSend = {
+                email: editEmail,
+                address1: editAddress1,
+                contact: editContact
+            };
+            console.log("보낼 데이터:", dataToSend);  // ← 여기 찍힘
+
+            await axios.put(`http://localhost:8080/member/${loginNo}`, dataToSend, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+
+            alert("회원정보가 업데이트되었습니다.");
+            setIsEditing(false);
+
+            // Jotai 상태 업데이트
+            setLoginEmail(editEmail);
+            setLoginAddress1(editAddress1);
+            setLoginContact(editContact);
+
+        } catch (error) {
+            console.error(error);
+            alert("회원정보 수정 중 오류가 발생했습니다.");
+        }
+    };
 
     // 탈퇴 처리 함수
     const handleDeleteAccount = async () => {
@@ -53,14 +89,12 @@ export default function MemberMypage() {
             }
 
             await axios.delete(`http://localhost:8080/member/${Number(loginNo)}`, {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                },
-                data: { memberPw: password } // 비밀번호 전달
+                headers: { Authorization: `Bearer ${accessToken}` },
+                data: { memberPw: password }
             });
 
-            // Jotai 상태 초기화
-            clearLogin(); // 로그인 관련 모든 상태 초기화
+            // 로그인 상태 초기화
+            clearLogin();
 
             alert("회원 탈퇴가 완료되었습니다. 로그인 상태가 만료되었습니다.");
             setShowDeletePanel(false);
@@ -98,11 +132,50 @@ export default function MemberMypage() {
                             <p><strong>아이디 : </strong> {loginId}</p>
                             <p><strong>닉네임 : </strong> {nickname}</p>
                             <p><strong>권한 : </strong> {loginRole}</p>
-                            <p><strong>이메일 : </strong> {email}</p>
-                            <p><strong>기본 주소 : </strong> {address1}</p>
+
+                            <p><strong>이메일 : </strong>
+                                {isEditing ? (
+                                    <input
+                                        type="email"
+                                        className="form-control"
+                                        value={editEmail}
+                                        onChange={(e) => setEditEmail(e.target.value)}
+                                    />
+                                ) : (
+                                    email
+                                )}
+                            </p>
+                            <p><strong>우편번호 : </strong> {post}</p>
+                            <p><strong>기본 주소 : </strong>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={editAddress1}
+                                        onChange={(e) => setEditAddress1(e.target.value)}
+                                    />
+                                ) : (
+                                    address1
+                                )}
+                            </p>
+
                             <p><strong>상세 주소 : </strong> {address2}</p>
+
                             <p><strong>보유 머니 : </strong> {point}p</p>
-                            <p><strong>연락처 : </strong> {contact}</p>
+
+                            <p><strong>연락처 : </strong>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={editContact}
+                                        onChange={(e) => setEditContact(e.target.value)}
+                                    />
+                                ) : (
+                                    contact
+                                )}
+                            </p>
+
                             <p>
                                 <strong>가입일: </strong>
                                 {createdTime
@@ -116,6 +189,29 @@ export default function MemberMypage() {
                                     })()
                                     : "-"}
                             </p>
+
+                            {/* 저장/취소 버튼 */}
+                            {isEditing && (
+                                <div className="d-flex gap-2 mt-3">
+                                    <button
+                                        className="btn btn-secondary btn-sm"
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setEditEmail(email);
+                                            setEditAddress1(address1);
+                                            setEditContact(contact);
+                                        }}
+                                    >
+                                        취소
+                                    </button>
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={handleUpdateInfo}
+                                    >
+                                        저장
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -124,7 +220,15 @@ export default function MemberMypage() {
                         <div className="card shadow-sm p-4 h-100 d-flex flex-column align-items-center">
                             <h5 className="mb-3">계정 관리</h5>
 
-                            <button className="btn btn-outline-primary w-50 mb-2 d-flex align-items-center justify-content-center">
+                            <button
+                                className="btn btn-outline-primary w-50 mb-2 d-flex align-items-center justify-content-center"
+                                onClick={() => {
+                                    setIsEditing(true);
+                                    setEditEmail(email);
+                                    setEditAddress1(address1);
+                                    setEditContact(contact);
+                                }}
+                            >
                                 <FaUserPen className="me-2 fs-4" /> 회원정보 변경
                             </button>
 
@@ -140,7 +244,7 @@ export default function MemberMypage() {
                                 <FaTrash className="me-2 fs-5" /> 회원 탈퇴
                             </button>
 
-                            {/* 회원 탈퇴 패널 (계정 관리 카드 바로 아래) */}
+                            {/* 회원 탈퇴 패널 */}
                             {showDeletePanel && (
                                 <div className="delete-panel mt-4 w-100">
                                     <p className="mb-2 text-danger fw-semibold">
