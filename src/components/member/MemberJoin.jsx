@@ -337,10 +337,11 @@ export default function MemberJoin() {
       memberBirth: format(date, "yyyy-MM-dd")
     });
     setShowDatePickerModal(false);
+    checkDuplicate();
   };
 
 
-  // 중복 체크 수정
+  // 중복 체크
   const checkDuplicate = useCallback(async () => {
     if (!member.memberName || !member.memberBirth || !member.memberContact) return;
 
@@ -388,11 +389,12 @@ export default function MemberJoin() {
 
     try {
       await axios.post("http://localhost:8080/member/register", member);
-      navigate("/");
+      navigate("/member/joinfinish");
     } catch (err) {
       console.error("회원 가입 실패", err);
     }
   }, [member, memberValid, navigate]);
+
 
   return (
     <>
@@ -536,7 +538,7 @@ export default function MemberJoin() {
                 placement="right"
                 overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
               >
-               <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
                   <FaExclamationCircle className="text-secondary" />
                 </span>
               </OverlayTrigger>
@@ -679,7 +681,11 @@ export default function MemberJoin() {
               className={`form-control ${memberClass.memberContact}`}
               name="memberContact" value={member.memberContact}
               onChange={changeStrValue}
-              onBlur={checkMemberContact} />
+              onBlur={(e) => {
+                checkMemberContact(e);
+                checkDuplicate();
+              }}
+            />
             <div className="invalid-feedback">11자리 숫자로 입력해주세요</div>
           </div>
         </div>
