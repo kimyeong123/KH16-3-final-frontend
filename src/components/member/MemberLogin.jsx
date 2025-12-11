@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAtom } from 'jotai';
 import axios from 'axios';
-import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, refreshTokenState, loginCompleteState, loginEmailState, loginAddress1State, loginAddress2State, loginCreatedTimeState, loginPointState, loginContactState, loginNoState } from "../../utils/jotai";
+import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, refreshTokenState, loginCompleteState, loginEmailState, loginAddress1State, loginAddress2State, loginCreatedTimeState, loginPointState, loginContactState, loginNoState, adminState } from "../../utils/jotai";
 import "./Member.css";
 import Jumbotron from "../templates/Jumbotron";
 
@@ -22,6 +22,7 @@ export default function MemberLogin() {
     const [, setLoginPoint] = useAtom(loginPointState);
     const [, setLoginContact] = useAtom(loginContactState);
     const [, setLoginCreatedTime] = useAtom(loginCreatedTimeState);
+    
 
 
     const [member, setMember] = useState({ memberId: "", memberPw: "" });
@@ -49,6 +50,8 @@ export default function MemberLogin() {
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
             setLoginComplete(true);
+
+            
             // axios 기본 헤더도 설정
             axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
             console.log("로그인 응답:", data);
