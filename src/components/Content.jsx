@@ -45,8 +45,8 @@ export default function Content() {
                         {/* 메세지(알림) */}
                         <Route path="/message/list" element={<MessageList/>}></Route>
                     </Routes>
+                    </div>
                 </div>
-            </div>
-        </>
-    )
-}
+            </>
+        )
+    }
