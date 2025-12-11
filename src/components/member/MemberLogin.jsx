@@ -2,18 +2,27 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAtom } from 'jotai';
 import axios from 'axios';
-import { loginIdState, loginRoleState, accessTokenState, refreshTokenState, loginCompleteState } from "../../utils/jotai";
-import "./feedback.css";
+import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, refreshTokenState, loginCompleteState, loginEmailState, loginAddress1State, loginAddress2State, loginCreatedTimeState, loginPointState, loginContactState, loginNoState } from "../../utils/jotai";
+import "./Member.css";
 import Jumbotron from "../templates/Jumbotron";
 
 export default function MemberLogin() {
     const navigate = useNavigate();
 
+    const [, setLoginNo] = useAtom(loginNoState);
     const [, setLoginId] = useAtom(loginIdState);
     const [, setLoginRole] = useAtom(loginRoleState);
     const [, setAccessToken] = useAtom(accessTokenState);
     const [, setRefreshToken] = useAtom(refreshTokenState);
     const [, setLoginComplete] = useAtom(loginCompleteState);
+    const [, setLoginNickname] = useAtom(loginNicknameState);
+    const [, setLoginEmail] = useAtom(loginEmailState);
+    const [, setLoginAddress1] = useAtom(loginAddress1State);
+    const [, setLoginAddress2] = useAtom(loginAddress2State);
+    const [, setLoginPoint] = useAtom(loginPointState);
+    const [, setLoginContact] = useAtom(loginContactState);
+    const [, setLoginCreatedTime] = useAtom(loginCreatedTimeState);
+
 
     const [member, setMember] = useState({ memberId: "", memberPw: "" });
     const [result, setResult] = useState(null);
@@ -27,18 +36,22 @@ export default function MemberLogin() {
         try {
             const { data } = await axios.post("/member/login", member);
             setResult(true);
-            console.log("Login response:", data);
-
+            setLoginNo(data.loginNo);
             setLoginId(data.loginId);
             setLoginRole(data.loginLevel);
-            console.log("저장된 loginRole:", data.loginLevel);
-
+            setLoginNickname(data.nickname);
+            setLoginEmail(data.email);
+            setLoginAddress1(data.address1);
+            setLoginAddress2(data.address2);
+            setLoginContact(data.contact);
+            setLoginPoint(data.point);
+            setLoginCreatedTime(data.createdTime);
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
             setLoginComplete(true);
-
             // axios 기본 헤더도 설정
             axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
+            console.log("로그인 응답:", data);
 
             navigate("/");
         } catch (err) {

@@ -4,7 +4,7 @@ export default function Home() {
 	return (
 		<>
 			<Jumbotron
-				subject="BidHouse"
+				subject="BIDHOUSE"
 				detail="최신 경매 정보와 인기 아이템을 만나보세요!"
 			/>
 
