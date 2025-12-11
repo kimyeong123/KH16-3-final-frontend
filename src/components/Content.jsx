@@ -45,8 +45,8 @@ export default function Content() {
                         <Route path="/message/list" element={<MessageList/>}></Route>
                     
                     </Routes>
+                    </div>
                 </div>
-            </div>
-        </>
-    )
-}
+            </>
+        )
+    }
