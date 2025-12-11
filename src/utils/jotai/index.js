@@ -16,6 +16,7 @@ export const loginRoleState = atomWithStorage("loginRoleState", "", sessionStora
 export const accessTokenState = atomWithStorage("accessTokenState", "", sessionStorage);
 export const refreshTokenState = atomWithStorage("refreshToken", "", sessionStorage);
 export const loginNicknameState = atomWithStorage("loginNicknameState", "", sessionStorage);
+export const loginPostState = atomWithStorage("loginPostState", "", sessionStorage);
 export const loginAddress1State = atomWithStorage("loginAddress1State", "", sessionStorage);
 export const loginAddress2State = atomWithStorage("loginAddress2State", "", sessionStorage);
 export const loginEmailState = atomWithStorage("loginEmailState", "", sessionStorage);
@@ -52,6 +53,7 @@ export const clearLoginState = atom(
         set(refreshTokenState, "");
         set(loginNicknameState, "");
         set(loginEmailState, "");
+        set(loginPostState,"");
         set(loginAddress1State, "");
         set(loginAddress2State, "");
         set(loginContactState, "");
@@ -73,6 +75,7 @@ refreshTokenState.debugLabel = "refreshTokenState";
 loginCompleteState.debugLabel = "loginCompleteState";
 loginNicknameState.debugLabel = "loginNicknameState";
 loginEmailState.debugLabel = "loginEmailState";
+loginPostState.debugLabel = "loginPostState";
 loginAddress1State.debugLabel = "loginAddress1State";
 loginAddress2State.debugLabel = "loginAddress2State";
 loginPointState.debugLabel = "loginPointState";
