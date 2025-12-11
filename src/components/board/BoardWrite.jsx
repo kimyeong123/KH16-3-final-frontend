@@ -43,7 +43,9 @@ export default function BoardWrite() {
 
         // --- 데이터 전송 준비: FormData 사용 ---
         const formData = new FormData();
-        formData.append("board", JSON.stringify(board));
+
+        formData.append("title", board.title);
+        formData.append("content", board.content);
         
         attachment.forEach((file)=>{ 
             formData.append("attachment", file);
@@ -51,7 +53,7 @@ export default function BoardWrite() {
 
         try {
             // axios를 사용하여 비동기로 데이터 전송
-            const response = await axios.post("/rest/board/", formData);
+            const response = await axios.post("/board/write", formData);
 
             if(response.status === 200) {
                 toast.success("작성이 완료되었습니다");

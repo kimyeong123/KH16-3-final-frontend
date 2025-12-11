@@ -66,7 +66,7 @@ export default function Header() {
                         style={{ width: '40px', height: '40px', marginRight: '20px' }}
                         alt="bidHouse Logo"
                     />
-                    bidHouse
+                    <span className="text-black">bidHouse</span>
                 </Link>
 
                 {/* 검색창 영역 */}
@@ -95,23 +95,19 @@ export default function Header() {
                     {isLogin ? (
                         <div className='d-flex align-items-center'> 
                             {/* 로그인 상태: ID, 마이페이지, 로그아웃, 관리자 */}
-                            <Link className="text-success fw-bold me-3 text-decoration-none" to="/member/mypage">
-                                {loginId}님 ({loginRole})
+                            <Link className="text-success fw-bold text-decoration-none" to="/member/mypage">
+                                {loginId} ({loginRole})
                             </Link>
-                            
-                            <Link className="text-dark me-3 text-decoration-none" to="/member/mypage">
-                                마이페이지
-                            </Link>
-
-                            <Link className="text-dark me-3 text-decoration-none" onClick={logout}>
+                            <div className="ms-3 me-3">|</div>
+                            <Link className="text-dark text-decoration-none" onClick={logout}>
                                 로그아웃 
                             </Link>
                             
-                            {isAdmin && (
+                            {/* {isAdmin && (
                                 <Link className="text-dark me-3 text-decoration-none" to="/admin">
                                     관리자
                                 </Link>
-                            )}
+                            )} */}
                         </div>
                     ) : (
                         <div className='d-flex align-items-center'>

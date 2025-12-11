@@ -1,15 +1,17 @@
 /**
  * 죠-타이 (jotai)
  * - Recoil의 스타일 계승하여 최신버전과의 호환성을 개선한 상태관리 라이브러리
- * - 대부분이 Recoil과 비슷하기 때문에 러닝커브 없이 마이그레이션 가능
- * - atom(값) 은 recoil atom와 같음
- * - atom(함수) 는 recoil selector와 같음
  */
 
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-// import axios from "axios"; // clearLoginState에서 axios를 사용하지 않아 제거
 
+// ----------------------------------------------------
+// 1. 기본 상태 아톰 (쓰기 가능 아톰)
+//    - 값이 직접 저장되거나 변경됩니다. (atomWithStorage 포함)
+// ----------------------------------------------------
+
+// 💡 [쓰기 가능] sessionStorage에 저장되는 사용자 정보 (로그인 시 설정, 로그아웃 시 초기화)
 export const loginNoState = atomWithStorage("loginNoState", "", sessionStorage);
 export const loginIdState = atomWithStorage("loginIdState", "", sessionStorage);
 export const loginRoleState = atomWithStorage("loginRoleState", "", sessionStorage);
@@ -23,28 +25,45 @@ export const loginPointState = atomWithStorage("loginPointState", "", sessionSto
 export const loginCreatedTimeState = atomWithStorage("loginCreatedTimeState", "", sessionStorage);
 export const loginContactState = atomWithStorage("loginContactState","", sessionStorage);
 
+// 💡 [쓰기 가능] 전역 상태 및 로딩 관련 플래그 (세션에 저장되지 않음)
+// loginCompleteState, apiCallingState, tokenRefreshingState, globalErrorState 만 남기고 중복 제거
+export const loginCompleteState = atom(false); // 새로고침 후 인증 복구 완료 플래그 (App.js에서 set)
+export const apiCallingState = atom(false); 
+export const tokenRefreshingState = atom(false); 
+export const globalErrorState = atom(null); 
 
-export const loginState = atom(get=>{//로그인 여부 판정
+
+// ----------------------------------------------------
+// 2. Selector (읽기 전용 아톰)
+//    - 다른 아톰의 값을 get하여 계산된 값을 반환합니다. (App.js에서 set 불가)
+// ----------------------------------------------------
+
+// 💡 로그인 여부 판정 (loginId와 Role이 모두 존재하면 true)
+// 이전의 중복된 loginState를 Selector로 정의하고 이름 유지
+export const loginState = atom(get=>{
     const loginId = get(loginIdState);
     const loginRole = get(loginRoleState);
     return loginId?.length > 0 && loginRole?.length > 0;
 });
 
-export const adminState = atom(get=>{//관리자 여부 판정
-    const loginId = get(loginIdState);
+// 💡 관리자 여부 판정 (loginRole이 "ADMIN"일 경우 true)
+// 이전의 중복된 adminState를 Selector로 정의하고 이름 유지
+export const adminState = atom(get=>{
     const loginRole = get(loginRoleState);
-    return loginId?.length > 0 && loginRole === "admin";
+    // loginId는 loginRole에 포함되므로 Role만 확인해도 됨
+    return loginRole === "ADMIN";
 });
 
-export const apiCallingState = atom(false); 
-export const tokenRefreshingState = atom(false); 
-export const globalErrorState = atom(null); 
-export const loginCompleteState = atom(false);
+
+// ----------------------------------------------------
+// 3. 쓰기 함수 (초기화)
+// ----------------------------------------------------
 
 // 로그인 관련 state를 초기화하는 함수 (쓰기 함수)
 export const clearLoginState = atom(
-    null, //읽는건 필요없고
-    (get, set)=>{//변경만 하겠다!
+    null, // 읽기 기능은 사용하지 않음
+    (get, set)=>{// 변경만 하겠다!
+        // 사용자 정보 초기화 (atomWithStorage 포함)
         set(loginNoState, "");
         set(loginIdState, "");
         set(loginRoleState, "");
@@ -55,19 +74,28 @@ export const clearLoginState = atom(
         set(loginAddress1State, "");
         set(loginAddress2State, "");
         set(loginContactState, "");
-        set(loginPointState, "");
+        set(loginPointState, 0); // Point는 숫자일 경우 0으로 초기화하는 것이 좋습니다.
         set(loginCreatedTimeState, "");
         
-        // clearLogin 시 전역 에러 상태도 초기화
+        // 플래그 초기화
+        set(apiCallingState, false); 
+        set(tokenRefreshingState, false); 
+        set(loginCompleteState, false); // clearLoginState 실행 시 다시 로딩 상태로 돌아가도록 설정 (선택 사항)
+        
+        // 전역 에러 상태도 초기화
         set(globalErrorState, null);
     }
 );
 
+// ----------------------------------------------------
+// 4. 디버그 라벨 설정
+// ----------------------------------------------------
+
 loginNoState.debugLabel="loginNoState";
 loginIdState.debugLabel = "loginIdState";
 loginRoleState.debugLabel = "loginRoleState";
-loginState.debugLabel = "loginState";
-adminState.debugLabel = "adminState";
+loginState.debugLabel = "loginState (Selector)";
+adminState.debugLabel = "adminState (Selector)";
 accessTokenState.debugLabel = "accessTokenState";
 refreshTokenState.debugLabel = "refreshTokenState";
 loginCompleteState.debugLabel = "loginCompleteState";

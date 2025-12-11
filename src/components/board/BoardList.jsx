@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAtom } from 'jotai';
-// 💡 adminState import 추가 완료
 import { loginState, adminState } from '../../utils/jotai'; 
 import { toast } from 'react-toastify';
 import { FaPen } from "react-icons/fa6"; // 글쓰기 아이콘
@@ -22,7 +21,7 @@ export default function BoardList() {
     // [서버에서 게시물 목록을 가져오는 함수]
     const loadBoardList = useCallback(async () => {
         try {
-            const response = await axios.get("/board/"); 
+            const response = await axios.get("/board/list"); 
             setBoardList(response.data); 
         } catch (error) {
             console.error("게시물 목록 로딩 실패:", error);
@@ -48,7 +47,11 @@ export default function BoardList() {
         if (!isLogin) {
             toast.warn("로그인 후 이용 가능합니다.");
             navigate("/member/login");
-        } else {
+        } 
+        else if(!isAdmin) {
+            toast.warn("작성은 관리자만 가능합니다");
+        }
+        else {
             navigate("/board/write");
         }
     };
@@ -60,7 +63,7 @@ export default function BoardList() {
                 <h2 className="fw-bold text-primary">공지사항</h2>
                 
                 {/* 글쓰기 버튼 (로그인 && 관리자일 때만 표시) */}
-                {(isLogin && isAdmin) && (
+                {(isAdmin) && (
                     <button className="btn btn-outline-success" onClick={goToWrite}>
                         <FaPen className="fs-5 me-1" /> 글쓰기
                     </button>
