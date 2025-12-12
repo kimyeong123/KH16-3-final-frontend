@@ -14,6 +14,7 @@ import Jumbotron from "../templates/Jumbotron";
 import axios from "axios";
 import "./Member.css";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$])[A-Za-z0-9!@#$]{8,16}$/;
 export default function MemberMypage() {
@@ -28,6 +29,8 @@ export default function MemberMypage() {
     const [point] = useAtom(loginPointState);
     const [contact, setLoginContact] = useAtom(loginContactState);
     const [createdTime] = useAtom(loginCreatedTimeState);
+
+    const navigete = useNavigate();
 
     const [accessToken] = useAtom(accessTokenState);
     const [, clearLogin] = useAtom(clearLoginState);
@@ -80,7 +83,7 @@ export default function MemberMypage() {
         if (contact) setEditContact(contact);
     }, [email, post, address1, address2, contact]); // 상태값이 변경되면 업데이트
     const openPostcode = useDaumPostcodePopup();
-
+    
 
 
     // 주소 검색
@@ -244,6 +247,30 @@ export default function MemberMypage() {
         }
         setConfirmValid(newPassword === value);
     };
+    const forceLogout = useCallback(async (reasonText = "보안을 위해 다시 로그인해주세요.") => {
+        // 1) jotai 상태 초기화
+        clearLogin(); // 너가 이미 쓰는 clearLoginState atom
+
+        // 2) axios 기본 헤더 제거
+        delete axios.defaults.headers.common["Authorization"];
+
+        // 3) localStorage 토큰 제거
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+
+        // 4) 알림 + 이동
+        await Swal.fire({
+            icon: "info",
+            title: "다시 로그인 필요",
+            text: reasonText,
+            timer: 2200,
+            showConfirmButton: false,
+        });
+
+        // 5) 로그인 페이지로 이동(원하면)
+        window.location.href = "/member/login";
+    }, [clearLogin]);
+
 
 
     const handlePasswordChange = async () => {
@@ -326,6 +353,7 @@ export default function MemberMypage() {
             setNewPasswordConfirm("");
             setNewPasswordValid(null);
             setConfirmValid(null);
+            forceLogout("비밀번호가 변경되어 로그아웃되었습니다. 다시 로그인해주세요.");
 
         } catch (err) {
             console.error(err);
@@ -341,9 +369,53 @@ export default function MemberMypage() {
             });
         }
     };
+const handleDeleteAccount = async () => {
+  if (!password) {
+    return Swal.fire({
+      icon: "warning",
+      title: "입력 오류",
+      text: "현재 비밀번호를 입력해주세요.",
+      timer: 1800,
+      showConfirmButton: false,
+    });
+  }
 
+  const ok = await Swal.fire({
+    icon: "warning",
+    title: "회원 탈퇴",
+    text: "정말 탈퇴하시겠습니까? 계정은 복구할 수 없습니다.",
+    showCancelButton: true,
+    confirmButtonText: "탈퇴",
+    cancelButtonText: "취소"
+  });
 
+  if (!ok.isConfirmed) return;
 
+  try {
+    await axios.delete(`http://localhost:8080/member/${loginNo}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      data: { memberPw: password }, 
+    });
+
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    delete axios.defaults.headers.common["Authorization"];
+    clearLogin(); // jotai 초기화
+    navigete("/member/login")
+
+    Swal.fire({
+      icon: "success",
+      title: "탈퇴 완료",
+      text: "이용해주셔서 감사합니다.",
+      timer: 1800,
+      showConfirmButton: false,
+    });
+
+  } catch (err) {
+    const msg = err.response?.data || "회원 탈퇴 중 오류가 발생했습니다.";
+    Swal.fire({ icon: "error", title: "실패", text: msg });
+  }
+};
 
     return (
         <>
@@ -416,7 +488,7 @@ export default function MemberMypage() {
 
                                         {(sending === false || isEmailCertified) && (
                                             <>
-                                                  <div className="d-flex justify-content-center gap-2 mt-2">
+                                                <div className="d-flex justify-content-center gap-2 mt-2">
                                                     <input
                                                         type="text"
                                                         inputMode="numeric"
@@ -424,13 +496,13 @@ export default function MemberMypage() {
                                                         placeholder="인증번호 입력"
                                                         value={certNumber}
                                                         onChange={e => setCertNumber(e.target.value)}
-                                                        disabled={isEmailCertified} 
+                                                        disabled={isEmailCertified}
                                                     />
                                                     <button
                                                         type="button"
                                                         className="btn btn-primary"
                                                         onClick={sendCertCheck}
-                                                        disabled={isEmailCertified} 
+                                                        disabled={isEmailCertified}
                                                     >
                                                         인증번호 확인
                                                     </button>
@@ -552,14 +624,14 @@ export default function MemberMypage() {
                             <h5 className="mb-3 text-center fw-bold text-primary">계정 관리</h5>
 
                             <div className="mb-3">
-                                <button className="btn btn-outline-primary w-80 mb-3 py-1 rounded-pill shadow-sm hover-shadow" onClick={() => setIsEditing(true)}>
+                                <button className="btn btn-outline-primary w-80 mt-2 py-1 rounded-pill shadow-sm hover-shadow" onClick={() => setIsEditing(true)}>
                                     <FaUserPen className="me-2" /> 회원정보 변경
                                 </button>
                             </div>
 
                             <div className="mb-3">
                                 <button
-                                    className="btn btn-outline-primary w-80 mb-3 py-1 rounded-pill shadow-sm hover-shadow"
+                                    className="btn btn-outline-primary w-80 mt-2 py-1 rounded-pill shadow-sm hover-shadow"
                                     onClick={() => setIsPasswordModalOpen(true)}
                                 >
                                     <FaUserLock className="me-2" /> 비밀번호 변경
@@ -567,7 +639,7 @@ export default function MemberMypage() {
                             </div>
 
                             <div className="mb-3">
-                                <button className="btn btn-outline-danger w-50 mb-3 py-1 rounded-pill shadow-sm hover-shadow" onClick={() => setShowDeletePanel(!showDeletePanel)}>
+                                <button className="btn btn-outline-danger w-50 mt-4 py-1 rounded-pill shadow-sm hover-shadow" onClick={() => setShowDeletePanel(!showDeletePanel)}>
                                     <FaTrash className="me-2" /> 회원 탈퇴
                                 </button>
                             </div>
