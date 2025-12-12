@@ -1,3 +1,5 @@
+// src/components/BoardWrite.jsx
+
 import { useCallback, useState } from "react";
 import Jumbotron from "../templates/Jumbotron";
 import { useNavigate } from "react-router-dom";
@@ -11,16 +13,19 @@ export default function BoardWrite() {
     const navigate = useNavigate();
 
     // ***** 1. 상태(State) *****
+    // 텍스트 입력 상태
     const [board, setBoard] = useState({
         title: "",
         content: "", 
     });
+    // 첨부 파일 상태 (File 객체 배열)
     const [attachment, setAttachment] = useState([]); 
     
     // ***** 2. 콜백(Callback) *****
     
     // [1] 텍스트 입력값 변경 핸들러
     const handleTextChange = useCallback((e)=>{
+        // // 한줄 주석 예시: setBoard 업데이트 
         setBoard(prevBoard => ({
             ...prevBoard,
             [e.target.name]: e.target.value
@@ -41,27 +46,35 @@ export default function BoardWrite() {
             return;
         }
 
-        // --- 데이터 전송 준비: FormData 사용 ---
+        // --- 데이터 전송 준비: FormData 사용 (가장 일반적인 방식) ---
         const formData = new FormData();
 
+        // 1. 텍스트 데이터를 개별 필드로 추가합니다.
+        // 서버의 DTO 필드명과 일치시켜 주세요. (예: title, content)
         formData.append("title", board.title);
-        formData.append("content", board.content);
+        formData.append("content", board.content); 
         
-        attachment.forEach((file)=>{ 
-            formData.append("attachment", file);
+        // 2. 파일(들)을 'attachment' 필드명으로 추가합니다.
+        attachment.forEach((file) => { 
+            formData.append("attachment", file); 
         });
 
         try {
             // axios를 사용하여 비동기로 데이터 전송
+            // Content-Type: multipart/form-data로 자동 설정됩니다.
             const response = await axios.post("/board/write", formData);
 
             if(response.status === 200) {
                 toast.success("작성이 완료되었습니다");
                 navigate("/board/list");
+            } else {
+                 // 200은 아니지만 성공적인 응답으로 간주되지 않는 경우
+                toast.error(`작성 실패: 응답 상태 코드 ${response.status}`);
             }
         } catch (error) {
-            console.error("공지작성 실패: ", error);
-            toast.error("작성 실패");
+            // 에러 상세 정보 출력 (네트워크/서버 오류 확인)
+            console.error("공지작성 실패: ", error.response || error.message || error);
+            toast.error("작성 실패. 콘솔을 확인하세요.");
         }
     }, [board, attachment, navigate]); 
 
@@ -72,7 +85,6 @@ export default function BoardWrite() {
         <Jumbotron subject="공지 작성" detail=""/>
 
         <div className="container p-5">
-            {/* 💡 Form 태그 대신 div만 사용 */}
             <div>
                     
                 {/* 1. 제목 입력 */}
@@ -118,6 +130,7 @@ export default function BoardWrite() {
                             onChange={handleFileChange} 
                             multiple 
                         />
+                        {/* 선택된 파일 목록 표시 */}
                         {attachment.length > 0 && ( 
                             <small className="form-text text-muted mt-2">
                                 선택된 파일 ({attachment.length}개): {attachment.map(f => f.name).join(', ')}

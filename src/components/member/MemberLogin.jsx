@@ -89,7 +89,7 @@ export default function MemberLogin() {
             console.error("로그인 실패:", err);
             setResult(false);
         }
-    }, [member, setLoginId, setLoginRole, setAccessToken, setRefreshToken, setLoginComplete, navigate]);
+    }, [member, navigate]);
 
     // 아이디 찾기 요청
     const handleFindId = useCallback(async () => {
