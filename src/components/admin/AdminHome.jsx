@@ -1,11 +1,4 @@
-
-
 export default function AdminHome() {
-
-
-    
-    //render
-    return (<>
-        {/* <AdminQnaList/> 이런식? */}
-    </>)
+  //render
+  return <>{/* <AdminQnaList/> 이런식? */}</>;
 }
