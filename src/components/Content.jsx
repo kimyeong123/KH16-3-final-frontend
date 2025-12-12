@@ -13,6 +13,12 @@ import QnaDetail from "./qna/QnaDetail";
 import QnaList from "./qna/QnaList";
 import MemberJoinFinish from "./member/MemberJoinFinish";
 import MemberMypage from "./member/MemberMypage";
+import KakaoPay from "./pay/KakaoPay";
+import KakaoPaySuccess from "./pay/KakaoPaySuccess";
+import KakaoPayCancel from "./pay/KakaoPayCancel";
+import KakaoPayFail from "./pay/KakaoPayFail";
+import ProductAdd from "./product/ProductAdd";
+import ProductAddDone from "./product/ProductAddDone";
 
 export default function Content() {
 
@@ -43,7 +49,15 @@ export default function Content() {
 
                         {/* 메세지(알림) */}
                         <Route path="/message/list" element={<MessageList/>}></Route>
+
+                         <Route path="/pay/kakaopay" element={<KakaoPay />} />
+                        <Route path="/pay/kakaopay/success" element={<KakaoPaySuccess />} />
+                        <Route path="/pay/kakaopay/cancel" element={<KakaoPayCancel />} />
+                        <Route path="/pay/kakaopay/fail" element={<KakaoPayFail />} />
                     
+                      {/*  상품 등록 페이지 */}
+                        <Route path="/product/productadd" element={<ProductAdd />} />
+                        <Route path="/product/done" element={<ProductAddDone />} />
                     </Routes>
                     </div>
                 </div>
