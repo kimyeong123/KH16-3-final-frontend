@@ -11,20 +11,24 @@ import { atomWithStorage } from "jotai/utils";
 //    - 값이 직접 저장되거나 변경됩니다. (atomWithStorage 포함)
 // ----------------------------------------------------
 
-// 💡 [쓰기 가능] sessionStorage에 저장되는 사용자 정보 (로그인 시 설정, 로그아웃 시 초기화)
-export const loginNoState = atomWithStorage("loginNoState", "", sessionStorage);
-export const loginIdState = atomWithStorage("loginIdState", "", sessionStorage);
-export const loginRoleState = atomWithStorage("loginRoleState", "", sessionStorage);
-export const accessTokenState = atomWithStorage("accessTokenState", "", sessionStorage);
-export const refreshTokenState = atomWithStorage("refreshToken", "", sessionStorage);
-export const loginNicknameState = atomWithStorage("loginNicknameState", "", sessionStorage);
-export const loginPostState = atomWithStorage("loginPostState", "", sessionStorage);
-export const loginAddress1State = atomWithStorage("loginAddress1State", "", sessionStorage);
-export const loginAddress2State = atomWithStorage("loginAddress2State", "", sessionStorage);
-export const loginEmailState = atomWithStorage("loginEmailState", "", sessionStorage);
-export const loginPointState = atomWithStorage("loginPointState", "", sessionStorage);
-export const loginCreatedTimeState = atomWithStorage("loginCreatedTimeState", "", sessionStorage);
-export const loginContactState = atomWithStorage("loginContactState","", sessionStorage);
+// localStorage를 사용하여 데이터 저장 (브라우저 종료 후에도 유지됨)
+// sessionStorage 또는 localStorage와 연결하여 상태를 저장합니다.
+export const accessTokenState = atomWithStorage("accessTokenState", "", localStorage);
+export const refreshTokenState = atomWithStorage("refreshTokenState", "", localStorage);
+
+// 로그인 관련 정보들
+export const loginNoState = atomWithStorage("loginNoState", "", localStorage);
+export const loginIdState = atomWithStorage("loginIdState", "", localStorage);
+export const loginRoleState = atomWithStorage("loginRoleState", "", localStorage);
+export const loginNicknameState = atomWithStorage("loginNicknameState", "", localStorage);
+export const loginEmailState = atomWithStorage("loginEmailState", "", localStorage);
+export const loginPostState = atomWithStorage("loginPostState", "", localStorage);
+export const loginAddress1State = atomWithStorage("loginAddress1State", "", localStorage);
+export const loginAddress2State = atomWithStorage("loginAddress2State", "", localStorage);
+export const loginPointState = atomWithStorage("loginPointState", "", localStorage);
+export const loginCreatedTimeState = atomWithStorage("loginCreatedTimeState", "", localStorage);
+export const loginContactState = atomWithStorage("loginContactState", "", localStorage);
+
 
 // 💡 [쓰기 가능] 전역 상태 및 로딩 관련 플래그 (세션에 저장되지 않음)
 // loginCompleteState, apiCallingState, tokenRefreshingState, globalErrorState 만 남기고 중복 제거

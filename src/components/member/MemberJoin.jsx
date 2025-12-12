@@ -603,7 +603,6 @@ export default function MemberJoin() {
                     인증번호 확인이 완료되었습니다.
                   </div>
                 )}
-
                 <div className="invalid-feedback">{certNumberFeedback}</div>
               </div>
             )}
