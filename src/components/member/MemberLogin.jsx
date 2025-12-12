@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAtom } from 'jotai';
 import axios from 'axios';
-import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, refreshTokenState, loginCompleteState, loginEmailState, loginAddress1State, loginAddress2State, loginCreatedTimeState, loginPointState, loginContactState, loginNoState } from "../../utils/jotai";
+import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, refreshTokenState, loginCompleteState, loginEmailState, loginPostState, loginAddress1State, loginAddress2State, loginCreatedTimeState, loginPointState, loginContactState, loginNoState } from "../../utils/jotai";
 import "./Member.css";
 import Jumbotron from "../templates/Jumbotron";
 
@@ -17,12 +17,12 @@ export default function MemberLogin() {
     const [, setLoginComplete] = useAtom(loginCompleteState);
     const [, setLoginNickname] = useAtom(loginNicknameState);
     const [, setLoginEmail] = useAtom(loginEmailState);
+    const [, setLoginPost] = useAtom(loginPostState);
     const [, setLoginAddress1] = useAtom(loginAddress1State);
     const [, setLoginAddress2] = useAtom(loginAddress2State);
     const [, setLoginPoint] = useAtom(loginPointState);
     const [, setLoginContact] = useAtom(loginContactState);
     const [, setLoginCreatedTime] = useAtom(loginCreatedTimeState);
-
 
     const [member, setMember] = useState({ memberId: "", memberPw: "" });
     const [result, setResult] = useState(null);
@@ -41,6 +41,7 @@ export default function MemberLogin() {
             setLoginRole(data.loginLevel);
             setLoginNickname(data.nickname);
             setLoginEmail(data.email);
+            setLoginPost(data.post);
             setLoginAddress1(data.address1);
             setLoginAddress2(data.address2);
             setLoginContact(data.contact);
@@ -49,16 +50,23 @@ export default function MemberLogin() {
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
             setLoginComplete(true);
+
             // axios 기본 헤더도 설정
             axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
+
+            // localStorage에 토큰 저장
+            localStorage.setItem("access_token", data.accessToken);
+            localStorage.setItem("refresh_token", data.refreshToken);
+
             console.log("로그인 응답:", data);
 
-            navigate("/");
+            navigate("/");  // 로그인 후 홈 화면으로 이동
+
         } catch (err) {
             console.error("로그인 실패:", err);
             setResult(false);
         }
-    }, [member, setLoginId, setLoginRole, setAccessToken, setRefreshToken, setLoginComplete, navigate]);
+    }, [member, navigate]);
 
     return (
         <>
@@ -103,5 +111,5 @@ export default function MemberLogin() {
                 </div>
             </div>
         </>
-    )
+    );
 }

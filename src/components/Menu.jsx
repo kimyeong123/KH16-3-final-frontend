@@ -91,10 +91,10 @@ export default function Menu() {
                     {/* 좌측 메뉴 */}
                     <ul className="navbar-nav me-auto ms-3">
                         <li className="nav-item">
-                            <Link className="nav-link fs-4" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />경매</Link>
+                            <Link className="nav-link fs-6" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />경매</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link fs-4" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />대충 카테고리</Link>
+                            <Link className="nav-link fs-6" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />대충 카테고리</Link>
                         </li>
                     </ul>
 
@@ -102,24 +102,15 @@ export default function Menu() {
                     <ul className="navbar-nav ms-auto ms-3">
                             <li className="nav-item">
                                 {/* 💡 /board/list 대신 /board 경로로 수정 (RESTful API 기준) */}
-                                <Link className="nav-link fs-6" to="/board" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
+                                <Link className="nav-link fs-6" to="/board/list" onClick={closeMenu}><MdOutlineDocumentScanner className="fs-5 me-1"/>공지사항</Link>
                             </li>
                         <li className="nav-item">
                             <Link className="nav-link fs-6" to="#" onClick={closeMenu}><FaReceipt className="fs-5 me-1" />이용가이드</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><MdSupportAgent className="fs-4 me-1" />문의하기</Link>
                         </li>
 
                         {/* 로그인 상태에 따른 조건부 렌더링 */}
                         {isLogin ? (
                             <>
-                                {/* 로그인 상태: ID 및 Role 표시 */}
-                                <li className="nav-item">
-                                    <Link className="nav-link fs-6 fw-bold text-primary" to="/member/mypage" onClick={closeMenu}>
-                                        <FaUserCircle className="fs-4 me-1"/>{loginNickname ? loginNickname : loginId}님 ({loginRole})
-                                    </Link>
-                                </li>
 
                                 {/* 로그인 상태: 로그아웃 버튼 */}
                                 <li className="nav-item">

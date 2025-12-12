@@ -1,59 +1,89 @@
-/* 팝업 배경과 그림자 */
+/* ================================
+   🟩 SWEETALERT2 FLATLY OVERRIDE
+   ================================ */
+
+/* 전체 팝업 */
 .swal2-popup {
-  font-family: 'Arial', sans-serif;
-  border-radius: 8px;
-  padding: 1.5em;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  background-color: #f8f9fa !important; /* Flatly 배경 */
+  color: #2c3e50 !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 0.5rem 1rem rgba(44, 62, 80, 0.15) !important;
 }
 
-/* 성공 */
-.swal2-success {
-  background-color: #18bc9c !important; /* Flatly Success */
-  color: white !important;
+/* 타이틀 */
+.swal2-title {
+  color: #2c3e50 !important;
+  font-weight: 600 !important;
 }
 
-/* 에러 */
-.swal2-error {
-  background-color: #e74c3c !important; /* Flatly Danger */
-  color: white !important;
-}
-
-/* 경고 */
-.swal2-warning {
-  background-color: #f39c12 !important; /* Flatly Warning */
-  color: white !important;
-}
-
-/* 정보 */
-.swal2-info {
-  background-color: #3498db !important; /* Flatly Primary */
-  color: white !important;
+/* 내용 텍스트 */
+.swal2-html-container {
+  color: #2c3e50 !important;
 }
 
 /* 버튼 공통 */
-.swal2-confirm {
-  background-color: #3498db !important; /* Flatly Primary */
+.swal2-confirm.btn,
+.swal2-cancel.btn {
+  min-width: 100px !important;
+  border-radius: 999px !important;
+}
+
+/* Confirm 버튼: Flatly 민트 */
+.swal2-confirm.btn-primary {
+  background-color: #18bc9c !important;
+  border-color: #18bc9c !important;
   color: white !important;
-  border-radius: 5px;
-  padding: 0.5em 1.2em;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
 }
 
-/* Confirm 버튼 호버 효과 */
-.swal2-confirm:hover {
-  background-color: #2980b9 !important; /* Flatly Primary Dark */
+.swal2-confirm.btn-primary:hover {
+  background-color: #15a589 !important;
+  border-color: #15a589 !important;
 }
 
-/* 취소 버튼 */
-.swal2-cancel {
-  background-color: #e74c3c !important; /* Flatly Danger */
-  color: white !important;
-  border-radius: 5px;
-  transition: background-color 0.2s ease;
+/* Cancel 버튼 */
+.swal2-cancel.btn-outline-secondary {
+  color: #2c3e50 !important;
+  border-color: #bdc3c7 !important;
 }
 
-/* Cancel 버튼 호버 효과 */
-.swal2-cancel:hover {
-  background-color: #c0392b !important; /* Flatly Danger Dark */
+/* ================================
+   🟩 SUCCESS ICON (체크표시) 완전히 Flatly 민트로 강제
+   ================================ */
+
+/* 성공 아이콘 전체 */
+.swal2-icon.swal2-success {
+  border-color: #18bc9c !important;
+  color: #18bc9c !important;
+}
+
+/* 체크 표시 두 줄 */
+.swal2-icon.swal2-success .swal2-success-line-tip,
+.swal2-icon.swal2-success .swal2-success-line-long {
+  background-color: #18bc9c !important;
+}
+
+/* 성공 원의 안쪽 링 */
+.swal2-icon.swal2-success .swal2-success-ring {
+  border-color: rgba(24, 188, 156, 0.4) !important;
+}
+
+/* fix 영역(체크가 겹치는 곳 배경 보정) */
+.swal2-icon.swal2-success .swal2-success-fix {
+  background-color: #f8f9fa !important;
+}
+
+/* ================================
+   🟥 ERROR ICON
+   ================================ */
+.swal2-icon.swal2-error {
+  border-color: #e74c3c !important;
+  color: #e74c3c !important;
+}
+
+/* ================================
+   🟧 WARNING ICON
+   ================================ */
+.swal2-icon.swal2-warning {
+  border-color: #f39c12 !important;
+  color: #f39c12 !important;
 }

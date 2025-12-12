@@ -36,9 +36,9 @@ export default function Content() {
                         <Route path="/member/mypage" element={<MemberMypage />}></Route>
                     
                         {/* 게시글 페이지 */}
-                        <Route path="board/write" element={<BoardWrite/>}></Route>
+                        <Route path="board/write" element={<Admin><BoardWrite/></Admin>}></Route>
                         <Route path="board/list" element={<BoardList/>}></Route>
-                        <Route path="board/detail:boardNo" element={<BoardDetail/>}></Route>
+                        <Route path="board/detail/:boardNo" element={<BoardDetail/>}></Route>
                         <Route path="board/edit" element={<BoardEdit/>}></Route>
 
                         {/* 문의 페이지 */}
