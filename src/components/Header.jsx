@@ -103,9 +103,16 @@ export default function Header() {
 
                 {/* 검색창 영역 (생략) */}
                 <div className="flex-grow-1 mx-5">
-                    <div className="input-group" style={{ maxWidth: '500px', margin: '0 auto' }}>
-                        <input type="text" className="form-control form-control-sm" placeholder="상품 검색" aria-label="Search items" />
-                        <button className="btn btn-outline-primary btn-sm" type="button"><FaSearch /></button>
+                    <div className="input-group" style={{ maxWidth: '400px', margin: '0 auto' }}>
+                        <input 
+                            type="text" 
+                            className="form-control form-control-sm" // 높이를 줄이기 위해 sm 클래스 추가
+                            placeholder="상품 검색" 
+                            aria-label="Search items" 
+                        />
+                        <button className="btn btn-outline-primary btn-sm" type="button"> 
+                            <FaSearch />
+                        </button>
                     </div>
                 </div>
 
