@@ -196,7 +196,6 @@ export default function MemberJoin() {
     const full = `${emailId.trim()}@${emailDomain.trim()}`;
     const regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
     const valid = regex.test(full);
-
     // 인증 완료 시 email 클래스는 유지
     setMember(prev => ({ ...prev, memberEmail: full }));
     setMemberClass(prev => ({
@@ -604,7 +603,6 @@ export default function MemberJoin() {
                     인증번호 확인이 완료되었습니다.
                   </div>
                 )}
-
                 <div className="invalid-feedback">{certNumberFeedback}</div>
               </div>
             )}

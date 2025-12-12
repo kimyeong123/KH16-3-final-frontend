@@ -23,8 +23,6 @@ export default function MemberLogin() {
     const [, setLoginPoint] = useAtom(loginPointState);
     const [, setLoginContact] = useAtom(loginContactState);
     const [, setLoginCreatedTime] = useAtom(loginCreatedTimeState);
-    
-
 
     const [member, setMember] = useState({ memberId: "", memberPw: "" });
     const [result, setResult] = useState(null);
@@ -51,10 +49,19 @@ export default function MemberLogin() {
             setLoginCreatedTime(data.createdTime);
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
-            
+            setLoginComplete(true);
+
+            // axios 기본 헤더도 설정
+            axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
+
+            // localStorage에 토큰 저장
+            localStorage.setItem("access_token", data.accessToken);
+            localStorage.setItem("refresh_token", data.refreshToken);
+
             console.log("로그인 응답:", data);
 
-            navigate("/");
+            navigate("/");  // 로그인 후 홈 화면으로 이동
+
         } catch (err) {
             console.error("로그인 실패:", err);
             setResult(false);
@@ -104,5 +111,5 @@ export default function MemberLogin() {
                 </div>
             </div>
         </>
-    )
+    );
 }

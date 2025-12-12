@@ -9,23 +9,25 @@ import { atomWithStorage } from "jotai/utils";
 // ----------------------------------------------------
 // 1. 기본 상태 아톰 (쓰기 가능 아톰)
 // ----------------------------------------------------
-// 💡 Session Storage에 저장되는 아톰들
-export const loginNoState = atomWithStorage("loginNoState", "", sessionStorage);
-export const loginIdState = atomWithStorage("loginIdState", "", sessionStorage);
-export const loginRoleState = atomWithStorage("loginRoleState", "", sessionStorage);
-export const accessTokenState = atomWithStorage("accessTokenState", "null", sessionStorage);
-export const refreshTokenState = atomWithStorage("refreshTokenState", "null", sessionStorage);
-export const loginNicknameState = atomWithStorage("loginNicknameState", "", sessionStorage);
 
-// 💡 [추가됨] MemberLogin.jsx에서 사용되는 우편번호(Post) 아톰 정의
-export const loginPostState = atomWithStorage("loginPostState", "", sessionStorage); // loginPostState 추가됨
+// localStorage를 사용하여 데이터 저장 (브라우저 종료 후에도 유지됨)
+// sessionStorage 또는 localStorage와 연결하여 상태를 저장합니다.
+export const accessTokenState = atomWithStorage("accessTokenState", "", localStorage);
+export const refreshTokenState = atomWithStorage("refreshTokenState", "", localStorage);
 
-export const loginAddress1State = atomWithStorage("loginAddress1State", "", sessionStorage);
-export const loginAddress2State = atomWithStorage("loginAddress2State", "", sessionStorage);
-export const loginEmailState = atomWithStorage("loginEmailState", "", sessionStorage);
-export const loginPointState = atomWithStorage("loginPointState", 0, sessionStorage); // 숫자는 0으로
-export const loginCreatedTimeState = atomWithStorage("loginCreatedTimeState", "", sessionStorage);
-export const loginContactState = atomWithStorage("loginContactState","", sessionStorage);
+// 로그인 관련 정보들
+export const loginNoState = atomWithStorage("loginNoState", "", localStorage);
+export const loginIdState = atomWithStorage("loginIdState", "", localStorage);
+export const loginRoleState = atomWithStorage("loginRoleState", "", localStorage);
+export const loginNicknameState = atomWithStorage("loginNicknameState", "", localStorage);
+export const loginEmailState = atomWithStorage("loginEmailState", "", localStorage);
+export const loginPostState = atomWithStorage("loginPostState", "", localStorage);
+export const loginAddress1State = atomWithStorage("loginAddress1State", "", localStorage);
+export const loginAddress2State = atomWithStorage("loginAddress2State", "", localStorage);
+export const loginPointState = atomWithStorage("loginPointState", "", localStorage);
+export const loginCreatedTimeState = atomWithStorage("loginCreatedTimeState", "", localStorage);
+export const loginContactState = atomWithStorage("loginContactState", "", localStorage);
+
 
 // 💡 메모리 전용 플래그 (App.js에서 set)
 export const loginCompleteState = atom(false); // 새로고침 후 인증 복구 완료 플래그
