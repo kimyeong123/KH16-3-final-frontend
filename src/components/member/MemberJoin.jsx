@@ -28,31 +28,31 @@ registerLocale("ko", ko);
 export default function MemberJoin() {
   const navigate = useNavigate();
   const [member, setMember] = useState({
-    memberId: "",
-    memberPw: "",
-    memberPw2: "",
-    memberName: "",
-    memberNickname: "",
-    memberEmail: "",
-    memberBirth: "",
-    memberContact: "",
-    memberPost: "",
-    memberAddress1: "",
-    memberAddress2: ""
+    id: "",
+    pw: "",
+    pw2: "",
+    name: "",
+    nickname: "",
+    email: "",
+    birth: "",
+    contact: "",
+    post: "",
+    address1: "",
+    address2: ""
   });
 
   const [memberClass, setMemberClass] = useState({
-    memberId: "",
-    memberPw: "",
-    memberPw2: "",
-    memberName: "",
-    memberNickname: "",
-    memberEmail: "",
-    memberBirth: "",
-    memberContact: "",
-    memberPost: "",
-    memberAddress1: "",
-    memberAddress2: ""
+     id: "",
+    pw: "",
+    pw2: "",
+    name: "",
+    nickname: "",
+    email: "",
+    birth: "",
+    contact: "",
+    post: "",
+    address1: "",
+    address2: ""
   });
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [showDatePickerModal, setShowDatePickerModal] = useState(false); // DatePicker 모달 표시 여부
@@ -89,53 +89,53 @@ export default function MemberJoin() {
   // 날짜 입력 처리 (문자열 변환)
   const changeDateValue = useCallback(date => {
     if (!date) {
-      setMember(prev => ({ ...prev, memberBirth: "" }));
-      setMemberClass(prev => ({ ...prev, memberBirth: "is-invalid" }));
+      setMember(prev => ({ ...prev, birth: "" }));
+      setMemberClass(prev => ({ ...prev, birth: "is-invalid" }));
       return;
     }
     const formatted = format(date, "yyyy-MM-dd");
-    setMember(prev => ({ ...prev, memberBirth: formatted }));
-    setMemberClass(prev => ({ ...prev, memberBirth: "is-valid" }));
+    setMember(prev => ({ ...prev, birth: formatted }));
+    setMemberClass(prev => ({ ...prev, birth: "is-valid" }));
   }, []);
 
   // 아이디
   const checkMemberId = useCallback(async () => {
     const regex = /^(?=.*[0-9])[a-z][a-z0-9]{4,19}$/;
-    const valid = regex.test(member.memberId);
+    const valid = regex.test(member.id);
 
     if (!valid) {
-      setMemberClass(prev => ({ ...prev, memberId: "is-invalid" }));
+      setMemberClass(prev => ({ ...prev, id: "is-invalid" }));
       setMemberIdFeedback("아이디는 영문 소문자로 시작하며 숫자를 포함한 5-20자로 작성하세요");
       return;
     }
 
     try {
-      const { data } = await axios.get(`/member/memberId/${member.memberId}`);
+      const { data } = await axios.get(`/member/memberId/${member.id}`);
       if (data === true) {
-        setMemberClass(prev => ({ ...prev, memberId: "is-valid" }));
+        setMemberClass(prev => ({ ...prev, id: "is-valid" }));
         setMemberIdFeedback("");
       } else {
-        setMemberClass(prev => ({ ...prev, memberId: "is-invalid" }));
+        setMemberClass(prev => ({ ...prev, id: "is-invalid" }));
         setMemberIdFeedback("이미 사용중인 아이디입니다");
       }
     } catch (err) {
-      setMemberClass(prev => ({ ...prev, memberId: "is-invalid" }));
+      setMemberClass(prev => ({ ...prev, id: "is-invalid" }));
       setMemberIdFeedback("아이디 확인 실패, 잠시 후 다시 시도하세요");
     }
-  }, [member.memberId]);
+  }, [member.id]);
 
   // 비밀번호
   const checkMemberPw = useCallback(() => {
     const regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$])[A-Za-z0-9!@#$]{8,16}$/;
-    const valid = regex.test(member.memberPw);
-    setMemberClass(prev => ({ ...prev, memberPw: valid ? "is-valid" : "is-invalid" }));
+    const valid = regex.test(member.pw);
+    setMemberClass(prev => ({ ...prev, pw: valid ? "is-valid" : "is-invalid" }));
 
-    if (!member.memberPw) {
+    if (!member.pw) {
       setMemberPwFeedback("비밀번호 확인을 해주세요");
-      setMemberClass(prev => ({ ...prev, memberPw2: "is-invalid" }));
+      setMemberClass(prev => ({ ...prev, pw2: "is-invalid" }));
     } else {
-      const match = member.memberPw === member.memberPw2;
-      setMemberClass(prev => ({ ...prev, memberPw2: match ? "is-valid" : "is-invalid" }));
+      const match = member.pw === member.pw2;
+      setMemberClass(prev => ({ ...prev, pw2: match ? "is-valid" : "is-invalid" }));
       if (!match) setMemberPwFeedback("비밀번호가 일치하지 않습니다");
       else setMemberPwFeedback("");
     }
@@ -144,46 +144,46 @@ export default function MemberJoin() {
   // 이름
   const checkMemberName = useCallback(() => {
     const regex = /^[가-힣]{2,5}$|^[a-zA-Z]{2,10}$/;
-    if (!member.memberName) {
-      setMemberClass(prev => ({ ...prev, memberName: "is-invalid" }));
+    if (!member.name) {
+      setMemberClass(prev => ({ ...prev, name: "is-invalid" }));
       setMemberNameFeedback("이름을 입력해주세요");
-    } else if (regex.test(member.memberName)) {
-      setMemberClass(prev => ({ ...prev, memberName: "is-valid" }));
+    } else if (regex.test(member.name)) {
+      setMemberClass(prev => ({ ...prev, name: "is-valid" }));
       setMemberNameFeedback("");
     } else {
-      setMemberClass(prev => ({ ...prev, memberName: "is-invalid" }));
+      setMemberClass(prev => ({ ...prev, name: "is-invalid" }));
       setMemberNameFeedback("올바른 이름 형식이 아닙니다");
     }
-  }, [member.memberName]);
+  }, [member.name]);
 
   // 닉네임
   const checkMemberNickname = useCallback(async () => {
     const regex = /^[가-힣0-9]{2,10}$/;
-    if (!member.memberNickname) {
-      setMemberClass(prev => ({ ...prev, memberNickname: "is-invalid" }));
+    if (!member.nickname) {
+      setMemberClass(prev => ({ ...prev, nickname: "is-invalid" }));
       setMemberNicknameFeedback("닉네임을 입력해주세요");
       return;
     }
-    if (!regex.test(member.memberNickname)) {
-      setMemberClass(prev => ({ ...prev, memberNickname: "is-invalid" }));
+    if (!regex.test(member.nickname)) {
+      setMemberClass(prev => ({ ...prev, nickname: "is-invalid" }));
       setMemberNicknameFeedback("닉네임은 한글/숫자 2~10자로 작성하세요");
       return;
     }
 
     try {
-      const { data } = await axios.get(`/member/memberNickname/${member.memberNickname}`);
+      const { data } = await axios.get(`/member/memberNickname/${member.nickname}`);
       if (data === true) {
-        setMemberClass(prev => ({ ...prev, memberNickname: "is-valid" }));
+        setMemberClass(prev => ({ ...prev, nickname: "is-valid" }));
         setMemberNicknameFeedback("");
       } else {
-        setMemberClass(prev => ({ ...prev, memberNickname: "is-invalid" }));
+        setMemberClass(prev => ({ ...prev, nickname: "is-invalid" }));
         setMemberNicknameFeedback("이미 사용중인 닉네임입니다");
       }
     } catch (err) {
-      setMemberClass(prev => ({ ...prev, memberNickname: "is-invalid" }));
+      setMemberClass(prev => ({ ...prev, nickname: "is-invalid" }));
       setMemberNicknameFeedback("닉네임 확인 실패, 잠시 후 다시 시도하세요");
     }
-  }, [member.memberNickname]);
+  }, [member.nickname]);
 
   // 이메일
   const [emailId, setEmailId] = useState("");
@@ -197,7 +197,7 @@ export default function MemberJoin() {
     const regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
     const valid = regex.test(full);
     // 인증 완료 시 email 클래스는 유지
-    setMember(prev => ({ ...prev, memberEmail: full }));
+    setMember(prev => ({ ...prev, email: full }));
     setMemberClass(prev => ({
       ...prev,
       memberEmail: isEmailCertified ? "is-valid" : valid ? "is-valid" : "is-invalid"
@@ -240,7 +240,7 @@ export default function MemberJoin() {
 
       if (response.data.result === true) {
         setIsEmailCertified(true);
-        setMemberClass(prev => ({ ...prev, memberEmail: "is-valid" }));
+        setMemberClass(prev => ({ ...prev, email: "is-valid" }));
         setCertNumberClass("is-valid");
         setCertNumberFeedback("인증번호 확인이 완료되었습니다.");
       } else {
@@ -268,9 +268,9 @@ export default function MemberJoin() {
         //우편번호(data.zonecode), 기본주소(addr)
         setMember(prev => ({
           ...prev,//나머지 항목은 유지시키고
-          memberPost: data.zonecode,//우편번호
-          memberAddress1: addr,//기본주소
-          memberAddress2: "",//상세주소
+          post: data.zonecode,//우편번호
+          address1: addr,//기본주소
+          address2: "",//상세주소
         }));
         memberAddress2Ref.current.focus();
       }
@@ -284,36 +284,36 @@ export default function MemberJoin() {
   const clearMemberAddress = useCallback(() => {
     setMember(prev => ({
       ...prev,
-      memberPost: "",
-      memberAddress1: "",
-      memberAddress2: ""
+      post: "",
+      address1: "",
+      address2: ""
     }));
     setMemberClass(prev => ({
       ...prev,
-      memberPost: "is-invalid",
-      memberAddress1: "is-invalid",
-      memberAddress2: "is-invalid"
+      post: "is-invalid",
+      address1: "is-invalid",
+      address2: "is-invalid"
     }));
   }, []);
 
   //지우기 버튼이 표시되어야 하는지 판정
   const hasAnyCharacter = useMemo(() => {
-    if (member.memberPost.length > 0) return true;
-    if (member.memberAddress1.length > 0) return true;
-    if (member.memberAddress2.length > 0) return true;
+    if (member.post.length > 0) return true;
+    if (member.address1.length > 0) return true;
+    if (member.address2.length > 0) return true;
   }, [member]);
   // 주소 검사
   const checkMemberAddress = useCallback(() => {
-    const { memberPost, memberAddress1, memberAddress2 } = member;
-    const fill = memberPost.length > 0 && memberAddress1.length > 0 && memberAddress2.length > 0;
-    const empty = memberPost.length === 0 && memberAddress1.length === 0 && memberAddress2.length === 0;
+    const { post, address1, address2 } = member;
+    const fill = post.length > 0 && address1.length > 0 && address2.length > 0;
+    const empty = post.length === 0 && address1.length === 0 && address2.length === 0;
     const valid = fill || empty;
 
     setMemberClass(prev => ({
       ...prev,
-      memberPost: valid ? "is-valid" : "is-invalid",
-      memberAddress1: valid ? "is-valid" : "is-invalid",
-      memberAddress2: valid ? "is-valid" : "is-invalid"
+      post: valid ? "is-valid" : "is-invalid",
+      address1: valid ? "is-valid" : "is-invalid",
+      address2: valid ? "is-valid" : "is-invalid"
     }));
   }, [member]);
 
@@ -322,18 +322,18 @@ export default function MemberJoin() {
     let value = e.target.value.replace(/\D/g, ''); // 숫자만
     if (value.length >= 3) value = value.slice(0, 3) + '-' + value.slice(3);
     if (value.length >= 8) value = value.slice(0, 8) + '-' + value.slice(8, 12);
-    setMember(prev => ({ ...prev, memberContact: value }));
+    setMember(prev => ({ ...prev, contact: value }));
 
     const regex = /^010-\d{4}-\d{4}$/;
     const valid = regex.test(value);
-    setMemberClass(prev => ({ ...prev, memberContact: valid ? "is-valid" : "is-invalid" }));
+    setMemberClass(prev => ({ ...prev, contact: valid ? "is-valid" : "is-invalid" }));
     setMemberContactFeedback(valid ? "" : "010-XXXX-XXXX 형식으로 입력하세요");
   }, []);
   //생년월일
   const handleDateChange = (date) => {
     setMember({
       ...member,
-      memberBirth: format(date, "yyyy-MM-dd")
+      birth: format(date, "yyyy-MM-dd")
     });
     setShowDatePickerModal(false);
     checkDuplicate();
@@ -342,14 +342,14 @@ export default function MemberJoin() {
 
   // 중복 체크
   const checkDuplicate = useCallback(async () => {
-    if (!member.memberName || !member.memberBirth || !member.memberContact) return;
+    if (!member.name || !member.birth || !member.contact) return;
 
     try {
       const { data } = await axios.get("/member/checkDuplicate", {
         params: {
-          name: member.memberName,
-          birth: member.memberBirth,
-          contact: member.memberContact
+          name: member.name,
+          birth: member.birth,
+          contact: member.contact
         }
       });
 
@@ -367,18 +367,18 @@ export default function MemberJoin() {
   }, [member]);
 
   const memberValid = useMemo(() => {
-    if (memberClass.memberId !== "is-valid") return false;
-    if (memberClass.memberPw !== "is-valid") return false;
-    if (memberClass.memberPw2 !== "is-valid") return false;
-    if (memberClass.memberNickname !== "is-valid") return false;
-    if (memberClass.memberEmail !== "is-valid") return false;
+    if (memberClass.id !== "is-valid") return false;
+    if (memberClass.pw !== "is-valid") return false;
+    if (memberClass.pw2 !== "is-valid") return false;
+    if (memberClass.nickname !== "is-valid") return false;
+    if (memberClass.email !== "is-valid") return false;
     if (certNumberClass !== "is-valid") return false;
 
-    if (memberClass.memberBirth === "is-invalid") return false;
-    if (memberClass.memberContact === "is-invalid") return false;
-    if (memberClass.memberPost === "is-invalid") return false;
-    if (memberClass.memberAddress1 === "is-invalid") return false;
-    if (memberClass.memberAddress2 === "is-invalid") return false;
+    if (memberClass.birth === "is-invalid") return false;
+    if (memberClass.contact === "is-invalid") return false;
+    if (memberClass.post === "is-invalid") return false;
+    if (memberClass.address1 === "is-invalid") return false;
+    if (memberClass.address2 === "is-invalid") return false;
 
     return true;
   }, [memberClass]);
@@ -419,9 +419,9 @@ export default function MemberJoin() {
           <div className="col-sm-9">
             <input
               type="text"
-              className={`form-control ${memberClass.memberId}`}
-              name="memberId"
-              value={member.memberId}
+              className={`form-control ${memberClass.id}`}
+              name="id"
+              value={member.id}
               onChange={changeStrValue}
               onBlur={checkMemberId}
             />
@@ -447,8 +447,8 @@ export default function MemberJoin() {
                 : <FaToggleOff className="ms-3 fs-4" onClick={() => setShowPassword(true)} />}</div>
           </label>
           <div className="col-sm-9">
-            <input type={showPassword ? "text" : "password"} className={`form-control ${memberClass.memberPw}`}
-              name="memberPw" value={member.memberPw}
+            <input type={showPassword ? "text" : "password"} className={`form-control ${memberClass.pw}`}
+              name="pw" value={member.pw}
               onChange={changeStrValue} onBlur={checkMemberPw} />
             <div className="valid-feedback">사용 가능한 비밀번호 형식입니다</div>
             <div className="invalid-feedback">{memberPwFeedback}</div>
@@ -473,8 +473,8 @@ export default function MemberJoin() {
 
           </label>
           <div className="col-sm-9">
-            <input type={showPassword ? "text" : "password"} className={`form-control ${memberClass.memberPw2}`}
-              name="memberPw2" value={member.memberPw2}
+            <input type={showPassword ? "text" : "password"} className={`form-control ${memberClass.pw2}`}
+              name="pw2" value={member.pw2}
               onChange={changeStrValue} onBlur={checkMemberPw} />
             <div className="valid-feedback">비밀번호가 일치합니다</div>
             <div className="invalid-feedback">{memberPwFeedback}</div>
@@ -497,8 +497,8 @@ export default function MemberJoin() {
             </div>
           </label>
           <div className="col-sm-9">
-            <input type="text" className={`form-control ${memberClass.memberName}`}
-              name="memberName" value={member.memberName}
+            <input type="text" className={`form-control ${memberClass.name}`}
+              name="name" value={member.name}
               onChange={changeStrValue} onBlur={() => { checkMemberName(); checkDuplicate(); }} />
             <div className="valid-feedback">올바른 이름 형식입니다</div>
             <div className="invalid-feedback">{memberNameFeedback}</div>
@@ -521,8 +521,8 @@ export default function MemberJoin() {
             </div>
           </label>
           <div className="col-sm-9">
-            <input type="text" className={`form-control ${memberClass.memberNickname}`}
-              name="memberNickname" value={member.memberNickname}
+            <input type="text" className={`form-control ${memberClass.nickname}`}
+              name="nickname" value={member.nickname}
               onChange={changeStrValue} onBlur={checkMemberNickname} />
             <div className="valid-feedback">사용 가능한 닉네임입니다</div>
             <div className="invalid-feedback">{memberNicknameFeedback}</div>
@@ -544,7 +544,7 @@ export default function MemberJoin() {
             </div>
           </label>
           <div className="col-sm-9">
-            <div className={`input-group ${memberClass.memberEmail}`}>
+            <div className={`input-group ${memberClass.email}`}>
               <input
                 type="text"
                 className="form-control"
@@ -564,7 +564,7 @@ export default function MemberJoin() {
                 type="button"
                 className="btn btn-primary ms-2 d-inline-flex align-items-center"
                 onClick={sendCertEmail}
-                disabled={sending === true || memberClass.memberEmail === "is-invalid"}
+                disabled={sending === true || memberClass.email === "is-invalid"}
               >
                 {sending === true ? (
                   <FaSpinner className="fa-spin custom-spinner" />
@@ -617,10 +617,10 @@ export default function MemberJoin() {
           <div className="col-sm-9 d-flex align-items-center">
             <input
               type="text"
-              name="memberPost"
-              className={`form-control ${memberClass.memberPost} w-auto`}
+              name="post"
+              className={`form-control ${memberClass.post} w-auto`}
               placeholder="우편번호"
-              value={member.memberPost}
+              value={member.post}
               readOnly
             />
             <button
@@ -645,10 +645,10 @@ export default function MemberJoin() {
           <div className="col-sm-9 offset-sm-3 mt-2">
             <input
               type="text"
-              name="memberAddress1"
-              className={`form-control ${memberClass.memberAddress1}`}
+              name="address1"
+              className={`form-control ${memberClass.address1}`}
               placeholder="기본주소"
-              value={member.memberAddress1}
+              value={member.address1}
               onChange={changeStrValue}
               readOnly
               onClick={searchAddress}
@@ -658,10 +658,10 @@ export default function MemberJoin() {
           <div className="col-sm-9 offset-sm-3 mt-2">
             <input
               type="text"
-              name="memberAddress2"
-              className={`form-control ${memberClass.memberAddress2}`}
+              name="address2"
+              className={`form-control ${memberClass.address2}`}
               placeholder="상세주소"
-              value={member.memberAddress2}
+              value={member.address2}
               onChange={changeStrValue}
               ref={memberAddress2Ref}
               onBlur={checkMemberAddress}
@@ -676,8 +676,8 @@ export default function MemberJoin() {
           </label>
           <div className="col-sm-9">
             <input type="text" inputMode="tel"
-              className={`form-control ${memberClass.memberContact}`}
-              name="memberContact" value={member.memberContact}
+              className={`form-control ${memberClass.contact}`}
+              name="contact" value={member.contact}
               onChange={changeStrValue}
               onBlur={(e) => {
                 checkMemberContact(e);
@@ -694,12 +694,12 @@ export default function MemberJoin() {
           <div className="col-sm-9 d-flex gap-2">
             <input
               type="text"
-              className={`form-control ${memberClass.memberBirth}`}
+              className={`form-control ${memberClass.birth}`}
               placeholder="날짜를 선택해주세요"
-              value={member.memberBirth}
+              value={member.birth}
               disabled={true}
               onChange={(e) => {
-                setMember({ ...member, memberBirth: e.target.value });
+                setMember({ ...member, birth: e.target.value });
               }}
             />
             <button
@@ -714,7 +714,7 @@ export default function MemberJoin() {
               </Modal.Header>
               <Modal.Body className="d-flex justify-content-center">
                 <DatePicker
-                  selected={member.memberBirth ? parse(member.memberBirth, "yyyy-MM-dd", new Date()) : null}
+                  selected={member.birth ? parse(member.birth, "yyyy-MM-dd", new Date()) : null}
                   onChange={handleDateChange}
                   dateFormat="yyyy-MM-dd"
                   locale="ko"

@@ -19,6 +19,7 @@ import KakaoPayCancel from "./pay/KakaoPayCancel";
 import KakaoPayFail from "./pay/KakaoPayFail";
 import ProductAdd from "./product/ProductAdd";
 import ProductAddDone from "./product/ProductAddDone";
+import Admin from "./guard/Admin";
 
 export default function Content() {
 

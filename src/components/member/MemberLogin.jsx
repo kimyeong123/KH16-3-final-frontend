@@ -25,7 +25,7 @@ export default function MemberLogin() {
     const [, setLoginContact] = useAtom(loginContactState);
     const [, setLoginCreatedTime] = useAtom(loginCreatedTimeState);
 
-    const [member, setMember] = useState({ memberId: "", memberPw: "" });
+    const [member, setMember] = useState({ id: "", pw: "" });
     const [result, setResult] = useState(null);
     // 아이디/비번 찾기
     const [findEmail, setFindEmail] = useState("");
@@ -72,7 +72,8 @@ export default function MemberLogin() {
             setLoginCreatedTime(data.createdTime);
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
-            setLoginComplete(true);
+            setLoginComplete(true);    
+            console.log(data);
 
             // axios 기본 헤더도 설정
             axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
@@ -194,14 +195,14 @@ export default function MemberLogin() {
                 <div className="row form-row no-border mt-4">
                     <label className="col-sm-3 col-form-label">아이디</label>
                     <div className="col-sm-9">
-                        <input type="text" name="memberId" value={member.memberId} onChange={changeStrValue} className="form-control" />
+                        <input type="text" name="id" value={member.id} onChange={changeStrValue} className="form-control" />
                     </div>
                 </div>
 
                 <div className="row form-row mt-4">
                     <label className="col-sm-3 col-form-label">비밀번호</label>
                     <div className="col-sm-9">
-                        <input type="password" name="memberPw" value={member.memberPw} onChange={changeStrValue} className="form-control" />
+                        <input type="password" name="pw" value={member.pw} onChange={changeStrValue} className="form-control" />
                     </div>
                 </div>
 

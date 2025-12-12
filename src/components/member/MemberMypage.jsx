@@ -68,7 +68,7 @@ export default function MemberMypage() {
     const [certNumber, setCertNumber] = useState(""); // 입력 인증번호
     const [certNumberClass, setCertNumberClass] = useState(""); // 인증번호 유효성 클   래스
     const [certNumberFeedback, setCertNumberFeedback] = useState(""); // 인증번호 피드백
-    const [memberClass, setMemberClass] = useState({ memberEmail: "" }); // 이메일 유효성 클래스
+    const [memberClass, setMemberClass] = useState({ email: "" }); // 이메일 유효성 클래스
     const [memberEmailFeedback, setMemberEmailFeedback] = useState(""); // 이메일 피드백
     useEffect(() => {
         if (email) {
@@ -110,7 +110,7 @@ export default function MemberMypage() {
 
         setMemberClass(prev => ({
             ...prev,
-            memberEmail: isEmailCertified ? "is-valid" : valid ? "is-valid" : "is-invalid"
+            email: isEmailCertified ? "is-valid" : valid ? "is-valid" : "is-invalid"
         }));
         setMemberEmailFeedback(valid ? "" : "올바른 이메일 형식이 아닙니다");
         return valid;
@@ -149,7 +149,7 @@ export default function MemberMypage() {
 
             if (response.data.result === true) {
                 setIsEmailCertified(true);
-                setMemberClass(prev => ({ ...prev, memberEmail: "is-valid" }));
+                setMemberClass(prev => ({ ...prev, email: "is-valid" }));
                 setCertNumberClass("is-valid");
                 setCertNumberFeedback("인증번호 확인이 완료되었습니다.");
             } else {
@@ -394,7 +394,7 @@ const handleDeleteAccount = async () => {
   try {
     await axios.delete(`http://localhost:8080/member/${loginNo}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
-      data: { memberPw: password }, 
+      data: { pw: password }, 
     });
 
     localStorage.removeItem("access_token");
@@ -480,7 +480,7 @@ const handleDeleteAccount = async () => {
                                                 type="button"
                                                 className="btn btn-primary btn-sm"
                                                 onClick={sendCertEmail}
-                                                disabled={sending === true || memberClass.memberEmail === "is-invalid"}
+                                                disabled={sending === true || memberClass.email === "is-invalid"}
                                             >
                                                 {sending === true ? "발송중..." : "인증번호 전송"}
                                             </button>
