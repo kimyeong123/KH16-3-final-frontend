@@ -1,89 +1,95 @@
-/* ================================
-   🟩 SWEETALERT2 FLATLY OVERRIDE
-   ================================ */
+/* SweetAlert2 Flatly Override */
 
-/* 전체 팝업 */
 .swal2-popup {
-  background-color: #f8f9fa !important; /* Flatly 배경 */
+  background-color: #f8f9fa !important;
   color: #2c3e50 !important;
-  border-radius: 0.75rem !important;
+  border-radius: 16px !important;
   box-shadow: 0 0.5rem 1rem rgba(44, 62, 80, 0.15) !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
-/* 타이틀 */
 .swal2-title {
   color: #2c3e50 !important;
+  font-weight: 700 !important;
+}
+
+.swal2-html-container {
+  color: #2c3e50 !important;
+  font-size: 0.95rem !important;
+}
+
+.swal2-confirm,
+.swal2-cancel {
+  border-radius: 999px !important;
+  min-width: 110px !important;
   font-weight: 600 !important;
 }
 
-/* 내용 텍스트 */
-.swal2-html-container {
-  color: #2c3e50 !important;
-}
-
-/* 버튼 공통 */
-.swal2-confirm.btn,
-.swal2-cancel.btn {
-  min-width: 100px !important;
-  border-radius: 999px !important;
-}
-
-/* Confirm 버튼: Flatly 민트 */
-.swal2-confirm.btn-primary {
+.swal2-confirm {
   background-color: #18bc9c !important;
   border-color: #18bc9c !important;
-  color: white !important;
+  color: #fff !important;
 }
 
-.swal2-confirm.btn-primary:hover {
+.swal2-confirm:hover {
   background-color: #15a589 !important;
   border-color: #15a589 !important;
 }
 
-/* Cancel 버튼 */
-.swal2-cancel.btn-outline-secondary {
+.swal2-cancel {
+  background-color: transparent !important;
   color: #2c3e50 !important;
-  border-color: #bdc3c7 !important;
+  border: 1px solid #bdc3c7 !important;
+}
+.swal2-question {
+  background-color: transparent !important;
+  color: #2c3e50 !important;
+  border: 1px solid #bdc3c7 !important;
 }
 
-/* ================================
-   🟩 SUCCESS ICON (체크표시) 완전히 Flatly 민트로 강제
-   ================================ */
-
-/* 성공 아이콘 전체 */
 .swal2-icon.swal2-success {
   border-color: #18bc9c !important;
   color: #18bc9c !important;
 }
 
-/* 체크 표시 두 줄 */
-.swal2-icon.swal2-success .swal2-success-line-tip,
-.swal2-icon.swal2-success .swal2-success-line-long {
+.swal2-icon.swal2-success [class^="swal2-success-line"] {
   background-color: #18bc9c !important;
 }
 
-/* 성공 원의 안쪽 링 */
 .swal2-icon.swal2-success .swal2-success-ring {
-  border-color: rgba(24, 188, 156, 0.4) !important;
+  border-color: rgba(24, 188, 156, 0.35) !important;
 }
 
-/* fix 영역(체크가 겹치는 곳 배경 보정) */
 .swal2-icon.swal2-success .swal2-success-fix {
   background-color: #f8f9fa !important;
 }
 
-/* ================================
-   🟥 ERROR ICON
-   ================================ */
 .swal2-icon.swal2-error {
   border-color: #e74c3c !important;
   color: #e74c3c !important;
 }
 
-/* ================================
-   🟧 WARNING ICON
-   ================================ */
 .swal2-icon.swal2-warning {
   border-color: #f39c12 !important;
   color: #f39c12 !important;
+}
+.swal2-icon.swal2-question ~ .swal2-actions .swal2-confirm {
+  background-color: #2c3e50 !important;
+  border-color: #2c3e50 !important;
+  color: #fff !important;
+}
+
+.swal2-icon.swal2-question ~ .swal2-actions .swal2-confirm:hover {
+  background-color: #1a252f !important;
+  border-color: #1a252f !important;
+}
+.swal2-icon.swal2-question ~ .swal2-actions .swal2-cancel {
+  background-color: #bdc3c7 !important;
+  border-color: #bdc3c7 !important;
+  color: #2c3e50 !important;
+}
+
+.swal2-icon.swal2-question ~ .swal2-actions .swal2-cancel:hover {
+  background-color: #aeb6bf !important;
+  border-color: #aeb6bf !important;
 }
