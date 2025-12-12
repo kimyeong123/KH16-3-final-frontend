@@ -66,7 +66,7 @@ export default function MemberLogin() {
             console.error("로그인 실패:", err);
             setResult(false);
         }
-    }, [member, setLoginId, setLoginRole, setAccessToken, setRefreshToken, setLoginComplete, navigate]);
+    }, [member, navigate]);
 
     return (
         <>

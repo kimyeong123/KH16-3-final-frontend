@@ -8,7 +8,6 @@ import { atomWithStorage } from "jotai/utils";
 
 // ----------------------------------------------------
 // 1. 기본 상태 아톰 (쓰기 가능 아톰)
-//    - 값이 직접 저장되거나 변경됩니다. (atomWithStorage 포함)
 // ----------------------------------------------------
 
 // localStorage를 사용하여 데이터 저장 (브라우저 종료 후에도 유지됨)
@@ -30,9 +29,8 @@ export const loginCreatedTimeState = atomWithStorage("loginCreatedTimeState", ""
 export const loginContactState = atomWithStorage("loginContactState", "", localStorage);
 
 
-// 💡 [쓰기 가능] 전역 상태 및 로딩 관련 플래그 (세션에 저장되지 않음)
-// loginCompleteState, apiCallingState, tokenRefreshingState, globalErrorState 만 남기고 중복 제거
-export const loginCompleteState = atom(false); // 새로고침 후 인증 복구 완료 플래그 (App.js에서 set)
+// 💡 메모리 전용 플래그 (App.js에서 set)
+export const loginCompleteState = atom(false); // 새로고침 후 인증 복구 완료 플래그
 export const apiCallingState = atom(false); 
 export const tokenRefreshingState = atom(false); 
 export const globalErrorState = atom(null); 
@@ -40,22 +38,17 @@ export const globalErrorState = atom(null);
 
 // ----------------------------------------------------
 // 2. Selector (읽기 전용 아톰)
-//    - 다른 아톰의 값을 get하여 계산된 값을 반환합니다. (App.js에서 set 불가)
 // ----------------------------------------------------
-
-// 💡 로그인 여부 판정 (loginId와 Role이 모두 존재하면 true)
-// 이전의 중복된 loginState를 Selector로 정의하고 이름 유지
+// 💡 로그인 여부 판정: loginId와 Role이 존재하면 true
 export const loginState = atom(get=>{
     const loginId = get(loginIdState);
     const loginRole = get(loginRoleState);
     return loginId?.length > 0 && loginRole?.length > 0;
 });
 
-// 💡 관리자 여부 판정 (loginRole이 "ADMIN"일 경우 true)
-// 이전의 중복된 adminState를 Selector로 정의하고 이름 유지
+// 💡 관리자 여부 판정: Role이 "ADMIN"이면 true
 export const adminState = atom(get=>{
     const loginRole = get(loginRoleState);
-    // loginId는 loginRole에 포함되므로 Role만 확인해도 됨
     return loginRole === "ADMIN";
 });
 
@@ -64,11 +57,11 @@ export const adminState = atom(get=>{
 // 3. 쓰기 함수 (초기화)
 // ----------------------------------------------------
 
-// 로그인 관련 state를 초기화하는 함수 (쓰기 함수)
+// 💡 로그인 관련 state를 초기화하는 함수
 export const clearLoginState = atom(
-    null, // 읽기 기능은 사용하지 않음
-    (get, set)=>{// 변경만 하겠다!
-        // 사용자 정보 초기화 (atomWithStorage 포함)
+    null, // 읽기 기능 없음
+    (get, set)=>{
+        // 사용자 정보 초기화
         set(loginNoState, "");
         set(loginIdState, "");
         set(loginRoleState, "");
@@ -76,19 +69,20 @@ export const clearLoginState = atom(
         set(refreshTokenState, "");
         set(loginNicknameState, "");
         set(loginEmailState, "");
-        set(loginPostState,"");
+        
+        // 💡 [수정] loginPostState 초기화 (값 누락 오류 수정)
+        set(loginPostState, ""); 
+        
         set(loginAddress1State, "");
         set(loginAddress2State, "");
         set(loginContactState, "");
-        set(loginPointState, 0); // Point는 숫자일 경우 0으로 초기화하는 것이 좋습니다.
+        set(loginPointState, 0); 
         set(loginCreatedTimeState, "");
         
         // 플래그 초기화
         set(apiCallingState, false); 
         set(tokenRefreshingState, false); 
-        set(loginCompleteState, false); // clearLoginState 실행 시 다시 로딩 상태로 돌아가도록 설정 (선택 사항)
-        
-        // 전역 에러 상태도 초기화
+        set(loginCompleteState, false); 
         set(globalErrorState, null);
     }
 );
@@ -107,7 +101,10 @@ refreshTokenState.debugLabel = "refreshTokenState";
 loginCompleteState.debugLabel = "loginCompleteState";
 loginNicknameState.debugLabel = "loginNicknameState";
 loginEmailState.debugLabel = "loginEmailState";
-loginPostState.debugLabel = "loginPostState";
+
+// 💡 [추가됨] loginPostState 디버그 라벨 설정
+loginPostState.debugLabel = "loginPostState"; 
+
 loginAddress1State.debugLabel = "loginAddress1State";
 loginAddress2State.debugLabel = "loginAddress2State";
 loginPointState.debugLabel = "loginPointState";
