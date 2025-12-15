@@ -10,7 +10,7 @@ import axios from "axios";
 
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/toast.css';
-import './styles/sweetalert2-flatly.css';
+import "./styles/sweetalert2-flatly.css";
 
 // jotai.js에서 인증 상태 관리용 atom들을 임포트합니다.
 import { accessTokenState, clearLoginState, loginCompleteState } from "./utils/jotai";

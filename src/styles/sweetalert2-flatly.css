@@ -1,4 +1,4 @@
-/* SweetAlert2 Flatly Override */
+/* SweetAlert2 Flatly Override (Force CSS - ignores JS color options) */
 
 .swal2-popup {
   background-color: #f8f9fa !important;
@@ -18,78 +18,95 @@
   font-size: 0.95rem !important;
 }
 
-.swal2-confirm,
-.swal2-cancel {
+/* ------------------------------
+   Buttons (force override even if inline styles exist)
+-------------------------------- */
+.swal2-actions .swal2-styled {
   border-radius: 999px !important;
   min-width: 110px !important;
   font-weight: 600 !important;
+  box-shadow: none !important; /* SweetAlert2 default shadow remove */
 }
 
-.swal2-confirm {
-  background-color: #18bc9c !important;
-  border-color: #18bc9c !important;
+/* Confirm (남색 고정) */
+.swal2-actions .swal2-styled.swal2-confirm {
+  background-color: #2c3e50 !important;
+  border: 1px solid #2c3e50 !important;
   color: #fff !important;
 }
 
-.swal2-confirm:hover {
-  background-color: #15a589 !important;
-  border-color: #15a589 !important;
+.swal2-actions .swal2-styled.swal2-confirm:hover {
+  background-color: #1a252f !important;
+  border-color: #1a252f !important;
 }
 
-.swal2-cancel {
-  background-color: transparent !important;
-  color: #2c3e50 !important;
+/* Cancel (회색 고정) */
+.swal2-actions .swal2-styled.swal2-cancel {
+  background-color: #bdc3c7 !important;
   border: 1px solid #bdc3c7 !important;
-}
-.swal2-question {
-  background-color: transparent !important;
   color: #2c3e50 !important;
-  border: 1px solid #bdc3c7 !important;
 }
 
+.swal2-actions .swal2-styled.swal2-cancel:hover {
+  background-color: #aeb6bf !important;
+  border-color: #aeb6bf !important;
+}
+
+/* ------------------------------
+   Icons (force override)
+   Note: success icon is composed of multiple elements
+-------------------------------- */
+
+/* SUCCESS -> 남색으로 완전 통일 (하늘색 제거) */
 .swal2-icon.swal2-success {
-  border-color: #18bc9c !important;
-  color: #18bc9c !important;
+  border-color: #2c3e50 !important;
+  color: #2c3e50 !important;
 }
 
 .swal2-icon.swal2-success [class^="swal2-success-line"] {
-  background-color: #18bc9c !important;
+  background-color: #2c3e50 !important;
 }
 
 .swal2-icon.swal2-success .swal2-success-ring {
-  border-color: rgba(24, 188, 156, 0.35) !important;
+  border-color: rgba(44, 62, 80, 0.35) !important;
 }
 
 .swal2-icon.swal2-success .swal2-success-fix {
   background-color: #f8f9fa !important;
 }
 
+/* ERROR */
 .swal2-icon.swal2-error {
-  border-color: #e74c3c !important;
-  color: #e74c3c !important;
-}
-
-.swal2-icon.swal2-warning {
-  border-color: #f39c12 !important;
-  color: #f39c12 !important;
-}
-.swal2-icon.swal2-question ~ .swal2-actions .swal2-confirm {
-  background-color: #2c3e50 !important;
   border-color: #2c3e50 !important;
-  color: #fff !important;
-}
-
-.swal2-icon.swal2-question ~ .swal2-actions .swal2-confirm:hover {
-  background-color: #1a252f !important;
-  border-color: #1a252f !important;
-}
-.swal2-icon.swal2-question ~ .swal2-actions .swal2-cancel {
-  background-color: #bdc3c7 !important;
-  border-color: #bdc3c7 !important;
   color: #2c3e50 !important;
 }
 
-.swal2-icon.swal2-question ~ .swal2-actions .swal2-cancel:hover {
-  background-color: #aeb6bf !important;
-  border-color: #aeb6bf !important;
+/* WARNING */
+.swal2-icon.swal2-warning {
+  border-color: #2c3e50 !important;
+  color: #2c3e50 !important;
+}
+
+/* INFO */
+.swal2-icon.swal2-info {
+  border-color: #2c3e50 !important;
+  color: #2c3e50 !important;
+}
+
+/* QUESTION */
+.swal2-icon.swal2-question {
+  border-color: #2c3e50 !important;
+  color: #2c3e50 !important;
+  background-color: transparent !important;
+}
+
+/* ------------------------------
+   Optional: tighten text/spacing feel a bit more "Flatly"
+-------------------------------- */
+.swal2-popup .swal2-close {
+  color: #2c3e50 !important;
+}
+
+.swal2-timer-progress-bar {
+  background: rgba(44, 62, 80, 0.25) !important;
 }
