@@ -40,11 +40,7 @@ export const globalErrorState = atom(null);
 // 2. Selector (읽기 전용 아톰)
 // ----------------------------------------------------
 // 💡 로그인 여부 판정: loginId와 Role이 존재하면 true
-export const loginState = atom(get=>{
-    const loginId = get(loginIdState);
-    const loginRole = get(loginRoleState);
-    return loginId?.length > 0 && loginRole?.length > 0;
-});
+export const loginState = atom(get => { const accessToken = get(accessTokenState); return typeof accessToken === "string" && accessToken.length > 0; });
 
 // 💡 관리자 여부 판정: Role이 "ADMIN"이면 true
 export const adminState = atom(get=>{
