@@ -1,51 +1,98 @@
 // src/components/Header.js
 
-import React, { useCallback, useEffect, useState, useRef } from 'react'; // 💡 useRef 추가
-import { Link, useNavigate } from 'react-router-dom'; 
-import logo2 from '../assets/logo2.png'; 
-import { FaSearch } from 'react-icons/fa'; 
-import Menu from "./Menu"; 
-import { FaRegBell } from "react-icons/fa6";
-import { useAtom, useSetAtom } from "jotai"; 
-import { accessTokenState, adminState, clearLoginState, loginCompleteState, loginIdState, loginRoleState, loginState } from "../utils/jotai"; 
+import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import logo2 from '../assets/logo2.png';
+import { FaSearch } from 'react-icons/fa';
+import Menu from "./Menu";
+import { FaRegBell } from "react-icons/fa6"; // 일반 알림 아이콘
+import { useAtom, useSetAtom } from "jotai";
+import { accessTokenState, adminState, clearLoginState, loginCompleteState, loginIdState, loginRoleState, loginState } from "../utils/jotai";
 import axios from "axios";
-import { BsLightningCharge, BsTrash3 } from "react-icons/bs";
-import { RiErrorWarningLine } from "react-icons/ri"; 
+import { BsLightningCharge, BsTrash3 } from "react-icons/bs"; // 중요 알림 아이콘
+import { RiErrorWarningLine } from "react-icons/ri"; // QNA 알림 아이콘
+import MessageBadge from "./message/MessageBadge";
 
 
-// ***** 더미 알림 데이터 (생략) *****
-const MOCK_NOTIFICATIONS = [
-    { id: 1, type: 'important', title: '낙찰 성공! [아이템 #123]', detail: '결제 기한이 곧 마감됩니다.', time: '5분 전', icon: <BsLightningCharge className="text-danger me-2" /> },
-    { id: 2, type: 'personal', title: '입찰가 갱신: 새로운 최고가 등록', detail: '15분 전', icon: <RiErrorWarningLine className="text-warning me-2" /> },
-    { id: 3, type: 'personal', title: '유찰 처리되었습니다. [아이템 #456]', detail: '2시간 전', icon: <BsTrash3 className="text-danger me-2" /> },
-    { id: 4, type: 'important', title: '낙찰 실패: 다른 사용자가 낙찰', detail: '1일 전', icon: <BsLightningCharge className="text-muted me-2" /> },
-    { id: 5, type: 'personal', title: '새로운 메시지 도착', detail: '2일 전', icon: <FaRegBell className="text-primary me-2" /> },
-];
+// API 엔드포인트 및 폴링 설정
+const NOTIFICATION_COUNT_URL = "/message/unread/count";
+const POLLING_INTERVAL = 5000; // 5초 (5000ms)
+const NOTIFICATION_LIST_URL = "/message/unread/list";
 
-export default function Header() { 
+
+/**
+ * 쪽지 TYPE에 따라 적절한 아이콘 컴포넌트를 반환하는 헬퍼 함수
+ * 데이터베이스의 TYPE 컬럼 값을 기준으로 판단합니다.
+ * @param {string} type - 쪽지 타입 ('GENERAL', 'SYSTEM_ALERT', 'SELLER_QNA')
+ */
+const getNotificationIcon = (type) => {
+    switch (type) {
+        case 'SYSTEM_ALERT':
+            // 중요/긴급 알림 (예: 낙찰 성공, 결제 마감)
+            return <BsLightningCharge className="text-danger me-2" />;
+        case 'SELLER_QNA':
+            // 문의/답변 알림
+            return <RiErrorWarningLine className="text-warning me-2" />;
+        case 'GENERAL':
+            // 일반적인 사용자 간 쪽지
+            return <FaRegBell className="text-primary me-2" />;
+        default:
+            // 그 외
+            return <FaRegBell className="text-muted me-2" />;
+    }
+};
+
+
+export default function Header() {
     const navigate = useNavigate();
 
     // ***** 1. 상태 및 참조 (State & Ref) *****
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
-    
-    // 💡 드롭다운 컨테이너 DOM 참조
-    const dropdownRef = useRef(null); 
 
-    // jotai state (생략)
+    // 드롭다운 컨테이너 DOM 참조
+    const dropdownRef = useRef(null);
+
+    // jotai state
     const [loginId] = useAtom(loginIdState);
     const [loginRole] = useAtom(loginRoleState);
     const [accessToken] = useAtom(accessTokenState);
     const [isLogin] = useAtom(loginState);
     const clearLogin = useSetAtom(clearLoginState);
 
+    // [추가] 미확인 알림 개수 상태 (폴링으로 업데이트됨)
+    const [unreadCount, setUnreadCount] = useState(0);
+    // [추가] 실제 알림 목록 데이터를 저장할 상태 (드롭다운 열릴 때 업데이트됨)
+    const [notifications, setNotifications] = useState([]);
+    // [추가] 알림 목록 로딩 상태
+    const [isLoading, setIsLoading] = useState(false);
+
     // ***** 2. 콜백 및 이펙트 (Callback & Effect) *****
 
+    // 알림 목록을 서버에서 가져오는 함수
+    // 서버가 토큰을 통해 사용자 정보를 파악하므로 별도의 memberNo 인자는 필요 없습니다.
+    const fetchNotifications = useCallback(async () => {
+        if (!isLogin) return; // 로그인 상태가 아니라면 실행하지 않음
+
+        setIsLoading(true);
+        try {
+            // GET /message/unread/list 호출
+            const response = await axios.get(NOTIFICATION_LIST_URL);
+
+            // 백엔드 응답 형태: List<MessageDto>
+            setNotifications(response.data);
+        } catch (error) {
+            console.error("알림 목록을 가져오는데 실패했습니다.", error);
+            setNotifications([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [isLogin]); // isLogin 변경 시 fetchNotifications도 갱신되어야 함
+
     // [알림 드롭다운 토글]
-    const toggleDropdown = useCallback((e) => {
-        // 💡 이벤트 버블링 방지 (외부 클릭 로직과 충돌 방지)
-        if (e) e.stopPropagation(); 
-        setIsDropdownOpen(prev => !prev); 
+    const toggleDropdown = useCallback(() => {
+        // 이벤트 버블링 방지는 MessageBadge 컴포넌트 내부에서 처리하는 것이 좋습니다.
+        setIsDropdownOpen(prev => !prev);
     }, []);
 
     // [외부 클릭 감지]
@@ -59,146 +106,196 @@ export default function Header() {
 
         // 문서 전체에 클릭 이벤트를 등록
         document.addEventListener('mousedown', handleClickOutside);
-        
+
         // 컴포넌트 언마운트 시 이벤트 리스너 제거 (클린업)
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isDropdownOpen]); // isDropdownOpen이 바뀔 때마다 다시 등록
 
-    // [탭 변경 핸들러] (생략)
+    // [탭 변경 핸들러]
     const changeTab = useCallback((tab) => {
         setActiveTab(tab);
     }, []);
 
-    // [현재 탭에 맞는 알림 필터링] (생략)
-    const filteredNotifications = MOCK_NOTIFICATIONS.filter(notif => {
+    // [현재 탭에 맞는 알림 필터링] - 실제 데이터(notifications)와 DB TYPE 사용
+    const filteredNotifications = notifications.filter(notif => {
         if (activeTab === 'all') return true;
-        if (activeTab === 'important') return notif.type === 'important';
-        if (activeTab === 'personal') return notif.type === 'personal';
+        // 중요 탭: SYSTEM_ALERT 타입만 필터링
+        if (activeTab === 'important') return notif.type === 'SYSTEM_ALERT';
+        // 개인 탭: GENERAL 또는 SELLER_QNA 타입 필터링
+        if (activeTab === 'personal') return notif.type === 'GENERAL' || notif.type === 'SELLER_QNA';
         return false;
     });
 
-    // [로그아웃(logout)] (생략)
+    // [로그아웃(logout)]
     const logout = useCallback((e) => {
         e.stopPropagation();
         e.preventDefault();
-        clearLogin(); 
-        delete axios.defaults.headers.common["Authorization"]; 
-        navigate("/"); 
+        clearLogin();
+        delete axios.defaults.headers.common["Authorization"];
+        navigate("/");
     }, [clearLogin, navigate]);
+
+
+    // [미확인 알림 개수를 가져오는 useEffect (폴링 적용)]
+    useEffect(() => {
+        // 비로그인 상태면 데이터를 가져올 필요가 없습니다.
+        if (!isLogin) {
+            setUnreadCount(0);
+            return;
+        }
+
+        // 서버에서 미확인 알림 개수를 가져오는 비동기 함수
+        const fetchUnreadCount = async () => {
+            try {
+                // 백엔드 API 호출: GET /message/unread/count
+                const response = await axios.get(NOTIFICATION_COUNT_URL);
+                // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
+                setUnreadCount(response.data.unreadCount || 0);
+            } catch (error) {
+                console.error("알림 개수를 가져오는데 실패했습니다.", error);
+                setUnreadCount(0);
+            }
+        };
+
+        // 1. 컴포넌트 마운트 및 isLogin이 true가 되었을 때 즉시 호출
+        fetchUnreadCount();
+
+        // 2. 지정된 간격(5초)마다 주기적으로 업데이트 (폴링)
+        const intervalId = setInterval(fetchUnreadCount, POLLING_INTERVAL);
+
+        // 클린업 함수: 컴포넌트 언마운트 시 인터벌 제거
+        return () => clearInterval(intervalId);
+
+    }, [isLogin]);
+
+    // [드롭다운 열릴 때 알림 목록을 가져오는 useEffect]
+    useEffect(() => {
+        if (isLogin && isDropdownOpen) {
+            // 드롭다운이 열렸을 때만 목록 데이터를 가져옴
+            fetchNotifications();
+        }
+    }, [isLogin, isDropdownOpen, fetchNotifications]);
 
 
     // ***** 3. 렌더링 (Render) *****
     return (
         <header className="fixed-top bg-white border-bottom" style={{ zIndex: 1040 }}>
-            
+
             <div className="container-fluid py-1 d-flex justify-content-between align-items-center">
-                
-                {/* 로고 영역 (생략) */}
+
+                {/* 1. 로고 영역 */}
                 <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center ms-2" to="/">
                     <img src={logo2} style={{ width: '40px', height: '40px', marginRight: '20px' }} alt="bidHouse Logo" />
                     <span className="text-black">bidHouse</span>
                 </Link>
 
-                {/* 검색창 영역 (생략) */}
+                {/* 2. 검색창 영역 */}
                 <div className="flex-grow-1 mx-5">
                     <div className="input-group" style={{ maxWidth: '400px', margin: '0 auto' }}>
-                        <input 
-                            type="text" 
-                            className="form-control form-control-sm" // 높이를 줄이기 위해 sm 클래스 추가
-                            placeholder="상품 검색" 
-                            aria-label="Search items" 
+                        <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            placeholder="상품 검색"
+                            aria-label="Search items"
                         />
-                        <button className="btn btn-outline-primary btn-sm" type="button"> 
+                        <button className="btn btn-outline-primary btn-sm" type="button">
                             <FaSearch />
                         </button>
                     </div>
                 </div>
 
-                {/* 2. 오른쪽 유틸리티 링크 및 알림 영역 */}
-                <div className="d-none d-lg-flex align-items-center fs-6 me-2"> 
-                    
-                    {/* 💡 [수정] 드롭다운 컨테이너에 ref 연결 */}
+                {/* 3. 오른쪽 유틸리티 링크 및 알림 영역 */}
+                <div className="d-none d-lg-flex align-items-center fs-6 me-2">
+
+                    {/* 드롭다운 컨테이너 */}
                     <div ref={dropdownRef} className={isLogin ? "dropdown me-5" : "dropdown me-5 text-muted"}>
-                        
-                        {/* 2-1. 알림 종 아이콘 (클릭 시 토글) */}
-                        <FaRegBell 
-                            className={`fs-5 ${isLogin ? 'text-black' : 'text-muted'}`} 
-                            style={{ cursor: isLogin ? 'pointer' : 'default' }}
-                            aria-expanded={isDropdownOpen}
-                            role="button"
-                            onClick={isLogin ? toggleDropdown : null} // 💡 이벤트 전달
-                        /> 
-                        
-                        {/* 2-2. 드롭다운 메뉴 (탭 포함) */}
+
+                        {/* 3-1. 알림 종 아이콘 (MessageBadge 컴포넌트) */}
+                        <MessageBadge
+                            isLogin={isLogin}
+                            onClick={toggleDropdown} // 로그인 시 드롭다운 토글
+                            isDropdownOpen={isDropdownOpen}
+                            unreadCount={unreadCount} // API에서 가져온 미확인 개수 전달
+                        />
+
+                        {/* 3-2. 드롭다운 메뉴 (탭 포함) */}
                         <div className={`dropdown-menu dropdown-menu-end p-0 ${isDropdownOpen ? 'show' : ''}`} style={{ width: '300px' }}>
-                            
-                            {/* 탭 네비게이션 (생략) */}
+
+                            {/* 탭 네비게이션 - notifications 데이터 기반으로 개수 표시 */}
                             <div className="d-flex border-bottom text-center">
-                                {/* ... 탭 내용 ... */}
-                                <div 
+                                <div
                                     className={`py-2 flex-fill cursor-pointer ${activeTab === 'all' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-muted'}`}
                                     onClick={() => changeTab('all')}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    전체 ({MOCK_NOTIFICATIONS.length})
+                                    전체 ({notifications.length})
                                 </div>
-                                <div 
+                                <div
                                     className={`py-2 flex-fill cursor-pointer ${activeTab === 'important' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-muted'}`}
                                     onClick={() => changeTab('important')}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    중요 ({MOCK_NOTIFICATIONS.filter(n => n.type === 'important').length})
+                                    중요 ({notifications.filter(n => n.type === 'SYSTEM_ALERT').length})
                                 </div>
-                                <div 
+                                <div
                                     className={`py-2 flex-fill cursor-pointer ${activeTab === 'personal' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-muted'}`}
                                     onClick={() => changeTab('personal')}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    개인 ({MOCK_NOTIFICATIONS.filter(n => n.type === 'personal').length})
+                                    개인 ({notifications.filter(n => n.type === 'GENERAL' || n.type === 'SELLER_QNA').length})
                                 </div>
                             </div>
 
-                            {/* 알림 목록 (탭 콘텐츠) (생략) */}
+                            {/* 알림 목록 (탭 콘텐츠) */}
                             <div className="list-group list-group-flush" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                {filteredNotifications.length > 0 ? (
-                                    filteredNotifications.map(notif => (
-                                        <div key={notif.id} className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2">
-                                            <div className="d-flex align-items-center">
-                                                {notif.icon}
-                                                <small className="mb-0 text-dark fw-bold">{notif.title}</small>
-                                            </div>
-                                            <small className="text-muted ms-4">{notif.detail}</small>
-                                            <small className="text-muted ms-4">{notif.time}</small>
-                                        </div>
-                                    ))
+                                {/* 로딩 상태 표시 */}
+                                {isLoading ? (
+                                    <div className="p-3 text-center text-primary">알림 목록 로딩 중...</div>
                                 ) : (
-                                    <div className="p-3 text-center text-muted">알림이 없습니다.</div>
+                                    filteredNotifications.length > 0 ? (
+                                        // 실제 알림 데이터 렌더링
+                                        filteredNotifications.map(notif => (
+                                            // messageNo를 key로 사용
+                                            <Link key={notif.messageNo} to={notif.url || "/message/list"} className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2">
+                                                <div className="d-flex align-items-center">
+                                                    {getNotificationIcon(notif.type)} {/* 타입에 맞는 아이콘 표시 */}
+                                                    {/* 쪽지 내용의 일부를 제목으로 사용 */}
+                                                    <small className="mb-0 text-dark fw-bold">{notif.content ? notif.content.substring(0, 30) + (notif.content.length > 30 ? '...' : '') : '알림 내용 없음'}</small>
+                                                </div>
+                                                {/* 보낸 시간 표시 (실제 데이터 필드에 맞게 조정 필요) */}
+                                                <small className="text-muted ms-4">발송: {new Date(notif.sentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</small>
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        // 알림이 없을 때
+                                        <div className="p-3 text-center text-muted">알림이 없습니다.</div>
+                                    )
                                 )}
                             </div>
-                            
-                            {/* 전체 쪽지함으로 이동 버튼 (바닥) */}
-                            <Link 
-                                to="/message/list" 
-                                className="dropdown-item text-center border-top py-2" 
+
+                            {/* 전체 쪽지함으로 이동 버튼 (바닥) - notifications 데이터 기반으로 개수 표시 */}
+                            <Link
+                                to="/message/list"
+                                className="dropdown-item text-center border-top py-2"
                                 onClick={() => setIsDropdownOpen(false)}
                             >
-                                전체 쪽지함으로 이동 ({MOCK_NOTIFICATIONS.length}개)
+                                전체 쪽지함으로 이동 ({notifications.length}개)
                             </Link>
 
                         </div>
                     </div>
-                    
-                    {/* 3. 로그인/로그아웃 상태 조건부 렌더링 (생략) */}
+
+                    {/* 3-3. 로그인/로그아웃 상태 조건부 렌더링 */}
                     {isLogin ? (
-                        <div className='d-flex align-items-center'> 
+                        <div className='d-flex align-items-center'>
                             <Link className="text-success fw-bold text-decoration-none" to="/member/mypage">
                                 {loginId} ({loginRole})
                             </Link>
                             <div className="ms-3 me-3">|</div>
                             <Link className="text-dark text-decoration-none" onClick={logout}>
-                                로그아웃 
+                                로그아웃
                             </Link>
                         </div>
                     ) : (
@@ -212,16 +309,16 @@ export default function Header() {
                             </Link>
                         </div>
                     )}
-                            <div className="ms-3 me-3">|</div>
-                            <Link className="text-dark text-decoration-none" to="/qna/list">
-                                고객센터
-                            </Link>
+                    <div className="ms-3 me-3">|</div>
+                    <Link className="text-dark text-decoration-none" to="/qna/list">
+                        고객센터
+                    </Link>
                 </div>
 
             </div>
-            
-            {/* 3. Menu 영역 */}
-            <Menu/>
+
+            {/* 4. Menu 영역 */}
+            <Menu />
         </header>
     );
 }

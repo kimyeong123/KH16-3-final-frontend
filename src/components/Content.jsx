@@ -26,32 +26,25 @@ import Exchange from "./pay/Exchange";
 export default function Content() {
 
     return (<>
-            <div className="row">
-                <div className="col-md-10 offset-md-1">
-                    <Routes>
-                        {/* 메인페이지 */}
-                        <Route path="/" element={<Home />}></Route>
+        <div className="row">
+            <div className="col-md-10 offset-md-1">
+                <Routes>
+                    {/* 메인페이지 */}
+                    <Route path="/" element={<Home />}></Route>
 
-                        {/* 회원 관련 페이지들 */}
-                        <Route path="/member/join" element={<MemberJoin />}></Route>
-                        <Route path="/member/login" element={<MemberLogin />}></Route>
-                        <Route path="/member/joinfinish" element={<MemberJoinFinish />}></Route>
-                        <Route path="/member/mypage" element={<MemberMypage />}></Route>
-                    
-                        {/* 게시글 페이지 */}
-                        {/*<Route path="board/write" element={<Admin><BoardWrite/></Admin>}></Route>*/}
-                        <Route path="board/list" element={<BoardList/>}></Route>
-                        <Route path="board/detail/:boardNo" element={<BoardDetail/>}></Route>
-                        <Route path="board/edit" element={<BoardEdit/>}></Route>
+                    {/* 회원 관련 페이지들 */}
+                    <Route path="/member/join" element={<MemberJoin />}></Route>
+                    <Route path="/member/login" element={<MemberLogin />}></Route>
 
-                        {/* 문의 페이지 */}
-                        <Route path="qna/write" element={<QnaWrite/>}></Route>
-                        <Route path="qna/list" element={<QnaList/>}></Route>
-                        <Route path="qna/detail" element={<QnaDetail/>}></Route>
+                    <Route path="/member/joinfinish" element={<Private><MemberJoinFinish /></Private>}></Route>
+                    <Route path="/member/mypage" element={<Private><MemberMypage /></Private>}></Route>
 
 
-                        {/* 메세지(알림) */}
-                        <Route path="/message/list" element={<MessageList/>}></Route>
+                    {/* 게시글 페이지 */}
+                    <Route path="board/write" element={<Admin><BoardWrite /></Admin>}></Route>
+                    <Route path="board/list" element={<BoardList />}></Route>
+                    <Route path="board/detail/:boardNo" element={<BoardDetail />}></Route>
+                    <Route path="board/edit" element={<BoardEdit />}></Route>
 
                         {/* 카카오페이 */}                    
                          <Route path="/pay/kakaopay" element={<KakaoPay />} />

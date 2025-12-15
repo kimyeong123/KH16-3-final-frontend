@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAtom } from 'jotai';
 import axios from 'axios';
@@ -48,12 +48,11 @@ export default function MemberLogin() {
         if (!el) return;
 
         const Modal = window.bootstrap?.Modal;
-        if (!Modal) return; 
+        if (!Modal) return;
 
         const instance = Modal.getInstance(el) || new Modal(el);
         instance.hide();
     };
-
 
     const sendLogin = useCallback(async () => {
         try {
@@ -72,7 +71,7 @@ export default function MemberLogin() {
             setLoginCreatedTime(data.createdTime);
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
-            setLoginComplete(true);    
+            setLoginComplete(true);
             console.log(data);
 
             // axios 기본 헤더도 설정
@@ -158,7 +157,7 @@ export default function MemberLogin() {
             setResetting(true);
 
             const res = await axios.post("/member/reset-password", {
-                memberId: resetId,
+                id: resetId,
                 email: resetEmail
             });
 
@@ -186,6 +185,23 @@ export default function MemberLogin() {
             setResetting(false);
         }
     }, [resetId, resetEmail]);
+    //찾기 모달 닫았다 다시 열면 입력값 초기화
+    useEffect(() => {
+        const idEl = document.getElementById("findIdModal");
+        const pwEl = document.getElementById("findPwModal");
+
+        const onHideId = () => setFindEmail("");
+        const onHidePw = () => { setResetId(""); setResetEmail(""); };
+
+        idEl?.addEventListener("hidden.bs.modal", onHideId);
+        pwEl?.addEventListener("hidden.bs.modal", onHidePw);
+
+        return () => {
+            idEl?.removeEventListener("hidden.bs.modal", onHideId);
+            pwEl?.removeEventListener("hidden.bs.modal", onHidePw);
+        };
+    }, []);
+
 
     return (
         <>
@@ -202,7 +218,8 @@ export default function MemberLogin() {
                 <div className="row form-row mt-4">
                     <label className="col-sm-3 col-form-label">비밀번호</label>
                     <div className="col-sm-9">
-                        <input type="password" name="pw" value={member.pw} onChange={changeStrValue} className="form-control" />
+                        <input type="password" name="pw" value={member.pw}
+                            onChange={changeStrValue} onKeyDown={(e) => e.key === "Enter" && sendLogin()} className="form-control" />
                     </div>
                 </div>
 
@@ -279,7 +296,7 @@ export default function MemberLogin() {
                             </div>
 
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setFindEmail("")}>
                                     취소
                                 </button>
                                 <button type="button" className="btn btn-primary" onClick={handleFindId} disabled={finding}>
@@ -326,7 +343,12 @@ export default function MemberLogin() {
                             </div>
 
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                                <button type="button" className="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                    onClick={() => {
+                                        setResetId("");
+                                        setResetEmail("");
+                                    }}>
                                     취소
                                 </button>
                                 <button type="button" className="btn btn-primary" onClick={handleResetPassword} disabled={resetting}>

@@ -1,5 +1,3 @@
-// src/components/board/BoardDetail.js
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -67,7 +65,6 @@ export default function BoardDetail() {
             <div className="card mb-4">
                 <div className="card-header d-flex justify-content-between align-items-center bg-light p-2">
                     <div>
-                        {/* 💡 요청하신 불필요한 공백 제거 완료 */}
                         <span className="me-3 fw-bold">{board.writerNickname}</span> 
                         <span className="text-muted small">| 작성일: {formatTime(board.writeTime)}</span>
                     </div>

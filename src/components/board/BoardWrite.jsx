@@ -81,8 +81,10 @@ export default function BoardWrite() {
     
     // ***** 3. 렌더링(Render) *****
     return (<>
-    
-        <Jumbotron subject="공지 작성" detail=""/>
+        <div className="row mt-4">
+            <div className="col fs-3 fw-bold text-primary">공지사항 작성
+            </div>
+        </div>
 
         <div className="container p-5">
             <div>
