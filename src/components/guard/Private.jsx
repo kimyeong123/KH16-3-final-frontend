@@ -8,11 +8,14 @@ import { ClimbingBoxLoader } from "react-spinners";
 export default function Private({ children }) {
     const loginComplete = useAtomValue(loginCompleteState); //로그인 판정이 완료되었는지 나타내는 값
     const isLogin = useAtomValue(loginState); //로그인 상태인지 판정한 결과
+    console.log("[Private]", { loginComplete, isLogin });
+
 
     //loginComplete가 false (로그인 판정이 끝나지 않았다) 라면 로딩 화면을 보여준다
     if(loginComplete === false) {
         //return <h1>로딩중..</h1>
         return <ClimbingBoxLoader/>
+        
     }
 
     //render

@@ -40,9 +40,10 @@ export default function MemberJoin() {
     address1: "",
     address2: ""
   });
+  const [tempBirth, setTempBirth] = useState(null);
 
   const [memberClass, setMemberClass] = useState({
-     id: "",
+    id: "",
     pw: "",
     pw2: "",
     name: "",
@@ -75,9 +76,8 @@ export default function MemberJoin() {
   const [memberEmailFeedback, setMemberEmailFeedback] = useState("");
   const [memberContactFeedback, setMemberContactFeedback] = useState("");
   const [memberDuplicateFeedback, setMemberDuplicateFeedback] = useState("");
-  const [memberBirthFeedback, setMemberBirthFeedback] = useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [birthError, setBirthError] = useState("");
+  const [isDuplicatePassed, setIsDuplicatePassed] = useState(false);
 
 
   // 문자열 입력 처리
@@ -331,18 +331,23 @@ export default function MemberJoin() {
   }, []);
   //생년월일
   const handleDateChange = (date) => {
-    setMember({
-      ...member,
-      birth: format(date, "yyyy-MM-dd")
-    });
+    const birth = format(date, "yyyy-MM-dd");
+
+    setMember(prev => ({
+      ...prev,
+      birth
+    }));
+
     setShowDatePickerModal(false);
-    checkDuplicate();
   };
 
 
-  // 중복 체크
+
   const checkDuplicate = useCallback(async () => {
-    if (!member.name || !member.birth || !member.contact) return;
+    if (!member.name || !member.birth || !member.contact) {
+      setIsDuplicatePassed(false);
+      return;
+    }
 
     try {
       const { data } = await axios.get("/member/checkDuplicate", {
@@ -354,17 +359,23 @@ export default function MemberJoin() {
       });
 
       if (data === true) {
+        // 중복 없음
         setMemberDuplicateFeedback("");
         setShowDuplicateModal(false);
+        setIsDuplicatePassed(true);
       } else {
+        // 중복 있음
         setMemberDuplicateFeedback("이미 가입된 정보가 존재합니다");
         setShowDuplicateModal(true);
+        setIsDuplicatePassed(false);
       }
     } catch (err) {
       setMemberDuplicateFeedback("중복 확인 실패, 잠시 후 다시 시도하세요");
       setShowDuplicateModal(true);
+      setIsDuplicatePassed(false);
     }
   }, [member]);
+
 
   const memberValid = useMemo(() => {
     if (memberClass.id !== "is-valid") return false;
@@ -379,6 +390,7 @@ export default function MemberJoin() {
     if (memberClass.post === "is-invalid") return false;
     if (memberClass.address1 === "is-invalid") return false;
     if (memberClass.address2 === "is-invalid") return false;
+    if (!isDuplicatePassed) return false;
 
     return true;
   }, [memberClass]);
@@ -726,9 +738,25 @@ export default function MemberJoin() {
                 <Button variant="secondary" onClick={() => setShowDatePickerModal(false)}>
                   취소
                 </Button>
-                <Button variant="primary" onClick={() => setShowDatePickerModal(false)}>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    if (!tempBirth) return;
+
+                    const birth = format(tempBirth, "yyyy-MM-dd");
+
+                    setMember(prev => ({
+                      ...prev,
+                      birth
+                    }));
+
+                    setShowDatePickerModal(false);
+                    checkDuplicate({ birth });
+                  }}
+                >
                   선택 완료
                 </Button>
+
               </Modal.Footer>
             </Modal>
           </div>

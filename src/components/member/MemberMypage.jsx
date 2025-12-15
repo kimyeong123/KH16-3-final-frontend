@@ -13,6 +13,7 @@ import {
 import Jumbotron from "../templates/Jumbotron";
 import axios from "axios";
 import "./Member.css";
+import "../../styles/sweetalert2-flatly.css";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
@@ -339,7 +340,7 @@ export default function MemberMypage() {
             );
 
             Swal.fire({
-                icon: "success",
+                icon: "question",
                 title: "비밀번호 변경 성공",
                 text: "비밀번호가 정상적으로 변경되었습니다.",
                 timer: 2000,
