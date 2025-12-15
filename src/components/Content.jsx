@@ -39,8 +39,8 @@ export default function Content() {
                         {/* 게시글 페이지 */}
                         <Route path="board/write" element={<Admin><BoardWrite/></Admin>}></Route>
                         <Route path="board/list" element={<BoardList/>}></Route>
-                        <Route path="board/detail/:boardNo" element={<BoardDetail/>}></Route>
-                        <Route path="board/edit" element={<BoardEdit/>}></Route>
+                        <Route path="board/:boardNo" element={<BoardDetail/>}></Route>
+                        <Route path="board/edit/:boardNo" element={<BoardEdit/>}></Route>
 
                         {/* 문의 페이지 */}
                         <Route path="qna/write" element={<QnaWrite/>}></Route>

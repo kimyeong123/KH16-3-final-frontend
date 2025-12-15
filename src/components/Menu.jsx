@@ -104,9 +104,6 @@ export default function Menu() {
                             <li className="nav-item">
                                 <Link className="nav-link fs-6 me-2" to="/board/list" onClick={closeMenu}><FaClipboardList className="fs-5 me-1" />공지사항</Link>
                             </li>
-                        <li className="nav-item">
-                            <Link className="nav-link fs-6" to="#" onClick={closeMenu}><FaReceipt className="fs-5 me-1" />이용가이드</Link>
-                        </li>
 
                         {/* 로그인 상태에 따른 조건부 렌더링 */}
                         {isLogin ? (
@@ -116,6 +113,12 @@ export default function Menu() {
                                     <Link className="nav-link fs-6" onClick={logout}>
                                         <RiLogoutBoxFill className="fs-4 me-1" />
                                         로그아웃
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link className="nav-link fs-6" to="/product/productadd" onClick={closeMenu}>
+                                        <FaPlusSquare className="fs-5 me-1"/>
+                                        물품 등록
                                     </Link>
                                 </li>
 
@@ -129,12 +132,7 @@ export default function Menu() {
                         ) : (
                             <>
                                 {/* 로그아웃 상태: 회원가입 버튼 */}
-                                <li className="nav-item">
-                                    <Link className="nav-link fs-6" to="#" onClick={closeMenu}>
-                                        <FaPlusSquare className="fs-5 me-1"/>
-                                        물품 등록
-                                    </Link>
-                                </li>
+                                
                             </>
                         )}
                     </ul>

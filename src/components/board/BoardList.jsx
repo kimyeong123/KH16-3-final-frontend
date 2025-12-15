@@ -39,7 +39,7 @@ export default function BoardList() {
 
     // [게시물 상세 페이지로 이동]
     const goToDetail = (boardNo) => {
-        navigate(`/board/detail/${boardNo}`);
+        navigate(`/board/${boardNo}`);
     };
 
     // [글쓰기 페이지로 이동]
