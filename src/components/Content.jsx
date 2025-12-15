@@ -19,8 +19,10 @@ import KakaoPayCancel from "./pay/KakaoPayCancel";
 import KakaoPayFail from "./pay/KakaoPayFail";
 import ProductAdd from "./product/ProductAdd";
 import ProductAddDone from "./product/ProductAddDone";
-import Admin from "./guard/Admin";
-
+import ProductDetail from "./product/ProductDetail";
+import ProductEdit from "./product/ProductEdit";
+import ProductList from "./product/ProductList";
+import Exchange from "./pay/Exchange";
 export default function Content() {
 
     return (<>
@@ -37,7 +39,7 @@ export default function Content() {
                         <Route path="/member/mypage" element={<MemberMypage />}></Route>
                     
                         {/* 게시글 페이지 */}
-                        <Route path="board/write" element={<Admin><BoardWrite/></Admin>}></Route>
+                        {/*<Route path="board/write" element={<Admin><BoardWrite/></Admin>}></Route>*/}
                         <Route path="board/list" element={<BoardList/>}></Route>
                         <Route path="board/detail/:boardNo" element={<BoardDetail/>}></Route>
                         <Route path="board/edit" element={<BoardEdit/>}></Route>
@@ -51,14 +53,19 @@ export default function Content() {
                         {/* 메세지(알림) */}
                         <Route path="/message/list" element={<MessageList/>}></Route>
 
+                        {/* 카카오페이 */}                    
                          <Route path="/pay/kakaopay" element={<KakaoPay />} />
-                        <Route path="/pay/kakaopay/success" element={<KakaoPaySuccess />} />
-                        <Route path="/pay/kakaopay/cancel" element={<KakaoPayCancel />} />
-                        <Route path="/pay/kakaopay/fail" element={<KakaoPayFail />} />
+                        <Route path="/pay/kakaopaySuccess" element={<KakaoPaySuccess />} />
+                        <Route path="/pay/kakaopayCancel" element={<KakaoPayCancel />} />
+                        <Route path="/pay/kakaopayFail" element={<KakaoPayFail />} />
+                        <Route path="/pay/exchange" element={<Exchange  />} />
                     
                       {/*  상품 등록 페이지 */}
                         <Route path="/product/productadd" element={<ProductAdd />} />
                         <Route path="/product/done" element={<ProductAddDone />} />
+                        <Route path="/product/list" element={<ProductList />} />
+                         <Route path="/product/detail/:productNo" element={<ProductDetail />} />
+                        <Route path="/product/edit/:productNo" element={<ProductEdit />} />
                     </Routes>
                     </div>
                 </div>
