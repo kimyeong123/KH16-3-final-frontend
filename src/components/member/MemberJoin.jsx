@@ -27,7 +27,7 @@ registerLocale("ko", ko);
 
 export default function MemberJoin() {
   const navigate = useNavigate();
-  const [member, setMember] = useState({
+  const [member, setMember] =  useState({
     id: "",
     pw: "",
     pw2: "",
@@ -37,7 +37,7 @@ export default function MemberJoin() {
     birth: "",
     contact: "",
     post: "",
-    address1: "",
+    address1: "", 
     address2: ""
   });
   const [tempBirth, setTempBirth] = useState(null);

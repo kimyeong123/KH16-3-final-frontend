@@ -24,7 +24,10 @@ import AdminHome from "./admin/AdminHome";
 import AdminQnaList from "./admin/AdminQnaList";
 import MemberManage from "./admin/MemberManage";
 import Unauthorization from "./error/Unauthorization";
-
+import ProductDetail from "./product/ProductDetail";
+import ProductEdit from "./product/ProductEdit";
+import ProductList from "./product/ProductList";
+import Exchange from "./pay/Exchange";
 export default function Content() {
 
     return (<>
@@ -60,26 +63,22 @@ export default function Content() {
                     <Route path="board/detail/:boardNo" element={<BoardDetail />}></Route>
                     <Route path="board/edit" element={<BoardEdit />}></Route>
 
-                    {/* 문의 페이지 */}
-                    <Route path="qna/write" element={<QnaWrite />}></Route>
-                    <Route path="qna/list" element={<QnaList />}></Route>
-                    <Route path="qna/detail" element={<QnaDetail />}></Route>
-
-
-                    {/* 메세지(알림) */}
-                    <Route path="/message/list" element={<MessageList />}></Route>
-
-                    <Route path="/pay/kakaopay" element={<KakaoPay />} />
-                    <Route path="/pay/kakaopay/success" element={<KakaoPaySuccess />} />
-                    <Route path="/pay/kakaopay/cancel" element={<KakaoPayCancel />} />
-                    <Route path="/pay/kakaopay/fail" element={<KakaoPayFail />} />
-
-                    {/*  상품 등록 페이지 */}
-                    <Route path="/product/productadd" element={<ProductAdd />} />
-                    <Route path="/product/done" element={<ProductAddDone />} />
-                </Routes>
-            </div>
-        </div>
-    </>
-    )
-}
+                        {/* 카카오페이 */}                    
+                         <Route path="/pay/kakaopay" element={<KakaoPay />} />
+                        <Route path="/pay/kakaopaySuccess" element={<KakaoPaySuccess />} />
+                        <Route path="/pay/kakaopayCancel" element={<KakaoPayCancel />} />
+                        <Route path="/pay/kakaopayFail" element={<KakaoPayFail />} />
+                        <Route path="/pay/exchange" element={<Exchange  />} />
+                    
+                      {/*  상품 등록 페이지 */}
+                        <Route path="/product/productadd" element={<ProductAdd />} />
+                        <Route path="/product/done" element={<ProductAddDone />} />
+                        <Route path="/product/list" element={<ProductList />} />
+                         <Route path="/product/detail/:productNo" element={<ProductDetail />} />
+                        <Route path="/product/edit/:productNo" element={<ProductEdit />} />
+                    </Routes>
+                    </div>
+                </div>
+            </>
+        )
+    }
