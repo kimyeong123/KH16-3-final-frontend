@@ -4,6 +4,7 @@ import Private from "./guard/Private";
 import MemberJoin from "./member/MemberJoin";
 import MemberLogin from "./member/MemberLogin";
 import MessageList from "./message/MessageList";
+import MessageDetail from "./message/MessageDetail";
 import BoardWrite from "./board/BoardWrite";
 import BoardList from "./board/BoardList";
 import BoardDetail from "./board/BoardDetail";
@@ -20,6 +21,7 @@ import KakaoPayFail from "./pay/KakaoPayFail";
 import ProductAdd from "./product/ProductAdd";
 import ProductAddDone from "./product/ProductAddDone";
 import Admin from "./guard/Admin";
+import MessageWrite from "./message/MessageWrite";
 
 export default function Content() {
 
@@ -38,20 +40,24 @@ export default function Content() {
                     <Route path="/member/mypage" element={<Private><MemberMypage /></Private>}></Route>
 
 
-                    {/* 게시글 페이지 */}
-                    <Route path="board/write" element={<Admin><BoardWrite /></Admin>}></Route>
-                    <Route path="board/list" element={<BoardList />}></Route>
-                    <Route path="board/detail/:boardNo" element={<BoardDetail />}></Route>
-                    <Route path="board/edit" element={<BoardEdit />}></Route>
+                    {/* 게시글 페이지(공지만) */}
+                    <Route path="/board/write" element={<Admin><BoardWrite /></Admin>}></Route>
+                    <Route path="/board/list" element={<BoardList />}></Route>
+                    <Route path="/board/:boardNo" element={<BoardDetail />}></Route>
+                    <Route path="/board/edit/:boardNo" element={<Admin><BoardEdit /></Admin>}></Route>
 
-                    {/* 문의 페이지 */}
-                    <Route path="qna/write" element={<QnaWrite />}></Route>
-                    <Route path="qna/list" element={<QnaList />}></Route>
-                    <Route path="qna/detail" element={<QnaDetail />}></Route>
+                    {/* 문의 페이지(board 재활용) */}
+                    <Route path="/qna/write" element={<Private><QnaWrite /></Private>}></Route>
+                    <Route path="/qna/:boardNo" element={<QnaDetail />}></Route>
+                    <Route path="/qna/page" element={<QnaList />}></Route>
+                    {/* 관리자용 QNA List는 따로 만들면 좋을듯 */}
+                    
 
 
                     {/* 메세지(알림) */}
-                    <Route path="/message/list" element={<MessageList />}></Route>
+                    <Route path="/message/list" element={<Private><MessageList /></Private>}></Route>
+                    <Route path="/message/:messageNo" element={<Private><MessageDetail /></Private>}></Route>
+                    <Route path="/message/write" element={<Private><MessageWrite /></Private>}></Route>
 
                     <Route path="/pay/kakaopay" element={<KakaoPay />} />
                     <Route path="/pay/kakaopay/success" element={<KakaoPaySuccess />} />

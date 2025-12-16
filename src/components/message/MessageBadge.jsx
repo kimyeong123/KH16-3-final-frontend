@@ -44,7 +44,6 @@ export default function MessageBadge({ isLogin, onClick, isDropdownOpen, unreadC
                 style={{ cursor: 'pointer' }}
             />
             
-            {/* 💡 [수정] 미확인 개수가 1개 이상일 때 작은 빨간 점만 표시 */}
             {unreadCount > 0 && (
                 <span 
                     // Bootstrap의 배지 위치 클래스 유지

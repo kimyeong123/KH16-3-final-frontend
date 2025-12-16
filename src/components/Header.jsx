@@ -16,13 +16,12 @@ import MessageBadge from "./message/MessageBadge";
 
 // API 엔드포인트 및 폴링 설정
 const NOTIFICATION_COUNT_URL = "/message/unread/count";
-const POLLING_INTERVAL = 5000; // 5초 (5000ms)
+const POLLING_INTERVAL = 30000; // 30초 (30000ms)
 const NOTIFICATION_LIST_URL = "/message/unread/list";
 
 
 /**
  * 쪽지 TYPE에 따라 적절한 아이콘 컴포넌트를 반환하는 헬퍼 함수
- * 데이터베이스의 TYPE 컬럼 값을 기준으로 판단합니다.
  * @param {string} type - 쪽지 타입 ('GENERAL', 'SYSTEM_ALERT', 'SELLER_QNA')
  */
 const getNotificationIcon = (type) => {
@@ -91,14 +90,13 @@ export default function Header() {
 
     // [알림 드롭다운 토글]
     const toggleDropdown = useCallback(() => {
-        // 이벤트 버블링 방지는 MessageBadge 컴포넌트 내부에서 처리하는 것이 좋습니다.
         setIsDropdownOpen(prev => !prev);
     }, []);
 
     // [외부 클릭 감지]
     useEffect(() => {
         const handleClickOutside = (event) => {
-            // 드롭다운이 열려 있고, 클릭된 요소가 드롭다운 영역 밖에 있다면 닫기
+            // 드롭다운 닫기
             if (isDropdownOpen && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsDropdownOpen(false);
             }
@@ -148,16 +146,19 @@ export default function Header() {
 
         // 서버에서 미확인 알림 개수를 가져오는 비동기 함수
         const fetchUnreadCount = async () => {
-            try {
-                // 백엔드 API 호출: GET /message/unread/count
-                const response = await axios.get(NOTIFICATION_COUNT_URL);
-                // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
-                setUnreadCount(response.data.unreadCount || 0);
-            } catch (error) {
-                console.error("알림 개수를 가져오는데 실패했습니다.", error);
-                setUnreadCount(0);
-            }
-        };
+            try {
+                // 백엔드 API 호출: GET /message/unread/count
+                const response = await axios.get(NOTIFICATION_COUNT_URL);
+                
+                const count = Number(response.data.unreadCount); 
+
+                // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
+                setUnreadCount(count || 0); // // 숫자로 변환된 값을 사용
+            } catch (error) {
+                console.error("알림 개수를 가져오는데 실패했습니다.", error);
+                setUnreadCount(0);
+            }
+        };
 
         // 1. 컴포넌트 마운트 및 isLogin이 true가 되었을 때 즉시 호출
         fetchUnreadCount();
@@ -226,21 +227,21 @@ export default function Header() {
                             {/* 탭 네비게이션 - notifications 데이터 기반으로 개수 표시 */}
                             <div className="d-flex border-bottom text-center">
                                 <div
-                                    className={`py-2 flex-fill cursor-pointer ${activeTab === 'all' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-muted'}`}
+                                    className={`py-2 flex-fill cursor-pointer ${activeTab === 'all' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`}
                                     onClick={() => changeTab('all')}
                                     style={{ cursor: 'pointer' }}
                                 >
                                     전체 ({notifications.length})
                                 </div>
                                 <div
-                                    className={`py-2 flex-fill cursor-pointer ${activeTab === 'important' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-muted'}`}
+                                    className={`py-2 flex-fill cursor-pointer ${activeTab === 'important' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`}
                                     onClick={() => changeTab('important')}
                                     style={{ cursor: 'pointer' }}
                                 >
                                     중요 ({notifications.filter(n => n.type === 'SYSTEM_ALERT').length})
                                 </div>
                                 <div
-                                    className={`py-2 flex-fill cursor-pointer ${activeTab === 'personal' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-muted'}`}
+                                    className={`py-2 flex-fill cursor-pointer ${activeTab === 'personal' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`}
                                     onClick={() => changeTab('personal')}
                                     style={{ cursor: 'pointer' }}
                                 >
@@ -258,11 +259,11 @@ export default function Header() {
                                         // 실제 알림 데이터 렌더링
                                         filteredNotifications.map(notif => (
                                             // messageNo를 key로 사용
-                                            <Link key={notif.messageNo} to={notif.url || "/message/list"} className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2">
+                                            <Link key={notif.messageNo} to={`/message/${notif.messageNo}`} className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2">
                                                 <div className="d-flex align-items-center">
                                                     {getNotificationIcon(notif.type)} {/* 타입에 맞는 아이콘 표시 */}
                                                     {/* 쪽지 내용의 일부를 제목으로 사용 */}
-                                                    <small className="mb-0 text-dark fw-bold">{notif.content ? notif.content.substring(0, 30) + (notif.content.length > 30 ? '...' : '') : '알림 내용 없음'}</small>
+                                                    <small className="mb-0 text-black fw-bold">{notif.content ? notif.content.substring(0, 30) + (notif.content.length > 30 ? '...' : '') : '알림 내용 없음'}</small>
                                                 </div>
                                                 {/* 보낸 시간 표시 (실제 데이터 필드에 맞게 조정 필요) */}
                                                 <small className="text-muted ms-4">발송: {new Date(notif.sentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</small>
