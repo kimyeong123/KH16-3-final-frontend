@@ -10,12 +10,12 @@ export default function AdminHome() {
       <div className="container mt-4">
         <div className="row">
           {/* 왼쪽 메뉴 */}
-          <div className="col-3">
+          <div className="col-2">
             <AdminSidebar />
           </div>
 
           {/* 오른쪽 내용 */}
-          <div className="col-9">
+          <div className="col-10">
             <Outlet />
           </div>
         </div>

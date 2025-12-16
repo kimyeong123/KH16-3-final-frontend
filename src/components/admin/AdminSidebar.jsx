@@ -5,7 +5,7 @@ export default function AdminSidebar() {
   return (
     <div className="admin-sidebar">
       <div className="admin-sidebar-title">
-        ADMIN
+        관리메뉴
       </div>
 
       <NavLink to="/admin/home" end className="admin-menu">
@@ -13,11 +13,11 @@ export default function AdminSidebar() {
       </NavLink>
 
       <NavLink to="/admin/home/member" className="admin-menu">
-        회원 관리
+        회원
       </NavLink>
 
       <NavLink to="/admin/home/qnalist" className="admin-menu">
-        QnA 관리
+        문의사항
       </NavLink>
     </div>
   );

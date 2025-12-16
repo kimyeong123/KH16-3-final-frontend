@@ -42,9 +42,9 @@ export default function Content() {
                     {/* 회원 관련 페이지들 */}
                     <Route path="/member/join" element={<MemberJoin />}></Route>
                     <Route path="/member/login" element={<MemberLogin />}></Route>
-
-                    <Route path="/member/joinfinish" element={<Private><MemberJoinFinish /></Private>}></Route>
+                    <Route path="/member/joinfinish" element={<MemberJoinFinish />}></Route>
                     <Route path="/member/mypage" element={<Private><MemberMypage /></Private>}></Route>
+                    <Route path="/member/mypage/:memberNo" element={<MemberMypage />} />
                     {/* 관리자 홈 */}
                     <Route path="/admin/home" element={<Admin><AdminHome /></Admin>}>
                         <Route
