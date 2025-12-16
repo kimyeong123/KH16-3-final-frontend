@@ -6,7 +6,6 @@ export default function ProductAddDone() {
   const navigate = useNavigate();
   const location = useLocation();
 
-
   const message = location.state?.message ?? "상품이 정상적으로 등록되었습니다.";
   const productNo = location.state?.productNo ?? null;
 
@@ -41,7 +40,7 @@ export default function ProductAddDone() {
           <button
             className="btn w-100 fw-semibold"
             style={{ backgroundColor: "#5b5ce2", color: "white", borderRadius: 10, height: 48 }}
-            onClick={() => navigate("/product/list")}
+            onClick={() => navigate("/product/mylist")}
           >
             상품 목록 확인하기
           </button>

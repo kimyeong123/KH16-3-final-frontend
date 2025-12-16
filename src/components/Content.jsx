@@ -28,10 +28,13 @@ import ProductDetail from "./product/ProductDetail";
 import ProductEdit from "./product/ProductEdit";
 import ProductList from "./product/ProductList";
 import Exchange from "./pay/Exchange";
+import ProductMyList from "./product/ProductMyList";
+import ProductAuctionList from "./product/ProductAuctionList";
+import AuctionDetail from "./product/AuctionDetail";
 export default function Content() {
 
     return (<>
-        <div className="row">
+        <div className="row">                                                                                       
             <div className="col-md-10 offset-md-1">
                 <Routes>
                     {/* 메인페이지 */}
@@ -58,7 +61,7 @@ export default function Content() {
 
 
                     {/* 게시글 페이지 */}
-                    <Route path="board/write" element={<Admin><BoardWrite /></Admin>}></Route>
+                  <Route path="board/write" element={<Private><BoardWrite /></Private>}></Route>
                     <Route path="board/list" element={<BoardList />}></Route>
                     <Route path="board/detail/:boardNo" element={<BoardDetail />}></Route>
                     <Route path="board/edit" element={<BoardEdit />}></Route>
@@ -76,6 +79,12 @@ export default function Content() {
                         <Route path="/product/list" element={<ProductList />} />
                          <Route path="/product/detail/:productNo" element={<ProductDetail />} />
                         <Route path="/product/edit/:productNo" element={<ProductEdit />} />
+                        <Route path="/product/mylist" element={<ProductMyList />} />
+                        <Route path="/product/auction/list" element={<ProductAuctionList />} />
+                        
+                        <Route path="/product/auction/detail/:productNo" element={<AuctionDetail />} />
+<Route path="/product/auction/list/" element={<ProductAuctionList />} />
+<Route path="/product/auction/list/*" element={<ProductAuctionList />} />
                     </Routes>
                     </div>
                 </div>
