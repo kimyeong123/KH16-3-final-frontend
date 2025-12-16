@@ -94,19 +94,22 @@ export default function MemberMypage() {
 
     console.log("paramNo =", paramNo);
     useEffect(() => {
-        const load = async () => {
-            try {
-                const resp = await axios.get(`/member/admin-detail/${targetNo}`, {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                });
-                setViewMember(resp.data);
-            } catch (e) {
-                console.error(e);
-                alert("회원 정보를 불러오지 못했습니다.");
-            }
-        };
-        load();
-    }, [targetNo, accessToken]);
+        if (!accessToken) return;
+
+        const url = (loginRole === "ADMIN" && paramNo)
+            ? `/member/admin-detail/${Number(paramNo)}`
+            : `/member/mypage`;
+
+        axios.get(url, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        }).then(resp => {
+            setViewMember(resp.data);
+        }).catch(e => {
+            console.error(e.response?.status, e.response?.data);
+            // 401/404 같은 초기 타이밍은 조용히 넘겨도 됨
+        });
+    }, [loginRole, paramNo, accessToken]);
+
 
 
     useEffect(() => {
@@ -457,36 +460,36 @@ export default function MemberMypage() {
         }
     };
     const handleAdminDeleteMember = async () => {
-  const result = await Swal.fire({
-    icon: "warning",
-    title: "회원 삭제",
-    text: "정말 삭제하시겠습니까? (되돌릴 수 없습니다)",
-    showCancelButton: true,
-    confirmButtonText: "삭제",
-    cancelButtonText: "취소",
-  });
+        const result = await Swal.fire({
+            icon: "warning",
+            title: "회원 삭제",
+            text: "정말 삭제하시겠습니까? (되돌릴 수 없습니다)",
+            showCancelButton: true,
+            confirmButtonText: "삭제",
+            cancelButtonText: "취소",
+        });
 
-  if (!result.isConfirmed) return;
+        if (!result.isConfirmed) return;
 
-  try {
-    await axios.delete(`/member/admin/${targetNo}`, {
-  headers: { Authorization: `Bearer ${accessToken}` }
-});
+        try {
+            await axios.delete(`/member/admin/${targetNo}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
 
-    await Swal.fire({
-      icon: "success",
-      title: "삭제 완료",
-      text: "회원이 삭제되었습니다.",
-      timer: 1600,
-      showConfirmButton: false,
-    });
+            await Swal.fire({
+                icon: "success",
+                title: "삭제 완료",
+                text: "회원이 삭제되었습니다.",
+                timer: 1600,
+                showConfirmButton: false,
+            });
 
-    navigete("/admin/home/member");
-  } catch (err) {
-    const msg = err.response?.data || "회원 삭제 중 오류가 발생했습니다.";
-    Swal.fire({ icon: "error", title: "삭제 실패", text: msg });
-  }
-};
+            navigete("/admin/home/member");
+        } catch (err) {
+            const msg = err.response?.data || "회원 삭제 중 오류가 발생했습니다.";
+            Swal.fire({ icon: "error", title: "삭제 실패", text: msg });
+        }
+    };
 
 
     return (
