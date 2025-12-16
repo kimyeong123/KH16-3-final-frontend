@@ -28,8 +28,9 @@ export const loginPointState = atomWithStorage("loginPointState", "", localStora
 export const loginCreatedTimeState = atomWithStorage("loginCreatedTimeState", "", localStorage);
 export const loginContactState = atomWithStorage("loginContactState", "", localStorage);
 
+//관리자 관련 정보들
 
-// 💡 메모리 전용 플래그 (App.js에서 set)
+// 메모리 전용 플래그 (App.js에서 set)
 export const loginCompleteState = atom(false); // 새로고침 후 인증 복구 완료 플래그
 export const apiCallingState = atom(false); 
 export const tokenRefreshingState = atom(false); 
@@ -42,12 +43,12 @@ export const globalErrorState = atom(null);
 // 💡 로그인 여부 판정: loginId와 Role이 존재하면 true
 export const loginState = atom(get => { const accessToken = get(accessTokenState); return typeof accessToken === "string" && accessToken.length > 0; });
 
-// 💡 관리자 여부 판정: Role이 "ADMIN"이면 true
-export const adminState = atom(get=>{
-    const loginRole = get(loginRoleState);
-    return loginRole === "ADMIN";
+// 관리자 여부  
+export const adminState = atom((get) => {
+  const role = (get(loginRoleState) || "").trim();
+  if (!role) return null; 
+  return role === "ADMIN";  
 });
-
 
 // ----------------------------------------------------
 // 3. 쓰기 함수 (초기화)

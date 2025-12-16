@@ -52,6 +52,7 @@ export default function Menu() {
         e.preventDefault();
 
         clearLogin(); // jotai state 초기화
+        setLoginComplete(true);
         delete axios.defaults.headers.common["Authorization"]; // axios 헤더 제거
 
         navigate("/"); // 메인페이지로 이동 
@@ -77,7 +78,7 @@ export default function Menu() {
     }, [open, closeMenu]);
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary" data-bs-type="light">
+        <nav className="navbar navbar-expand-lg" data-bs-type="light">
             <div className="container-fluid">
 
                 <button className="navbar-toggler" type="button"
@@ -125,7 +126,7 @@ export default function Menu() {
                                 {/* 관리자 메뉴 */}
                                 {isAdmin && (
                                     <li className="nav-item">
-                                        <Link className="nav-link fs-6" to="/admin" onClick={closeMenu}>관리자</Link>
+                                        <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}>관리자</Link>
                                     </li>
                                 )}
                             </>
