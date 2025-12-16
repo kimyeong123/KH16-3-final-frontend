@@ -100,3 +100,7 @@
   color: #ced4da;
   cursor: not-allowed;
 }
+/* react-datepicker 기본 헤더의 월/년도 텍스트 숨김 */
+.react-datepicker__current-month {
+  display: none;
+}

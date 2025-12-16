@@ -16,6 +16,7 @@ import { RiLogoutBoxFill } from "react-icons/ri";
 
 import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState, loginNoState } from "../utils/jotai";
 import { FaReceipt } from "react-icons/fa6";
+import { FaListUl } from "react-icons/fa";
 
 
 export default function Menu() {
@@ -52,6 +53,7 @@ export default function Menu() {
         e.preventDefault();
 
         clearLogin(); // jotai state 초기화
+        setLoginComplete(true);
         delete axios.defaults.headers.common["Authorization"]; // axios 헤더 제거
 
         navigate("/"); // 메인페이지로 이동 
@@ -77,7 +79,7 @@ export default function Menu() {
     }, [open, closeMenu]);
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary" data-bs-type="light">
+        <nav className="navbar navbar-expand-lg" data-bs-type="light">
             <div className="container-fluid">
 
                 <button className="navbar-toggler" type="button"
@@ -91,9 +93,9 @@ export default function Menu() {
                 >
                     {/* 좌측 메뉴 */}
                     <ul className="navbar-nav me-auto ms-3">
-                        <li className="nav-item">
-                            <Link className="nav-link fs-6" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />경매</Link>
-                        </li>
+                        <Link className="nav-link fs-6" to="/product/auction/list" onClick={closeMenu}>
+                            <RiAuctionLine className="fs-3 me-1" />경매
+                                                    </Link>
                         <li className="nav-item">
                             <Link className="nav-link fs-6" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />대충 카테고리</Link>
                         </li>
@@ -104,6 +106,17 @@ export default function Menu() {
                             <li className="nav-item">
                                 <Link className="nav-link fs-6 me-2" to="/board/list" onClick={closeMenu}><FaClipboardList className="fs-5 me-1" />공지사항</Link>
                             </li>
+
+                           <li className="nav-item">
+                            <Link
+                                        className="nav-link fs-6 me-2"
+                                             to="/product/mylist"
+                                            onClick={closeMenu}
+                                                >
+                        <FaListUl className="fs-5 me-1" />
+                                         내상품리스트
+                            </Link>
+                                </li>
 
                         {/* 로그인 상태에 따른 조건부 렌더링 */}
                         {isLogin ? (
@@ -125,7 +138,7 @@ export default function Menu() {
                                 {/* 관리자 메뉴 */}
                                 {isAdmin && (
                                     <li className="nav-item">
-                                        <Link className="nav-link fs-6" to="/admin" onClick={closeMenu}>관리자</Link>
+                                        <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}>관리자</Link>
                                     </li>
                                 )}
                             </>

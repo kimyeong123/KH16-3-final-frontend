@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import Jumbotron from "../templates/Jumbotron";
-import { FaEye, FaEyeSlash, FaKey, FaMagnifyingGlass, FaSpinner, FaUser } from "react-icons/fa6";
+import { FaKey, FaMagnifyingGlass, FaSpinner, FaUser } from "react-icons/fa6";
 import { FaToggleOff } from "react-icons/fa";
 import { FaToggleOn } from "react-icons/fa";
 import { FaExclamationCircle } from "react-icons/fa";
 import { RiMailSendFill } from "react-icons/ri";
 import { FaEraser } from "react-icons/fa";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import axios from "axios";
 import { format, parse } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
@@ -25,8 +25,10 @@ import { useDaumPostcodePopup } from "react-daum-postcode";
 
 registerLocale("ko", ko);
 
+
 export default function MemberJoin() {
   const navigate = useNavigate();
+
   const [member, setMember] = useState({
     id: "",
     pw: "",
@@ -67,7 +69,6 @@ export default function MemberJoin() {
   }, []);
   const [showPassword, setShowPassword] = useState(false);
 
-
   // 피드백
   const [memberIdFeedback, setMemberIdFeedback] = useState("");
   const [memberPwFeedback, setMemberPwFeedback] = useState("");
@@ -76,8 +77,8 @@ export default function MemberJoin() {
   const [memberEmailFeedback, setMemberEmailFeedback] = useState("");
   const [memberContactFeedback, setMemberContactFeedback] = useState("");
   const [memberDuplicateFeedback, setMemberDuplicateFeedback] = useState("");
-  const [birthError, setBirthError] = useState("");
   const [isDuplicatePassed, setIsDuplicatePassed] = useState(false);
+
 
 
   // 문자열 입력 처리
@@ -190,6 +191,7 @@ export default function MemberJoin() {
   const [emailDomain, setEmailDomain] = useState("");
   const [isEmailCertified, setIsEmailCertified] = useState(false);
   const [sending, setSending] = useState(null); // null, true, false
+
 
   // 이메일 유효성 체크
   const checkMemberEmail = useCallback(() => {
@@ -331,17 +333,11 @@ export default function MemberJoin() {
   }, []);
   //생년월일
   const handleDateChange = (date) => {
-    const birth = format(date, "yyyy-MM-dd");
-
-    setMember(prev => ({
-      ...prev,
-      birth
-    }));
+    const birthStr = date ? format(date, "yyyy-MM-dd") : "";
+    setMember(prev => ({ ...prev, birth: birthStr }));
 
     setShowDatePickerModal(false);
   };
-
-
 
   const checkDuplicate = useCallback(async () => {
     if (!member.name || !member.birth || !member.contact) {
@@ -374,26 +370,45 @@ export default function MemberJoin() {
       setShowDuplicateModal(true);
       setIsDuplicatePassed(false);
     }
-  }, [member]);
+  }, [member.name, member.birth, member.contact]);
 
-
+  useEffect(() => {
+    if (!member.birth) return;
+    checkDuplicate();
+  }, [member.birth, checkDuplicate]);
   const memberValid = useMemo(() => {
+    // 필수 입력값 존재 체크 (비었으면 무조건 false)
+    if (!member.id?.trim()) return false;
+    if (!member.pw?.trim()) return false;
+    if (!member.pw2?.trim()) return false;
+    if (!member.nickname?.trim()) return false;
+    if (!member.email?.trim()) return false;
+    if (!certNumber?.trim()) return false;
+    if (!member.birth) return false;
+    if (!member.contact?.trim()) return false;
+    if (!member.post?.trim()) return false;
+    if (!member.address1?.trim()) return false;
+    if (!member.address2?.trim()) return false;
+
     if (memberClass.id !== "is-valid") return false;
     if (memberClass.pw !== "is-valid") return false;
     if (memberClass.pw2 !== "is-valid") return false;
     if (memberClass.nickname !== "is-valid") return false;
     if (memberClass.email !== "is-valid") return false;
     if (certNumberClass !== "is-valid") return false;
-
     if (memberClass.birth === "is-invalid") return false;
     if (memberClass.contact === "is-invalid") return false;
     if (memberClass.post === "is-invalid") return false;
     if (memberClass.address1 === "is-invalid") return false;
     if (memberClass.address2 === "is-invalid") return false;
-    if (!isDuplicatePassed) return false;
-
     return true;
-  }, [memberClass]);
+  }, [
+    member,
+    memberClass,
+    certNumber,
+    certNumberClass
+  ]);
+
 
   const sendData = useCallback(async () => {
     if (!memberValid) return;
@@ -625,7 +640,19 @@ export default function MemberJoin() {
 
         {/* 주소(우편번호, 기본주소, 상세주소) */}
         <div className="row mt-4">
-          <label className="col-sm-3 col-form-label">주소</label>
+          <label className="col-sm-3 col-form-label">
+            <div className="d-inline-flex align-items-center">
+              주소
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
+            </div>
+          </label>
           <div className="col-sm-9 d-flex align-items-center">
             <input
               type="text"
@@ -684,33 +711,58 @@ export default function MemberJoin() {
         {/* 연락처 */}
         <div className="row mt-4">
           <label className="col-sm-3 col-form-label">
-            연락처
+            <div className="d-inline-flex align-items-center">
+              연락처
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
+            </div>
           </label>
           <div className="col-sm-9">
             <input type="text" inputMode="tel"
               className={`form-control ${memberClass.contact}`}
               name="contact" value={member.contact}
+              placeholder="010-xxxx-xxxx"
               onChange={changeStrValue}
               onBlur={(e) => {
                 checkMemberContact(e);
                 checkDuplicate();
               }}
             />
-            <div className="invalid-feedback">11자리 숫자로 입력해주세요</div>
+            <div className="invalid-feedback">010으로 시작하는 11자리 숫자로 입력해주세요</div>
           </div>
         </div>
 
         {/* 생년월일 */}
         <div className="row mt-4 align-items-center">
-          <label className="col-sm-3 col-form-label">생년월일</label>
+          <label className="col-sm-3 col-form-label">
+            <div className="d-inline-flex align-items-center">
+              생년월일
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip id="id-tooltip">필수 입력칸입니다.</Tooltip>}
+              >
+                <span className="ms-2 d-inline-flex align-items-center" style={{ cursor: "pointer" }}>
+                  <FaExclamationCircle className="text-secondary" />
+                </span>
+              </OverlayTrigger>
+            </div>
+          </label>
           <div className="col-sm-9 d-flex gap-2">
             <input
               type="text"
               className={`form-control ${memberClass.birth}`}
               placeholder="날짜를 선택해주세요"
               value={member.birth}
+              readOnly
               disabled={true}
               onChange={(e) => {
+                checkDuplicate();
                 setMember({ ...member, birth: e.target.value });
               }}
             />
@@ -732,6 +784,12 @@ export default function MemberJoin() {
                   locale="ko"
                   maxDate={new Date()}
                   inline
+
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
+                  yearDropdownItemNumber={100}
+                  scrollableYearDropdown
                 />
               </Modal.Body>
               <Modal.Footer>
@@ -780,9 +838,15 @@ export default function MemberJoin() {
       <div className="row mt-5">
         <div className="col text-center">
           <button type="button" className="btn btn-lg btn-success"
-            disabled={memberValid === false} onClick={sendData}>
+            disabled={memberValid === false || isDuplicatePassed === false} onClick={sendData}>
             <FaUser className="me-2" />
-            <span>{memberValid === true ? "회원 가입하기" : "필수 항목을 작성해주세요"}</span>
+            <span>
+              {!memberValid
+                ? "필수 항목을 작성해주세요"
+                : !isDuplicatePassed
+                  ? "다른 정보로 다시 시도해주세요"
+                  : "회원 가입하기"}
+            </span>
           </button>
         </div>
       </div>

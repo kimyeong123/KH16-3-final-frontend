@@ -1,5 +1,5 @@
 import Jumbotron from "../templates/Jumbotron"
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaHome } from "react-icons/fa";
 import "./Member.css"; 
@@ -10,6 +10,9 @@ export default function MemberJoinFinish() {
 
   const goToLogin = () => navigate("/member/login");
   const goToHome = () => navigate("/");
+    useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
 
   return (
     <div className="member-join-finish">

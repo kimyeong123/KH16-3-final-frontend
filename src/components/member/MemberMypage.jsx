@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useDaumPostcodePopup } from "react-daum-postcode";
+import { useParams } from "react-router-dom";
+import { useAtomValue } from "jotai";
 import { FaTrash, FaUserLock, FaEnvelope, FaEraser, FaExclamationTriangle } from "react-icons/fa";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaUserPen } from "react-icons/fa6";
@@ -71,6 +73,42 @@ export default function MemberMypage() {
     const [certNumberFeedback, setCertNumberFeedback] = useState(""); // 인증번호 피드백
     const [memberClass, setMemberClass] = useState({ email: "" }); // 이메일 유효성 클래스
     const [memberEmailFeedback, setMemberEmailFeedback] = useState(""); // 이메일 피드백
+
+    const { memberNo: paramNo } = useParams();
+    const isViewAs = !!paramNo;
+    const targetNo = isViewAs ? Number(paramNo) : loginNo;
+    const [viewMember, setViewMember] = useState(null);
+    const view = isViewAs ? viewMember : {
+        id: loginId,
+        nickname,
+        role: loginRole,
+        post,
+        address1,
+        address2,
+        contact,
+        point,
+        createdTime,
+        email
+    };
+    const isAdmin = loginRole === "ADMIN";
+
+    console.log("paramNo =", paramNo);
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const resp = await axios.get(`/member/admin-detail/${targetNo}`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                setViewMember(resp.data);
+            } catch (e) {
+                console.error(e);
+                alert("회원 정보를 불러오지 못했습니다.");
+            }
+        };
+        load();
+    }, [targetNo, accessToken]);
+
+
     useEffect(() => {
         if (email) {
             const [id, domain] = email.split("@");
@@ -82,9 +120,10 @@ export default function MemberMypage() {
         if (address1) setEditAddress1(address1);
         if (address2) setEditAddress2(address2);
         if (contact) setEditContact(contact);
+
     }, [email, post, address1, address2, contact]); // 상태값이 변경되면 업데이트
     const openPostcode = useDaumPostcodePopup();
-    
+
 
 
     // 주소 검색
@@ -370,53 +409,85 @@ export default function MemberMypage() {
             });
         }
     };
-const handleDeleteAccount = async () => {
-  if (!password) {
-    return Swal.fire({
-      icon: "warning",
-      title: "입력 오류",
-      text: "현재 비밀번호를 입력해주세요.",
-      timer: 1800,
-      showConfirmButton: false,
-    });
-  }
+    const handleDeleteAccount = async () => {
+        if (!password) {
+            return Swal.fire({
+                icon: "warning",
+                title: "입력 오류",
+                text: "현재 비밀번호를 입력해주세요.",
+                timer: 1800,
+                showConfirmButton: false,
+            });
+        }
 
-  const ok = await Swal.fire({
+        const ok = await Swal.fire({
+            icon: "warning",
+            title: "회원 탈퇴",
+            text: "정말 탈퇴하시겠습니까? 계정은 복구할 수 없습니다.",
+            showCancelButton: true,
+            confirmButtonText: "탈퇴",
+            cancelButtonText: "취소"
+        });
+
+        if (!ok.isConfirmed) return;
+
+        try {
+            await axios.delete(`http://localhost:8080/member/${loginNo}`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                data: { pw: password },
+            });
+
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            delete axios.defaults.headers.common["Authorization"];
+            clearLogin(); // jotai 초기화
+            navigete("/member/login")
+
+            Swal.fire({
+                icon: "success",
+                title: "탈퇴 완료",
+                text: "이용해주셔서 감사합니다.",
+                timer: 1800,
+                showConfirmButton: false,
+            });
+
+        } catch (err) {
+            const msg = err.response?.data || "회원 탈퇴 중 오류가 발생했습니다.";
+            Swal.fire({ icon: "error", title: "실패", text: msg });
+        }
+    };
+    const handleAdminDeleteMember = async () => {
+  const result = await Swal.fire({
     icon: "warning",
-    title: "회원 탈퇴",
-    text: "정말 탈퇴하시겠습니까? 계정은 복구할 수 없습니다.",
+    title: "회원 삭제",
+    text: "정말 삭제하시겠습니까? (되돌릴 수 없습니다)",
     showCancelButton: true,
-    confirmButtonText: "탈퇴",
-    cancelButtonText: "취소"
+    confirmButtonText: "삭제",
+    cancelButtonText: "취소",
   });
 
-  if (!ok.isConfirmed) return;
+  if (!result.isConfirmed) return;
 
   try {
-    await axios.delete(`http://localhost:8080/member/${loginNo}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      data: { pw: password }, 
-    });
+    await axios.delete(`/member/admin/${targetNo}`, {
+  headers: { Authorization: `Bearer ${accessToken}` }
+});
 
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    delete axios.defaults.headers.common["Authorization"];
-    clearLogin(); // jotai 초기화
-    navigete("/member/login")
-
-    Swal.fire({
+    await Swal.fire({
       icon: "success",
-      title: "탈퇴 완료",
-      text: "이용해주셔서 감사합니다.",
-      timer: 1800,
+      title: "삭제 완료",
+      text: "회원이 삭제되었습니다.",
+      timer: 1600,
       showConfirmButton: false,
     });
 
+    navigete("/admin/home/member");
   } catch (err) {
-    const msg = err.response?.data || "회원 탈퇴 중 오류가 발생했습니다.";
-    Swal.fire({ icon: "error", title: "실패", text: msg });
+    const msg = err.response?.data || "회원 삭제 중 오류가 발생했습니다.";
+    Swal.fire({ icon: "error", title: "삭제 실패", text: msg });
   }
 };
+
 
     return (
         <>
@@ -435,9 +506,9 @@ const handleDeleteAccount = async () => {
 
                             {/* 기본 정보 */}
                             <div className="mb-2 mt-2">
-                                <div className="mb-2"><strong>아이디:</strong> {loginId}</div>
-                                <div className="mb-2"><strong>닉네임:</strong> {nickname}</div>
-                                <div className="mb-2"><strong>권한:</strong> {loginRole}</div>
+                                <div className="mb-2"><strong>아이디:</strong> {view?.id}</div>
+                                <div className="mb-2"><strong>닉네임:</strong> {view?.nickname}</div>
+                                <div className="mb-2"><strong>권한:</strong> {view?.role}</div>
                             </div>
 
                             <div className="mb-2 mt-2">
@@ -523,7 +594,10 @@ const handleDeleteAccount = async () => {
                                         )}
                                     </div>
                                 ) : (
-                                    <span className="ms-2">{editEmail}</span>
+                                    <span className="ms-2">
+                                        {isViewAs ? view?.email : editEmail}
+                                    </span>
+
                                 )}
                             </div>
 
@@ -554,7 +628,7 @@ const handleDeleteAccount = async () => {
                                         </div>
 
                                     ) : (
-                                        <span className="ms-2">{post}</span>
+                                        <span className="ms-2">{view?.post}</span>
                                     )}
                                 </div>
 
@@ -563,7 +637,7 @@ const handleDeleteAccount = async () => {
                                     {isEditing ? (
                                         <div className="d-flex justify-content-center gap-2 mt-2">
                                             <input type="text" className="form-control mt-1" value={editAddress1} readOnly /></div>
-                                    ) : <span className="ms-2">{address1}</span>}
+                                    ) : <span className="ms-2">{view?.address1}</span>}
                                 </div>
                                 <div className="mb-2">
                                     <strong>상세 주소:</strong>
@@ -571,7 +645,7 @@ const handleDeleteAccount = async () => {
                                         <div className="d-flex justify-content-center gap-2 mt-2">
                                             <input type="text" className="form-control mt-1" value={editAddress2} onChange={(e) => setEditAddress2(e.target.value)} />
                                         </div>
-                                    ) : <span className="ms-2">{address2}</span>}
+                                    ) : <span className="ms-2">{view?.address2}</span>}
                                 </div>
                             </div>
 
@@ -587,15 +661,15 @@ const handleDeleteAccount = async () => {
                                                 value={editContact}
                                                 onChange={(e) => handleContactChange(e.target.value)}
                                             /></div>
-                                    ) : <span className="ms-2">{contact}</span>}
+                                    ) : <span className="ms-2">{view?.contact}</span>}
                                     {contactError && <div className="invalid-feedback">{contactError}</div>}
                                 </div>
                             </div>
 
                             {/* 기타 정보 */}
                             <div className="mb-2 mt-2">
-                                <div className="mb-2"><strong>보유 머니:</strong> {point}p</div>
-                                <div className="mb-2 mt-1"><strong>가입일:</strong> {createdTime ? new Date(createdTime).toLocaleDateString("ko-KR") : "-"}</div>
+                                <div className="mb-2"><strong>보유 머니:</strong> {view?.point}p</div>
+                                <div className="mb-2 mt-1"><strong>가입일:</strong> {view?.createdTime ? new Date(createdTime).toLocaleDateString("ko-KR") : "-"}</div>
                             </div>
 
                             {isEditing && (
@@ -624,27 +698,47 @@ const handleDeleteAccount = async () => {
                         <div className="card shadow-lg p-4 rounded-3">
                             <h5 className="mb-3 text-center fw-bold text-primary">계정 관리</h5>
 
-                            <div className="mb-3">
-                                <button className="btn btn-outline-primary w-80 mt-2 py-1 rounded-pill shadow-sm hover-shadow" onClick={() => setIsEditing(true)}>
-                                    <FaUserPen className="me-2" /> 회원정보 변경
-                                </button>
-                            </div>
+                            {!isViewAs && (
+                                <div className="mb-3">
+                                    <button
+                                        className="btn btn-outline-primary w-80 mt-2 py-1 rounded-pill shadow-sm hover-shadow"
+                                        onClick={() => setIsEditing(true)}
+                                    >
+                                        <FaUserPen className="me-2" /> 회원정보 변경
+                                    </button>
+                                </div>
+                            )}
+                            {!isViewAs && (
+                                <div className="mb-3">
+                                    <button
+                                        className="btn btn-outline-primary w-80 mt-2 py-1 rounded-pill shadow-sm hover-shadow"
+                                        onClick={() => setIsPasswordModalOpen(true)}
+                                    >
+                                        <FaUserLock className="me-2" /> 비밀번호 변경
+                                    </button>
+                                </div>
+                            )}
 
-                            <div className="mb-3">
-                                <button
-                                    className="btn btn-outline-primary w-80 mt-2 py-1 rounded-pill shadow-sm hover-shadow"
-                                    onClick={() => setIsPasswordModalOpen(true)}
-                                >
-                                    <FaUserLock className="me-2" /> 비밀번호 변경
-                                </button>
-                            </div>
-
-                            <div className="mb-3">
-                                <button className="btn btn-outline-danger w-50 mt-4 py-1 rounded-pill shadow-sm hover-shadow" onClick={() => setShowDeletePanel(!showDeletePanel)}>
-                                    <FaTrash className="me-2" /> 회원 탈퇴
-                                </button>
-                            </div>
-
+                            {!isViewAs && (
+                                <div className="mb-3">
+                                    <button
+                                        className="btn btn-outline-danger w-50 mt-4 py-1 rounded-pill shadow-sm hover-shadow"
+                                        onClick={() => setShowDeletePanel(!showDeletePanel)}
+                                    >
+                                        <FaTrash className="me-2" /> 회원 탈퇴
+                                    </button>
+                                </div>
+                            )}
+                            {isViewAs && isAdmin && (
+                                <div className="mb-3">
+                                    <button
+                                        className="btn btn-danger w-50 mt-4 py-1 rounded-pill shadow-sm hover-shadow"
+                                        onClick={handleAdminDeleteMember}
+                                    >
+                                        <FaTrash className="me-2" /> 회원 삭제
+                                    </button>
+                                </div>
+                            )}
                             {showDeletePanel && (
                                 <div className="mt-3 bg-light p-4 rounded-3 border fadeInEffect">
                                     <div className="mb-3 text-danger fw-semibold fs-6">
@@ -727,6 +821,7 @@ const handleDeleteAccount = async () => {
                                         </div>
                                         <hr className="my-4" />
                                         {/* 새 비밀번호 */}
+                                        {/* 새 비밀번호 */}
                                         <div className="mb-3">
                                             <label htmlFor="newPassword" className="form-label fw-bold">새 비밀번호</label>
                                             <input
@@ -738,18 +833,18 @@ const handleDeleteAccount = async () => {
                                                 onChange={(e) => handleNewPasswordChange(e.target.value)}
                                             />
                                             {isSameAsCurrent && (
-                                                <div className="invalid-feedback">
+                                                <div className="invalid-feedback mx-auto">
                                                     새 비밀번호는 현재 비밀번호와 다르게 입력해야 합니다.
                                                 </div>
                                             )}
                                             {newPasswordValid === false && (
-                                                <div className="invalid-feedback">
+                                                <div className="invalid-feedback mx-auto">
                                                     8~16자, 대문자·소문자·숫자·특수문자(!@#$)를 모두 포함해야 합니다.
                                                 </div>
                                             )}
                                             {newPasswordValid === true && (
-                                                <div className="valid-feedback">
-                                                    사용 가능한 비밀번호입니다.
+                                                <div className="valid-feedback mx-auto">
+                                                    올바른 형식입니다.
                                                 </div>
                                             )}
                                         </div>
@@ -765,12 +860,12 @@ const handleDeleteAccount = async () => {
                                                 onChange={(e) => handleConfirmChange(e.target.value)}
                                             />
                                             {confirmValid === false && (
-                                                <div className="invalid-feedback">
+                                                <div className="invalid-feedback mx-auto">
                                                     비밀번호가 일치하지 않습니다.
                                                 </div>
                                             )}
                                             {confirmValid === true && (
-                                                <div className="valid-feedback">
+                                                <div className="valid-feedback mx-auto">
                                                     비밀번호가 일치합니다.
                                                 </div>
                                             )}
