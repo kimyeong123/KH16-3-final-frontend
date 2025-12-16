@@ -13,9 +13,7 @@ export default function Private({ children }) {
 
     //loginComplete가 false (로그인 판정이 끝나지 않았다) 라면 로딩 화면을 보여준다
     if(loginComplete === false) {
-        //return <h1>로딩중..</h1>
         return <ClimbingBoxLoader/>
-        
     }
 
     //render

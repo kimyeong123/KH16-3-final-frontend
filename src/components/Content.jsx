@@ -19,6 +19,11 @@ import KakaoPayCancel from "./pay/KakaoPayCancel";
 import KakaoPayFail from "./pay/KakaoPayFail";
 import ProductAdd from "./product/ProductAdd";
 import ProductAddDone from "./product/ProductAddDone";
+import Admin from "./guard/Admin";
+import AdminHome from "./admin/AdminHome";
+import AdminQnaList from "./admin/AdminQnaList";
+import MemberManage from "./admin/MemberManage";
+import Unauthorization from "./error/Unauthorization";
 import ProductDetail from "./product/ProductDetail";
 import ProductEdit from "./product/ProductEdit";
 import ProductList from "./product/ProductList";
@@ -31,6 +36,8 @@ export default function Content() {
                 <Routes>
                     {/* 메인페이지 */}
                     <Route path="/" element={<Home />}></Route>
+                    {/* 에러페이지 */}
+                    <Route path="/error/403" element={<Unauthorization />} />
 
                     {/* 회원 관련 페이지들 */}
                     <Route path="/member/join" element={<MemberJoin />}></Route>
@@ -38,6 +45,16 @@ export default function Content() {
 
                     <Route path="/member/joinfinish" element={<Private><MemberJoinFinish /></Private>}></Route>
                     <Route path="/member/mypage" element={<Private><MemberMypage /></Private>}></Route>
+                    {/* 관리자 홈 */}
+                    <Route path="/admin/home" element={<Admin><AdminHome /></Admin>}>
+                        <Route
+                            index
+                            element={<div>관리자 대시보드</div>}
+                        />
+                        <Route path="member" element={<MemberManage />} />
+                        <Route path="qnalist" element={<AdminQnaList />} />
+                    </Route>
+
 
 
                     {/* 게시글 페이지 */}

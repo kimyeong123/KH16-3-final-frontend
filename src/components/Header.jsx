@@ -59,6 +59,7 @@ export default function Header() {
     const [accessToken] = useAtom(accessTokenState);
     const [isLogin] = useAtom(loginState);
     const clearLogin = useSetAtom(clearLoginState);
+    const [, setLoginComplete] = useAtom(loginCompleteState);
 
     // [추가] 미확인 알림 개수 상태 (폴링으로 업데이트됨)
     const [unreadCount, setUnreadCount] = useState(0);
@@ -128,13 +129,18 @@ export default function Header() {
         return false;
     });
 
+
     // [로그아웃(logout)]
     const logout = useCallback((e) => {
         e.stopPropagation();
         e.preventDefault();
-        clearLogin();
-        delete axios.defaults.headers.common["Authorization"];
-        navigate("/");
+
+        clearLogin(); // jotai state 초기화
+        setLoginComplete(true);
+        delete axios.defaults.headers.common["Authorization"]; // axios 헤더 제거
+
+        navigate("/"); // 메인페이지로 이동 
+        closeMenu();
     }, [clearLogin, navigate]);
 
 

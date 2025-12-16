@@ -84,7 +84,7 @@ export default function MemberMypage() {
         if (contact) setEditContact(contact);
     }, [email, post, address1, address2, contact]); // 상태값이 변경되면 업데이트
     const openPostcode = useDaumPostcodePopup();
-    
+
 
 
     // 주소 검색
@@ -370,53 +370,53 @@ export default function MemberMypage() {
             });
         }
     };
-const handleDeleteAccount = async () => {
-  if (!password) {
-    return Swal.fire({
-      icon: "warning",
-      title: "입력 오류",
-      text: "현재 비밀번호를 입력해주세요.",
-      timer: 1800,
-      showConfirmButton: false,
-    });
-  }
+    const handleDeleteAccount = async () => {
+        if (!password) {
+            return Swal.fire({
+                icon: "warning",
+                title: "입력 오류",
+                text: "현재 비밀번호를 입력해주세요.",
+                timer: 1800,
+                showConfirmButton: false,
+            });
+        }
 
-  const ok = await Swal.fire({
-    icon: "warning",
-    title: "회원 탈퇴",
-    text: "정말 탈퇴하시겠습니까? 계정은 복구할 수 없습니다.",
-    showCancelButton: true,
-    confirmButtonText: "탈퇴",
-    cancelButtonText: "취소"
-  });
+        const ok = await Swal.fire({
+            icon: "warning",
+            title: "회원 탈퇴",
+            text: "정말 탈퇴하시겠습니까? 계정은 복구할 수 없습니다.",
+            showCancelButton: true,
+            confirmButtonText: "탈퇴",
+            cancelButtonText: "취소"
+        });
 
-  if (!ok.isConfirmed) return;
+        if (!ok.isConfirmed) return;
 
-  try {
-    await axios.delete(`http://localhost:8080/member/${loginNo}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      data: { pw: password }, 
-    });
+        try {
+            await axios.delete(`http://localhost:8080/member/${loginNo}`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                data: { pw: password },
+            });
 
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    delete axios.defaults.headers.common["Authorization"];
-    clearLogin(); // jotai 초기화
-    navigete("/member/login")
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            delete axios.defaults.headers.common["Authorization"];
+            clearLogin(); // jotai 초기화
+            navigete("/member/login")
 
-    Swal.fire({
-      icon: "success",
-      title: "탈퇴 완료",
-      text: "이용해주셔서 감사합니다.",
-      timer: 1800,
-      showConfirmButton: false,
-    });
+            Swal.fire({
+                icon: "success",
+                title: "탈퇴 완료",
+                text: "이용해주셔서 감사합니다.",
+                timer: 1800,
+                showConfirmButton: false,
+            });
 
-  } catch (err) {
-    const msg = err.response?.data || "회원 탈퇴 중 오류가 발생했습니다.";
-    Swal.fire({ icon: "error", title: "실패", text: msg });
-  }
-};
+        } catch (err) {
+            const msg = err.response?.data || "회원 탈퇴 중 오류가 발생했습니다.";
+            Swal.fire({ icon: "error", title: "실패", text: msg });
+        }
+    };
 
     return (
         <>
@@ -727,6 +727,7 @@ const handleDeleteAccount = async () => {
                                         </div>
                                         <hr className="my-4" />
                                         {/* 새 비밀번호 */}
+                                         {/* 새 비밀번호 */}
                                         <div className="mb-3">
                                             <label htmlFor="newPassword" className="form-label fw-bold">새 비밀번호</label>
                                             <input
@@ -738,18 +739,18 @@ const handleDeleteAccount = async () => {
                                                 onChange={(e) => handleNewPasswordChange(e.target.value)}
                                             />
                                             {isSameAsCurrent && (
-                                                <div className="invalid-feedback">
+                                                <div className="invalid-feedback mx-auto">
                                                     새 비밀번호는 현재 비밀번호와 다르게 입력해야 합니다.
                                                 </div>
                                             )}
                                             {newPasswordValid === false && (
-                                                <div className="invalid-feedback">
+                                                <div className="invalid-feedback mx-auto">
                                                     8~16자, 대문자·소문자·숫자·특수문자(!@#$)를 모두 포함해야 합니다.
                                                 </div>
                                             )}
                                             {newPasswordValid === true && (
-                                                <div className="valid-feedback">
-                                                    사용 가능한 비밀번호입니다.
+                                                <div className="valid-feedback mx-auto">
+                                                    올바른 형식입니다.
                                                 </div>
                                             )}
                                         </div>
@@ -765,12 +766,12 @@ const handleDeleteAccount = async () => {
                                                 onChange={(e) => handleConfirmChange(e.target.value)}
                                             />
                                             {confirmValid === false && (
-                                                <div className="invalid-feedback">
+                                                <div className="invalid-feedback mx-auto">
                                                     비밀번호가 일치하지 않습니다.
                                                 </div>
                                             )}
                                             {confirmValid === true && (
-                                                <div className="valid-feedback">
+                                                <div className="valid-feedback mx-auto">
                                                     비밀번호가 일치합니다.
                                                 </div>
                                             )}
