@@ -18,6 +18,7 @@ import "./styles/sweetalert2-flatly.css";
 
 // jotai.js에서 인증 상태 관리용 atom들을 임포트합니다.
 import { accessTokenState, clearLoginState, loginCompleteState } from "./utils/jotai";
+import ScrollToTop from "./components/ScrollToTop"
 
 function AuthRoot() {
   const setLoginComplete = useSetAtom(loginCompleteState);
@@ -52,10 +53,10 @@ useEffect(() => {
       </div>
     );
   }
-
   // 로딩이 완료되면 앱의 주요 콘텐츠를 렌더링합니다.
   return (
     <BrowserRouter>
+    <ScrollToTop />
       <Header/>
       <div className="container-fluid my-5 pt-5" style={contentPaddingStyle}>
         <Content/>
