@@ -1,5 +1,5 @@
 // src/components/product/ProductAdd.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
@@ -11,7 +11,7 @@ export default function ProductAdd() {
 
   const [form, setForm] = useState({
     name: "",
-    categoryCode: "", // 소분류 category_code
+    categoryCode: "",
     description: "",
     startPrice: "",
     instantPrice: "",
@@ -19,21 +19,33 @@ export default function ProductAdd() {
     endTime: "",
   });
 
+  // ✅ 파일 누적 목록
   const [files, setFiles] = useState([]);
+  const fileInputRef = useRef(null);
 
-  // ===== 카테고리(2단) 상태 =====
-  const [parents, setParents] = useState([]);   // 대분류
-  const [children, setChildren] = useState([]); // 소분류
+  // ✅ 미리보기 URL 관리 (메모리 누수 방지)
+  const [previews, setPreviews] = useState([]); // [{file, url}]
+  useEffect(() => {
+    // files 바뀔 때마다 새 URL 생성
+    const next = files.map((f) => ({ file: f, url: URL.createObjectURL(f) }));
+    setPreviews(next);
+
+    // 기존 URL 해제
+    return () => {
+      next.forEach((p) => URL.revokeObjectURL(p.url));
+    };
+  }, [files]);
+
+  // ===== 카테고리(2단) =====
+  const [parents, setParents] = useState([]);
+  const [children, setChildren] = useState([]);
   const [parentCode, setParentCode] = useState("");
   const [childCode, setChildCode] = useState("");
 
-  // ✅ 네가 쓰던 토큰 헤더 방식 그대로
-  const authHeader = accessToken.startsWith("Bearer ")
+  const authHeader = accessToken?.startsWith("Bearer ")
     ? accessToken
-    : "Bearer " + accessToken;
+    : "Bearer " + (accessToken || "");
 
-  // ===== 카테고리 API =====
-  // ✅ 카테고리는 "공개"로 쓰는게 맞음 → Authorization 헤더 아예 안 보냄(토큰 영향 차단)
   useEffect(() => {
     axios
       .get("http://localhost:8080/category/top")
@@ -61,26 +73,48 @@ export default function ProductAdd() {
       });
   }, [parentCode]);
 
-  // 소분류 선택 → form.categoryCode 반영
   useEffect(() => {
     setForm((prev) => ({ ...prev, categoryCode: childCode ? String(childCode) : "" }));
   }, [childCode]);
 
-  // ===== 폼 공통 =====
   const changeForm = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ 파일 "누적" + 중복 제거 + input 초기화
   const changeFiles = (e) => {
     const list = Array.from(e.target.files || []);
-    setFiles(list);
+
+    setFiles((prev) => {
+      const merged = [...prev, ...list];
+
+      const uniq = [];
+      const seen = new Set();
+      for (const f of merged) {
+        const key = `${f.name}_${f.size}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        uniq.push(f);
+      }
+      return uniq;
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeFile = (idx) => {
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const clearFiles = () => {
+    setFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const submit = async (e) => {
     e.preventDefault();
 
-    // ✅ 네 기존 체크 그대로
     if (!accessToken || accessToken.trim().length === 0) {
       alert("로그인이 필요합니다");
       return;
@@ -108,13 +142,12 @@ export default function ProductAdd() {
     };
 
     try {
-      // 1) 상품 등록(JSON) - ✅ 여기만 토큰 사용
+      // 1) 상품 등록
       const createResp = await axios.post("http://localhost:8080/product/", body, {
         headers: { Authorization: authHeader },
       });
 
-      const renewed1 =
-        createResp.headers["access-token"] || createResp.headers["Access-Token"];
+      const renewed1 = createResp.headers["access-token"] || createResp.headers["Access-Token"];
       if (renewed1) setAccessToken(renewed1);
 
       const productNo =
@@ -125,11 +158,11 @@ export default function ProductAdd() {
         null;
 
       if (!productNo) {
-        alert("상품은 등록됐는데 productNo 응답이 없어서 첨부 업로드를 못합니다. 서버 응답을 확인하세요.");
+        alert("상품은 등록됐는데 productNo 응답이 없어서 첨부 업로드를 못합니다.");
         return;
       }
 
-      // 2) 첨부 업로드(multipart) - ✅ 여기만 토큰 사용
+      // 2) 첨부 업로드
       const fd = new FormData();
       files.forEach((f) => fd.append("files", f));
 
@@ -139,15 +172,11 @@ export default function ProductAdd() {
         { headers: { Authorization: authHeader } }
       );
 
-      const renewed2 =
-        uploadResp.headers["access-token"] || uploadResp.headers["Access-Token"];
+      const renewed2 = uploadResp.headers["access-token"] || uploadResp.headers["Access-Token"];
       if (renewed2) setAccessToken(renewed2);
 
       navigate("/product/done", {
-        state: {
-          message: "상품과 첨부가 정상적으로 등록되었습니다.",
-          productNo,
-        },
+        state: { message: "상품과 첨부가 정상적으로 등록되었습니다.", productNo },
       });
     } catch (err) {
       const status = err.response?.status;
@@ -268,13 +297,77 @@ export default function ProductAdd() {
           />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 120 }}>이미지</div>
-          <input type="file" multiple onChange={changeFiles} required />
-          <div style={{ fontSize: 12, color: "#777" }}>선택된 파일: {files.length}개</div>
+        {/* =========================
+           ✅ 등록 화면 첨부 이미지 섹션
+        ========================== */}
+        <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eee" }}>
+          <h3 style={{ marginBottom: 10 }}>첨부 이미지</h3>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={changeFiles}
+            />
+            <div style={{ fontSize: 12, color: "#777" }}>선택된 파일: {files.length}개</div>
+
+            <button type="button" onClick={clearFiles} disabled={files.length === 0} style={{ padding: "8px 12px" }}>
+              선택 초기화
+            </button>
+          </div>
+
+          {/* 미리보기 카드 */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 12 }}>
+            {previews.length === 0 && (
+              <div style={{ color: "#777", fontSize: 13 }}>선택된 첨부가 없습니다</div>
+            )}
+
+            {previews.map((p, idx) => (
+              <div
+                key={`${p.file.name}_${p.file.size}_${idx}`}
+                style={{
+                  width: 160,
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  padding: 8,
+                  background: "#fff",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    height: 110,
+                    borderRadius: 6,
+                    overflow: "hidden",
+                    border: "1px solid #eee",
+                  }}
+                >
+                  <img
+                    src={p.url}
+                    alt={p.file.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+
+                <div style={{ fontSize: 12, marginTop: 6, color: "#333", wordBreak: "break-all" }}>
+                  {p.file.name}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => removeFile(idx)}
+                  style={{ marginTop: 8, padding: "6px 10px", width: "100%" }}
+                >
+                  삭제
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <button type="submit" style={{ padding: "10px 14px" }}>
+        <button type="submit" style={{ padding: "10px 14px", marginTop: 8 }}>
           상품 등록
         </button>
       </form>

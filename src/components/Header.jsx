@@ -14,6 +14,7 @@ import { RiErrorWarningLine } from "react-icons/ri"; // QNA 알림 아이콘
 import MessageBadge from "./message/MessageBadge";
 
 
+
 // API 엔드포인트 및 폴링 설정
 const NOTIFICATION_COUNT_URL = "/message/unread/count";
 const POLLING_INTERVAL = 5000; // 5초 (5000ms)

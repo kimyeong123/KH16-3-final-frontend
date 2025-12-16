@@ -1,5 +1,5 @@
 // src/components/product/ProductDetail.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
@@ -14,13 +14,22 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [attachments, setAttachments] = useState([]);
 
-  const authHeader = accessToken?.startsWith("Bearer ")
-    ? accessToken
-    : "Bearer " + (accessToken || "");
+  // ✅ attachmentNo -> blob URL(미리보기)
+  const [previewMap, setPreviewMap] = useState({});
+
+  const authHeader = useMemo(() => {
+    if (!accessToken) return "";
+    return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+  }, [accessToken]);
+
+  // ✅ 여기를 네 AttachmentRestController "파일 보기/다운로드" 주소로 맞춰라
+  // 예: GET /attachment/{attachmentNo} 라면 그대로 사용
+  const ATT_VIEW = (attachmentNo) => `http://localhost:8080/attachment/${attachmentNo}`;
 
   const load = async () => {
     setLoading(true);
     try {
+      // 1) 상품
       const resp = await axios.get(`http://localhost:8080/product/${productNo}`, {
         headers: accessToken ? { Authorization: authHeader } : undefined,
       });
@@ -31,24 +40,18 @@ export default function ProductDetail() {
       const data = resp.data;
       setProduct(data || null);
 
-      // ✅ 케이스1: detail에 attachments가 포함되어 오는 경우
+      // 2) 첨부 목록
       if (Array.isArray(data?.attachments)) {
         setAttachments(data.attachments);
       } else {
-        // ✅ 케이스2: attachments API가 따로 있는 경우
-        try {
-          const attResp = await axios.get(
-            `http://localhost:8080/product/${productNo}/attachments`,
-            { headers: accessToken ? { Authorization: authHeader } : undefined }
-          );
+        const attResp = await axios.get(`http://localhost:8080/product/${productNo}/attachments`, {
+          headers: accessToken ? { Authorization: authHeader } : undefined,
+        });
 
-          const renewed2 = attResp.headers["access-token"] || attResp.headers["Access-Token"];
-          if (renewed2) setAccessToken(renewed2);
+        const renewed2 = attResp.headers["access-token"] || attResp.headers["Access-Token"];
+        if (renewed2) setAccessToken(renewed2);
 
-          setAttachments(attResp.data || []);
-        } catch (e) {
-          setAttachments([]);
-        }
+        setAttachments(attResp.data || []);
       }
     } catch (err) {
       console.error("상세 로딩 실패", err.response || err);
@@ -59,6 +62,50 @@ export default function ProductDetail() {
       setLoading(false);
     }
   };
+
+  // ✅ 첨부 목록이 바뀌면: attachmentNo로 blob 받아서 미리보기 URL 생성
+  useEffect(() => {
+    let alive = true;
+    const revokeList = [];
+
+    const run = async () => {
+      // 초기화
+      setPreviewMap({});
+
+      if (!attachments || attachments.length === 0) return;
+
+      const next = {};
+
+      for (const a of attachments) {
+        const no = a.attachmentNo ?? a.attachment_no;
+        if (!no) continue;
+
+        try {
+          const r = await axios.get(ATT_VIEW(no), {
+            responseType: "blob",
+            // ✅ 다운로드 API가 보호돼있으면 Authorization 필요
+            headers: accessToken ? { Authorization: authHeader } : undefined,
+          });
+
+          const blobUrl = URL.createObjectURL(r.data);
+          revokeList.push(blobUrl);
+          next[no] = blobUrl;
+        } catch (e) {
+          // 여기서 실패하면 그냥 미리보기 없음으로 둠
+          console.error("첨부 미리보기 로딩 실패", no, e.response || e);
+        }
+      }
+
+      if (alive) setPreviewMap(next);
+    };
+
+    run();
+
+    return () => {
+      alive = false;
+      revokeList.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [attachments, accessToken, authHeader]); // authHeader는 useMemo라 OK
 
   useEffect(() => {
     if (productNo) load();
@@ -90,13 +137,14 @@ export default function ProductDetail() {
     }
   };
 
-  if (loading) {
-    return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>로딩중...</div>;
-  }
+  const openPreview = (attachmentNo) => {
+    const url = previewMap[attachmentNo];
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
-  if (!product) {
-    return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>상품이 없습니다.</div>;
-  }
+  if (loading) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>로딩중...</div>;
+  if (!product) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>상품이 없습니다.</div>;
 
   const p = product;
   const name = p.name ?? "";
@@ -151,36 +199,40 @@ export default function ProductDetail() {
         {attachments.length === 0 ? (
           <div style={{ color: "#888" }}>첨부 없음</div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             {attachments.map((a, idx) => {
-              const key = a.attachmentNo ?? a.attachment_no ?? idx;
-              const url = a.url ?? a.downloadUrl ?? a.download_url ?? null;
+              const no = a.attachmentNo ?? a.attachment_no ?? idx;
+              const filename = a.attachmentName ?? a.attachment_name ?? a.filename ?? "file";
+              const src = previewMap[no];
 
               return (
-                <div key={key} style={{ border: "1px solid #eee", borderRadius: 10, padding: 8 }}>
-                  {url ? (
+                <div key={no} style={{ border: "1px solid #eee", borderRadius: 10, padding: 10 }}>
+                  {src ? (
                     <img
-                      src={url}
-                      alt="attachment"
-                      style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 8 }}
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                      src={src}
+                      alt={filename}
+                      style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 8, cursor: "pointer" }}
+                      onClick={() => openPreview(no)}
                     />
                   ) : (
                     <div style={{ height: 140, display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
-                      (미리보기 URL 없음)
+                      (미리보기 없음)
                     </div>
                   )}
 
-                  <div style={{ fontSize: 12, color: "#777", marginTop: 8 }}>
-                    {a.attachmentName ?? a.attachment_name ?? a.filename ?? "file"}
+                  <div style={{ fontSize: 12, color: "#777", marginTop: 8, wordBreak: "break-all" }}>
+                    {filename}
                   </div>
 
-                  {url && (
-                    <div style={{ marginTop: 6 }}>
-                      <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12 }}>
-                        원본 보기
-                      </a>
-                    </div>
+                  {/* 원본 열기(미리보기 blob이 있으면 그걸로 열기) */}
+                  {src && (
+                    <button
+                      type="button"
+                      onClick={() => openPreview(no)}
+                      style={{ marginTop: 8, width: "100%", padding: "8px 10px" }}
+                    >
+                      원본 보기
+                    </button>
                   )}
                 </div>
               );
@@ -189,17 +241,12 @@ export default function ProductDetail() {
         )}
 
         <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-          <button
-            style={{ padding: "10px 14px" }}
-            onClick={() => navigate(`/product/edit/${productNo}`)}
-          >
+          <button style={{ padding: "10px 14px" }} onClick={() => navigate(`/product/edit/${productNo}`)}>
             수정
           </button>
-
           <button style={{ padding: "10px 14px" }} onClick={remove}>
             삭제
           </button>
-
           <button style={{ padding: "10px 14px" }} onClick={() => navigate(-1)}>
             뒤로
           </button>
