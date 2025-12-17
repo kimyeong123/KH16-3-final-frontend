@@ -312,7 +312,7 @@ export default function Header() {
                                 로그인
                             </Link>
                             <div className="ms-3 me-3">|</div>
-                            <Link className="text-dark text-decoration-none" to="/member/join">
+                            <Link className="text-dark text-decoration-none" to="/etc/signupagree?next=/member/join">
                                 회원가입
                             </Link>
                         </div>

@@ -12,10 +12,10 @@ import { FaPlusSquare } from "react-icons/fa";
 import { useAtom, useSetAtom } from "jotai";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
+import { FaCashRegister } from "react-icons/fa6";
+import { FaScrewdriverWrench } from "react-icons/fa6";
 
 import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState, loginNoState } from "../utils/jotai";
-import { FaReceipt } from "react-icons/fa6";
 import { FaListUl } from "react-icons/fa";
 
 
@@ -113,13 +113,13 @@ export default function Menu() {
                             <>
                                 {/* 로그인 상태: 로그아웃 버튼 */}
                                  <li className="nav-item">
-                                    <Link className="nav-link fs-6" to="/pay/kakaopay" onClick={closeMenu}>
-                                        <FaMoneyBillTransfer className="fs-5 me-1" />
+                                    <Link className="nav-link fs-6 me-2" to="/pay/kakaopay" onClick={closeMenu}>
+                                        <FaCashRegister className="fs-5 me-1" />
                                         포인트 충전
                                     </Link>
                                 </li>
                                 <li className="nav-item">
-                                    <Link className="nav-link fs-6" to="/product/productadd" onClick={closeMenu}>
+                                    <Link className="nav-link fs-6 me-2" to="/product/productadd" onClick={closeMenu}>
                                         <FaPlusSquare className="fs-5 me-1" />
                                         물품 등록
                                     </Link>
@@ -138,7 +138,7 @@ export default function Menu() {
                                 {/* 관리자 메뉴 */}
                                 {isAdmin && (
                                     <li className="nav-item">
-                                        <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}>관리자</Link>
+                                        <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}><FaScrewdriverWrench className="fs-5 me-1" />설정</Link>
                                     </li>
                                 )}
                             </>

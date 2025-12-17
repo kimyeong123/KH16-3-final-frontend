@@ -1,0 +1,40 @@
+.document-container {
+  max-width: 800px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15), 0 0 10px rgba(0,0,0,0.05);
+  padding: 2rem;
+  border: 1px solid #dee2e6;
+  margin: 5vh auto;
+  transition: transform 0.3s ease;
+  animation: fadeInUp 0.8s ease-out;
+  background: #fff;
+}
+
+.agreement-center {
+  text-align: center;
+}
+
+.agreement-paper-block {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.10), 0 0 8px rgba(0,0,0,0.04);
+}
+
+.agreement-summary {
+  border-top: 1px dashed #dee2e6;
+  padding-top: 1rem;
+  text-align: center;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
