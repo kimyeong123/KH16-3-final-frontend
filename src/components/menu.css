@@ -3,7 +3,6 @@
   position: relative;
   overflow: hidden;
 
-  /* ✅ 중앙이 더 밝고, 양끝이 #223140 */
   background: radial-gradient(
     ellipse at center,
     #3b556b 0%,
@@ -44,7 +43,7 @@
   pointer-events: none;
   z-index: 1;
 
-  animation: sweepLeft 7.5s ease-in-out infinite;
+  animation: sweepLeft 15s ease-in-out infinite;
 }
 
 /* ===== 중앙→양옆 스윕 (오른쪽) ===== */
@@ -69,27 +68,27 @@
   pointer-events: none;
   z-index: 1;
 
-  animation: sweepRight 7.5s ease-in-out infinite;
+  animation: sweepRight 15s ease-in-out infinite;
 }
 
 /* 중앙에서 “잠깐” 생겼다가 왼쪽으로 */
 @keyframes sweepLeft {
   0%   { opacity: 0; transform: translateX(-50%) skewX(18deg) translateX(0); }
   22%  { opacity: 0; }
-  32%  { opacity: 1; transform: translateX(-50%) skewX(18deg) translateX(0); }  /* 중앙 체류 */
-  42%  { opacity: 1; transform: translateX(-50%) skewX(18deg) translateX(0); }  /* 중앙 체류 */
-  55%  { opacity: 0; transform: translateX(-50%) skewX(18deg) translateX(-220%); }
-  100% { opacity: 0; transform: translateX(-50%) skewX(18deg) translateX(-220%); }
+  32%  { opacity: 0.5; transform: translateX(-50%) skewX(18deg) translateX(0); }  /* 중앙 체류 */
+  42%  { opacity: 0.5; transform: translateX(-50%) skewX(18deg) translateX(0); }  /* 중앙 체류 */
+  55%  { opacity: 0; transform: translateX(-50%) skewX(18deg) translateX(220%); }
+  100% { opacity: 0; transform: translateX(-50%) skewX(18deg) translateX(220%); }
 }
 
 /* 중앙에서 “잠깐” 생겼다가 오른쪽으로 */
 @keyframes sweepRight {
   0%   { opacity: 0; transform: translateX(-50%) skewX(-18deg) translateX(0); }
   22%  { opacity: 0; }
-  32%  { opacity: 1; transform: translateX(-50%) skewX(-18deg) translateX(0); } /* 중앙 체류 */
-  42%  { opacity: 1; transform: translateX(-50%) skewX(-18deg) translateX(0); } /* 중앙 체류 */
-  55%  { opacity: 0; transform: translateX(-50%) skewX(-18deg) translateX(220%); }
-  100% { opacity: 0; transform: translateX(-50%) skewX(-18deg) translateX(220%); }
+  32%  { opacity: 0.5; transform: translateX(-50%) skewX(-18deg) translateX(0); } /* 중앙 체류 */
+  42%  { opacity: 0.5; transform: translateX(-50%) skewX(-18deg) translateX(0); } /* 중앙 체류 */
+  55%  { opacity: 0; transform: translateX(-50%) skewX(-18deg) translateX(-220%); }
+  100% { opacity: 0; transform: translateX(-50%) skewX(-18deg) translateX(-220%); }
 }
 /* ===== 브랜드 ===== */
 .navbar-brand {
@@ -135,7 +134,7 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  transition: width 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+  transition: width 2s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 .nav-link:hover::after {
