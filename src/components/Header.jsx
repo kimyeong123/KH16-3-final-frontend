@@ -318,7 +318,7 @@ export default function Header() {
                         </div>
                     )}
                     <div className="ms-3 me-3">|</div>
-                    <Link className="text-dark text-decoration-none" to="/qna/list">
+                    <Link className="text-dark text-decoration-none" to="/qna/main">
                         고객센터
                     </Link>
                 </div>
