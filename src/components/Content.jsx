@@ -11,7 +11,6 @@ import BoardDetail from "./board/BoardDetail";
 import BoardEdit from "./board/BoardEdit";
 import QnaWrite from "./qna/QnaWrite";
 import QnaDetail from "./qna/QnaDetail";
-import QnaList from "./qna/QnaList";
 import MemberJoinFinish from "./member/MemberJoinFinish";
 import MemberMypage from "./member/MemberMypage";
 import KakaoPay from "./pay/KakaoPay";
@@ -33,6 +32,7 @@ import Exchange from "./pay/Exchange";
 import ProductMyList from "./product/ProductMyList";
 import ProductAuctionList from "./product/ProductAuctionList";
 import AuctionDetail from "./product/AuctionDetail";
+import QnaMain from "./qna/QnaMain";
 import Terms from "./etc/Terms";
 import SignupAgreement from "./etc/SignupAgreement";
 import Privacy from "./etc/PrivacyPolicy";
@@ -75,8 +75,9 @@ export default function Content() {
                     {/* 문의 페이지(board 재활용) - HEAD 부분 */}
                     <Route path="/qna/write" element={<Private><QnaWrite /></Private>}></Route>
                     <Route path="/qna/:boardNo" element={<QnaDetail />}></Route>
-                    <Route path="/qna/page" element={<QnaList />}></Route>
+                    <Route path="/qna/main" element={<QnaMain />}></Route>
                     {/* 관리자용 QNA List는 따로 만들면 좋을듯 */}
+
 
                     {/* 메세지(알림) - HEAD 부분 */}
                     <Route path="/message/list" element={<Private><MessageList /></Private>}></Route>

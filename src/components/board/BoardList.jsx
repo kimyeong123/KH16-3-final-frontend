@@ -28,14 +28,13 @@ export default function BoardList() {
                 }
             });
 
-            const listData = response.data;
+            const pageVO = response.data;
             
-            setBoardList(listData || []);
-            setDataCount(listData.length);
+            setBoardList(pageVO.list || []);
+            setDataCount(pageVO.dataCount || 0);
 
         } catch (error) {
             console.error("게시물 목록 로딩 실패:", error);
-            // // 오류 메시지를 토스트로 표시
             const errorMessage = error.response?.data?.message || "게시물 목록을 불러오는 데 실패했습니다.";
             toast.error(errorMessage);
             setBoardList([]);
@@ -69,6 +68,17 @@ export default function BoardList() {
         }
     };
 
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth' // 부드러운 스크롤 효과
+        });
+    };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        scrollToTop(); // 페이지 변경 후 스크롤
+    };
 
     return (
         <div className="container mt-5">
@@ -117,7 +127,7 @@ export default function BoardList() {
                     dataCount={dataCount}
                     pageSize={pageSize}
                     currentPage={currentPage}
-                    onPageChange={setCurrentPage}
+                    onPageChange={handlePageChange}
                 />
             </div>
         </div>

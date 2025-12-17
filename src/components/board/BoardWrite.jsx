@@ -1,160 +1,230 @@
 // src/components/BoardWrite.jsx
 
-import { useCallback, useState } from "react";
-import Jumbotron from "../templates/Jumbotron";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { FaPlus } from "react-icons/fa6";
+import { FaPlus, FaXmark } from "react-icons/fa6";
 
 export default function BoardWrite() {
-
-    // 이동 도구
     const navigate = useNavigate();
 
     // ***** 1. 상태(State) *****
-    // 텍스트 입력 상태
     const [board, setBoard] = useState({
         title: "",
-        content: "", 
+        content: "",
     });
-    // 첨부 파일 상태 (File 객체 배열)
-    const [attachment, setAttachment] = useState([]); 
-    
-    // ***** 2. 콜백(Callback) *****
-    
+
+    const [files, setFiles] = useState([]);
+    const fileInputRef = useRef(null);
+    const [previews, setPreviews] = useState([]); // [{file, url}]
+
+    // 이펙트 훅: 파일 상태가 바뀔 때마다 미리보기 URL을 생성/해제 (메모리 누수 방지)
+    useEffect(() => {
+        const next = files.map((f) => ({ file: f, url: URL.createObjectURL(f) }));
+        setPreviews(next);
+        return () => {
+            next.forEach((p) => URL.revokeObjectURL(p.url));
+        };
+    }, [files]);
+
+    // ***** 2. 콜백(Callback) - 텍스트/파일 핸들러 *****
+
     // [1] 텍스트 입력값 변경 핸들러
-    const handleTextChange = useCallback((e)=>{
-        // // 한줄 주석 예시: setBoard 업데이트 
+    const handleTextChange = useCallback((e) => {
         setBoard(prevBoard => ({
             ...prevBoard,
             [e.target.name]: e.target.value
         }));
     }, []);
 
-    // [2] 첨부 파일 변경 핸들러
-    const handleFileChange = useCallback((e)=> {
-        setAttachment(Array.from(e.target.files)); 
-    }, []);
+    // [2] 파일 추가 핸들러 (중복 제거 로직 포함)
+    const changeFiles = (e) => {
+        const list = Array.from(e.target.files || []);
+        setFiles((prev) => {
+            const merged = [...prev, ...list];
+            const uniq = [];
+            const seen = new Set();
+            for (const f of merged) {
+                const key = `${f.name}_${f.size}`;
+                if (seen.has(key)) continue;
+                seen.add(key);
+                uniq.push(f);
+            }
+            return uniq;
+        });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
 
-    // [3] 데이터 전송 핸들러 (버튼 onClick에 연결)
-    const handleSubmit = useCallback(async ()=> {
-        
+    const removeFile = (idx) => {
+        setFiles((prev) => prev.filter((_, i) => i !== idx));
+    };
+
+    const clearFiles = () => {
+        setFiles([]);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    // [3] 데이터 전송 핸들러 (백엔드 /board/write 경로에 맞춘 1단계 통합 전송)
+    const handleSubmit = useCallback(async () => {
         // 유효성 검사
-        if(board.title.trim() === '' || board.content.trim() === '') {
-            toast.error("제목과 내용을 모두 입력하세요");
+        if (board.title.trim() === '' || board.content.trim() === '') {
+            toast.error("제목과 내용을 입력하세요");
             return;
         }
 
-        // --- 데이터 전송 준비: FormData 사용 (가장 일반적인 방식) ---
-        const formData = new FormData();
-
-        // 1. 텍스트 데이터를 개별 필드로 추가합니다.
-        // 서버의 DTO 필드명과 일치시켜 주세요. (예: title, content)
-        formData.append("title", board.title);
-        formData.append("content", board.content); 
+        // FormData 생성 (백엔드 @ModelAttribute BoardDto 및 @RequestPart attachments 대응)
+        const fd = new FormData();
         
-        // 2. 파일(들)을 'attachment' 필드명으로 추가합니다.
-        attachment.forEach((file) => { 
-            formData.append("attachment", file); 
+        // 텍스트 데이터 추가 (DTO 필드명 일치 필수)
+        fd.append("title", board.title);
+        fd.append("content", board.content);
+
+        // 파일 데이터 추가 (백엔드 @RequestPart 이름 "attachments"와 일치 필수)
+        files.forEach((file) => {
+            fd.append("attachments", file); 
         });
 
         try {
-            // axios를 사용하여 비동기로 데이터 전송
-            // Content-Type: multipart/form-data로 자동 설정됩니다.
-            const response = await axios.post("/board/write", formData);
+            // 서버 전송 (기존 백엔드 API 경로)
+            await axios.post("/board/write", fd);
 
-            if(response.status === 200) {
-                toast.success("작성이 완료되었습니다");
-                navigate("/board/list");
-            } else {
-                 // 200은 아니지만 성공적인 응답으로 간주되지 않는 경우
-                toast.error(`작성 실패: 응답 상태 코드 ${response.status}`);
-            }
+            toast.success("작성이 완료되었습니다");
+            navigate("/board/list");
+
         } catch (error) {
-            // 에러 상세 정보 출력 (네트워크/서버 오류 확인)
             console.error("공지작성 실패: ", error.response || error.message || error);
-            toast.error("작성 실패. 콘솔을 확인하세요.");
+            const errorMessage = error.response?.data?.message || "게시물 작성에 실패했습니다. 서버 로그를 확인하세요.";
+            toast.error(errorMessage);
         }
-    }, [board, attachment, navigate]); 
+    }, [board, files, navigate]);
 
-    
     // ***** 3. 렌더링(Render) *****
-    return (<>
-        <div className="row mt-4">
-            <div className="col fs-3 fw-bold text-primary">공지사항 작성
-            </div>
-        </div>
-
+    return (
         <div className="container p-5">
-            <div>
-                    
+            <div className="row mt-4">
+                <div className="col fs-3 fw-bold text-primary">공지사항 작성</div>
+            </div>
+
+            <div className="mt-4">
                 {/* 1. 제목 입력 */}
-                <div className="row mt-4">
-                    <label htmlFor="boardTitle" className="col-sm-3 col-form-label">제목</label>
+                <div className="row mb-4">
+                    <label htmlFor="boardTitle" className="col-sm-3 col-form-label fw-bold">제목</label>
                     <div className="col-sm-9">
                         <input
                             type="text"
                             className="form-control"
                             id="boardTitle"
-                            name="title" 
+                            name="title"
                             value={board.title}
-                            onChange={handleTextChange} 
+                            onChange={handleTextChange}
+                            placeholder="제목을 입력하세요"
                             required
                         />
                     </div>
                 </div>
 
                 {/* 2. 내용 입력 */}
-                <div className="row mt-4">
-                    <label htmlFor="boardContent" className="col-sm-3 col-form-label">내용</label>
+                <div className="row mb-4">
+                    <label htmlFor="boardContent" className="col-sm-3 col-form-label fw-bold">내용</label>
                     <div className="col-sm-9">
                         <textarea
                             className="form-control"
                             id="boardContent"
-                            name="content" 
+                            name="content"
                             rows="10"
                             value={board.content}
-                            onChange={handleTextChange} 
+                            onChange={handleTextChange}
+                            placeholder="내용을 입력하세요"
                             required
                         ></textarea>
                     </div>
                 </div>
-                
+
                 {/* 3. 첨부파일 입력 */}
-                <div className="row mt-4">
-                    <label htmlFor="boardAttachments" className="col-sm-3 col-form-label">첨부 파일</label>
+                <div className="row mb-4">
+                    <label htmlFor="boardAttachments" className="col-sm-3 col-form-label fw-bold">첨부 이미지</label>
                     <div className="col-sm-9">
-                        <input
-                            type="file"
-                            className="form-control"
-                            id="boardAttachments"
-                            onChange={handleFileChange} 
-                            multiple 
-                        />
-                        {/* 선택된 파일 목록 표시 */}
-                        {attachment.length > 0 && ( 
-                            <small className="form-text text-muted mt-2">
-                                선택된 파일 ({attachment.length}개): {attachment.map(f => f.name).join(', ')}
-                            </small>
-                        )}
+                        <div className="d-flex flex-column gap-2">
+                            <div className="d-flex align-items-center gap-2">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    className="form-control"
+                                    id="boardAttachments"
+                                    onChange={changeFiles}
+                                    accept="image/*"
+                                    multiple
+                                />
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-danger text-nowrap"
+                                    onClick={clearFiles}
+                                    disabled={files.length === 0}
+                                >
+                                    초기화
+                                </button>
+                            </div>
+
+                            {/* 미리보기 카드 영역 */}
+                            <div className="d-flex flex-wrap gap-3 mt-2">
+                                {previews.length === 0 && (
+                                    <small className="text-muted">선택된 이미지가 없습니다.</small>
+                                )}
+
+                                {previews.map((p, idx) => (
+                                    <div
+                                        key={`${p.file.name}_${idx}`}
+                                        className="card"
+                                        style={{ width: '150px' }}
+                                    >
+                                        <div style={{ height: '100px', overflow: 'hidden', borderBottom: '1px solid #eee' }}>
+                                            <img
+                                                src={p.url}
+                                                alt={p.file.name}
+                                                className="card-img-top"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            />
+                                        </div>
+                                        <div className="card-body p-2 text-center">
+                                            <small className="card-title text-truncate d-block mb-2" title={p.file.name}>
+                                                {p.file.name}
+                                            </small>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-danger w-100"
+                                                onClick={() => removeFile(idx)}
+                                            >
+                                                <FaXmark /> 삭제
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* 4. 버튼 영역 */}
-                <div className="row mt-4">
-                    <div className="col text-end">
+                <div className="row mt-5">
+                    <div className="col text-end border-top pt-4">
+                        <button
+                            type="button"
+                            className="btn btn-primary btn-lg me-2"
+                            onClick={handleSubmit}
+                        >
+                            <FaPlus className="me-2" /> 작성 완료
+                        </button>
                         <button 
                             type="button" 
-                            className="btn btn-primary btn-lg me-2" 
-                            onClick={handleSubmit} 
+                            className="btn btn-secondary btn-lg" 
+                            onClick={() => navigate("/board/list")}
                         >
-                            <FaPlus className="me-2"/> 작성 완료
+                            취소
                         </button>
-                        <button type="button" className="btn btn-secondary btn-lg" onClick={() => navigate("/board/list")}>취소</button>
                     </div>
                 </div>
             </div>
         </div>
-    </>)
+    );
 }

@@ -16,7 +16,9 @@ export default function BoardDetail() {
     const loadBoardDetail = useCallback(async () => {
         try {
             if (!boardNo) return; 
-            const response = await axios.get(`/board/${boardNo}`);
+            const response = await axios.get(`/board/${boardNo}`, { 
+                withCredentials: true 
+            });
             setBoard(response.data); 
         } catch (error) {
             console.error("게시물 상세 정보 로딩 실패:", error);
@@ -65,37 +67,49 @@ export default function BoardDetail() {
             <div className="card mb-4">
                 <div className="card-header d-flex justify-content-between align-items-center bg-light p-2">
                     <div>
-                        <span className="me-3 fw-bold">{board.writerNickname}</span> 
+                        <span className="me-3 fw-bold">{board.writerNickname || '작성자'}</span> 
                         <span className="text-muted small">| 작성일: {formatTime(board.writeTime)}</span>
                     </div>
-                    
                     <div>
                         <span className="text-secondary small">
-                            <FaEye className="me-1"/> 
-                            {board.readCount}
+                            <FaEye className="me-1"/> {board.readCount}
                         </span>
                     </div>
                 </div>
                 
                 <div className="card-body" style={{ minHeight: '300px' }}>
-                    <p className="card-text" dangerouslySetInnerHTML={rawContent} />
+                    {/* 게시글 본문 */}
+                    <div className="card-text mb-5" dangerouslySetInnerHTML={rawContent} />
+
+                    {/* 첨부파일 */}
+                    {board.attachmentList && board.attachmentList.length > 0 && (
+                        <div className="attachment-section border-top pt-3">
+                            <h6 className="fw-bold mb-3">첨부 이미지</h6>
+                            <div className="d-flex flex-column gap-3">
+                                {board.attachmentList.map((file) => (
+                                    <div key={file.attachmentNo} className="text-center">
+                                        <img 
+                                            // 서버의 다운로드/출력 주소에 맞게 수정하세요
+                                            src={`/attachment/${file.attachmentNo}`} 
+                                            alt={file.originalName} 
+                                            className="img-fluid rounded shadow-sm"
+                                            style={{ maxWidth: '100%', height: 'auto' }}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* 버튼 영역 */}
-            <div className="d-flex justify-content-between">
-                <button className="btn btn-secondary" onClick={() => navigate("/board/list")}>
-                    목록으로
-                </button>
-                
+            <div className="d-flex justify-content-between mb-5">
+                <button className="btn btn-secondary" onClick={() => navigate("/board/list")}>목록으로</button>
                 {isAdmin && (
                     <div>
-                        <button className="btn btn-primary me-2" onClick={handleEdit}>
-                            수정
-                        </button>
-                        <button className="btn btn-danger" onClick={handleDelete}>
-                            삭제
-                        </button>
+                        <button className="btn btn-primary me-2" onClick={handleEdit}>수정</button>
+                        <button className="btn btn-outline-danger" onClick={handleDelete}>삭제</button>
                     </div>
                 )}
             </div>
