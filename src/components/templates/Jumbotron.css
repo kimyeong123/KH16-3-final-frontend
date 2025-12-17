@@ -3,7 +3,15 @@
   overflow: hidden;
   padding: 3rem 2rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg, #2C3E50, #18BC9C);
+
+  background:
+    radial-gradient(ellipse at center,
+      #20d4b8 0%,
+      #15a589 45%,
+      #09896f 72%,
+      #0b6a5a 100%
+    );
+
   color: #fff;
   text-align: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,6 +19,7 @@
   animation: fadeInScale 0.8s ease-out;
 }
 
+/* 텍스트 */
 .jumbotron-card h1 {
   display: flex;
   justify-content: center;
@@ -18,8 +27,12 @@
   gap: 1rem;
   font-weight: 700;
   font-size: 2.2rem;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
   margin-bottom: 30px;
+
+  text-shadow: 0 3px 10px rgba(0,0,0,0.35);
+
+  animation: textFloatSmooth 5s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+  will-change: transform;
 }
 
 .jumbotron-card h4 {
@@ -29,7 +42,7 @@
   gap: 0.5rem;
   font-weight: 500;
   font-size: 1.1rem;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .jumbotron-card::before {
@@ -37,40 +50,37 @@
   position: absolute;
   inset: -35%;
   background:
-    radial-gradient(circle at 25% 20%, rgba(255,255,255,0.18), transparent 55%),
-    radial-gradient(circle at 75% 80%, rgba(255,255,255,0.10), transparent 60%);
-  opacity: 0.70;
+    radial-gradient(circle at 25% 20%, rgba(255,255,255,0.14), transparent 55%),
+    radial-gradient(circle at 75% 80%, rgba(255,255,255,0.08), transparent 60%);
+  opacity: 0.75;
   pointer-events: none;
-  animation: glassShift 6s ease-in-out infinite;
+  animation: glassShift 7s ease-in-out infinite;
   z-index: 0;
 }
-
 .jumbotron-card::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: -45%;
-  width: 35%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(255,255,255,0.20) 45%,
-    rgba(255,255,255,0.08) 55%,
-    transparent 100%
-  );
-  transform: skewX(-12deg);
-  opacity: 0;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center,
+      rgba(255,255,255,0.22) 0%,
+      rgba(255,255,255,0.10) 35%,
+      transparent 70%
+    ),
+    linear-gradient(90deg, rgba(255,255,255,0.18) 0%, transparent 42%),
+    linear-gradient(270deg, rgba(255,255,255,0.18) 0%, transparent 42%);
+  opacity: 0.0;
   pointer-events: none;
-  animation: lightSweep 6.6s ease-in-out infinite;
+  animation: lightConvergeClean 6.2s ease-in-out infinite;
   z-index: 0;
+  will-change: background-position, opacity;
 }
 
-/* 내용이 효과 위로 오게 */
 .jumbotron-card > * {
   position: relative;
   z-index: 1;
 }
+
 
 @keyframes glassShift {
   0%   { transform: translate(-2%, -2%) rotate(0deg); }
@@ -78,47 +88,24 @@
   100% { transform: translate(-2%, -2%) rotate(0deg); }
 }
 
-@keyframes lightSweep {
-  0%   { left: -45%; opacity: 0; }
-  10%  { opacity: 0.9; }
-  50%  { opacity: 0.5; }
-  100% { left: 130%; opacity: 0; }
+@keyframes lightConvergeClean {
+  0%, 100% {
+    background-position: 50% 50%, 0% 50%, 100% 50%;
+    opacity: 0.08;
+  }
+  45%, 55% {
+    background-position: 50% 50%, 50% 50%, 50% 50%;
+    opacity: 0.55;
+  }
+}
+
+@keyframes textFloatSmooth {
+  0%   { transform: translateY(0);   }
+  50%  { transform: translateY(-2px); }
+  100% { transform: translateY(0);   }
 }
 
 @keyframes fadeInScale {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-/* ===== Jumbotron 텍스트 공통 ===== */
-.jumbotron-card h1{
-  position: relative;
-  animation: textFloatSmooth 5s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
-  will-change: transform;
-}
-
-/* 레이어감만 주기 */
-.jumbotron-card h1 {
-  animation-delay: 0s;
-}
-
-/* ===== 매우 부드러운 플로팅 ===== */
-@keyframes textFloatSmooth {
-  0% {
-    transform: translateY(0);
-    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  }
-  50% {
-    transform: translateY(-2px);
-    text-shadow: 0 4px 10px rgba(0,0,0,0.28);
-  }
-  100% {
-    transform: translateY(0);
-    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  }
+  0% { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }

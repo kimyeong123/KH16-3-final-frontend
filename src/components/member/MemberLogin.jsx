@@ -72,7 +72,6 @@ export default function MemberLogin() {
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
             setLoginComplete(true);
-            console.log(data);
 
             // axios 기본 헤더도 설정
             axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;

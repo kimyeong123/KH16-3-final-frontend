@@ -12,7 +12,7 @@ import { FaPlusSquare } from "react-icons/fa";
 import { useAtom, useSetAtom } from "jotai";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { RiLogoutBoxFill } from "react-icons/ri";
+import { FaMoneyBillTransfer } from "react-icons/fa6";
 
 import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState, loginNoState } from "../utils/jotai";
 import { FaReceipt } from "react-icons/fa6";
@@ -95,7 +95,7 @@ export default function Menu() {
                     <ul className="navbar-nav me-auto ms-3">
                         <Link className="nav-link fs-6" to="/product/auction/list" onClick={closeMenu}>
                             <RiAuctionLine className="fs-3 me-1" />경매
-                                                    </Link>
+                        </Link>
                         <li className="nav-item">
                             <Link className="nav-link fs-6" to="/auction" onClick={closeMenu}><RiAuctionLine className="fs-3 me-1" />대충 카테고리</Link>
                         </li>
@@ -103,35 +103,35 @@ export default function Menu() {
 
                     {/* 우측 메뉴 (단일 ul 태그로 간결화) */}
                     <ul className="navbar-nav ms-auto ms-3">
-                            <li className="nav-item">
-                                <Link className="nav-link fs-6 me-2" to="/board/list" onClick={closeMenu}><FaClipboardList className="fs-5 me-1" />공지사항</Link>
-                            </li>
+                        <li className="nav-item">
+                            <Link className="nav-link fs-6 me-2" to="/board/list" onClick={closeMenu}><FaClipboardList className="fs-5 me-1" />공지사항</Link>
+                        </li>
 
-                           <li className="nav-item">
-                            <Link
-                                        className="nav-link fs-6 me-2"
-                                             to="/product/mylist"
-                                            onClick={closeMenu}
-                                                >
-                        <FaListUl className="fs-5 me-1" />
-                                         내상품리스트
-                            </Link>
-                                </li>
 
                         {/* 로그인 상태에 따른 조건부 렌더링 */}
                         {isLogin ? (
                             <>
                                 {/* 로그인 상태: 로그아웃 버튼 */}
-                                <li className="nav-item">
-                                    <Link className="nav-link fs-6" onClick={logout}>
-                                        <RiLogoutBoxFill className="fs-4 me-1" />
-                                        로그아웃
+                                 <li className="nav-item">
+                                    <Link className="nav-link fs-6" to="/pay/kakaopay" onClick={closeMenu}>
+                                        <FaMoneyBillTransfer className="fs-5 me-1" />
+                                        포인트 충전
                                     </Link>
                                 </li>
                                 <li className="nav-item">
                                     <Link className="nav-link fs-6" to="/product/productadd" onClick={closeMenu}>
-                                        <FaPlusSquare className="fs-5 me-1"/>
+                                        <FaPlusSquare className="fs-5 me-1" />
                                         물품 등록
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link
+                                        className="nav-link fs-6 me-2"
+                                        to="/product/mylist"
+                                        onClick={closeMenu}
+                                    >
+                                        <FaListUl className="fs-5 me-1" />
+                                        내상품리스트
                                     </Link>
                                 </li>
 
@@ -145,7 +145,7 @@ export default function Menu() {
                         ) : (
                             <>
                                 {/* 로그아웃 상태: 회원가입 버튼 */}
-                                
+
                             </>
                         )}
                     </ul>

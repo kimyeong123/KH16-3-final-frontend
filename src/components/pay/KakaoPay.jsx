@@ -13,7 +13,6 @@ export default function KakaoPay() {
       alert("올바른 금액을 입력하세요");
       return;
     }
-
     // 2. 로그인 여부(토큰) 확인
     const authHeader = axios.defaults.headers.common["Authorization"];
     if (!authHeader) {
@@ -32,8 +31,6 @@ export default function KakaoPay() {
         {
           headers: {
             "Frontend-Url": window.location.origin + "/pay/kakaopay",
-
-            // ★★★ 반드시 추가해야 하는 부분 ★★★
             "Authorization": authHeader,
           },
         }
