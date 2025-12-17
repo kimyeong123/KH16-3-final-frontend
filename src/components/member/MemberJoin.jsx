@@ -835,9 +835,9 @@ export default function MemberJoin() {
         </Modal.Footer>
       </Modal>
       {/* 가입버튼 */}
-      <div className="row mt-5">
+      <div className="row">
         <div className="col text-center">
-          <button type="button" className="btn btn-lg btn-success"
+          <button type="button" className="btn btn-success"
             disabled={memberValid === false || isDuplicatePassed === false} onClick={sendData}>
             <FaUser className="me-2" />
             <span>

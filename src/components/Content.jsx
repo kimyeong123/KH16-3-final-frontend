@@ -33,6 +33,10 @@ import Exchange from "./pay/Exchange";
 import ProductMyList from "./product/ProductMyList";
 import ProductAuctionList from "./product/ProductAuctionList";
 import AuctionDetail from "./product/AuctionDetail";
+import Terms from "./etc/Terms";
+import SignupAgreement from "./etc/SignupAgreement";
+import Privacy from "./etc/PrivacyPolicy";
+import PrivacyPolicy from "./etc/PrivacyPolicy";
 
 export default function Content() {
 
@@ -114,6 +118,12 @@ export default function Content() {
                     <Route path="/product/auction/detail/:productNo" element={<AuctionDetail />} />
                     <Route path="/product/auction/list/" element={<ProductAuctionList />} />
                     <Route path="/product/auction/list/*" element={<ProductAuctionList />} />
+                   
+                    {/* 기타 */}
+                    <Route path="etc/terms" element={<Terms/>} />
+                    <Route path="etc/privacy" element={<PrivacyPolicy/>} />
+                    <Route path="etc/signupagree" element={<SignupAgreement/>} />
+
 
                 </Routes>
             </div>
