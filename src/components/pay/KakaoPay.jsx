@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { loginPointState } from "../../utils/jotai";
 import { useAtomValue } from "jotai";
 import kakaoPayLogo from "../../assets/kakaopay.png";
-
+import { FaCircleQuestion } from "react-icons/fa6";
 
 export default function KakaoPay() {
   const [amount, setAmount] = useState("");
@@ -174,14 +174,15 @@ export default function KakaoPay() {
             <span>결제 후 예상 포인트</span>
             <strong>{expectedPoint.toLocaleString()} P</strong>
           </div>
-
-          <button
-            className="btn btn-success mt-3"
-            onClick={requestPay}
-            disabled={!isValidAmount || loading}
-          >
-            {loading ? "결제 요청 중..." : "카카오페이로 결제하기"}
-          </button>
+          <div className="d-flex justify-content-center">
+            <button
+              className="btn btn-success mt-3 w-80"
+              onClick={requestPay}
+              disabled={!isValidAmount || loading}
+            >
+              {loading ? "결제 요청 중..." : "카카오페이로 결제하기"}
+            </button>
+          </div>
 
           <small className="text-muted mt-2">
             결제 단계 : 금액 선택 → 카카오페이 결제 → 포인트 지급
@@ -189,9 +190,14 @@ export default function KakaoPay() {
         </div>
 
         {/* 4) 안내/FAQ */}
-        <div className="accordion mt-4" id="chargeFaq">
-
-          <div className="accordion-item">
+         <div className="mt-5 mb-3 text-center">
+            <div className="fw-bold fs-5">
+              <FaCircleQuestion className="fa-regular fa-circle-question me-1"/>
+              자주 묻는 질문
+            </div>
+          </div>
+        <div className="accordion mt-1" id="chargeFaq">
+          <div className="accordion-item mt-2">
             <h2 className="accordion-header">
               <button
                 className="accordion-button collapsed"
@@ -232,24 +238,6 @@ export default function KakaoPay() {
                 className="accordion-button collapsed"
                 type="button"
                 data-bs-toggle="collapse"
-                data-bs-target="#faq2"
-              >
-                충전 금액은 1,000원 단위로만 가능한가요?
-              </button>
-            </h2>
-            <div id="faq2" className="accordion-collapse collapse" data-bs-parent="#chargeFaq">
-              <div className="accordion-body">
-                네. 충전 금액은 <b>1,000원 단위</b>로만 입력/결제가 가능합니다.
-              </div>
-            </div>
-          </div>  
-
-          <div className="accordion-item">
-            <h2 className="accordion-header">
-              <button
-                className="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
                 data-bs-target="#faq3"
               >
                 결제 요청이 실패해요.
@@ -257,7 +245,7 @@ export default function KakaoPay() {
             </h2>
             <div id="faq3" className="accordion-collapse collapse" data-bs-parent="#chargeFaq">
               <div className="accordion-body">
-                로그인 상태와 네트워크를 확인해 주세요. 계속 실패하면 관리자나 <a href="/qna/list">고객센터</a>로 문의해 주세요.
+                로그인 상태와 네트워크를 확인해 주세요. 계속 실패하면 관리자나 <a href="/qna/main" className="text-primary fw-bold">고객센터</a>로 문의해 주세요.
               </div>
             </div>
           </div>

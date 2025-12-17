@@ -92,7 +92,7 @@ export default function MemberMypage() {
         email
     };
     const isAdmin = loginRole === "ADMIN";
-
+    //자기 자신이 다른 사람의 마이페이지를 볼 때
     console.log("paramNo =", paramNo);
     useEffect(() => {
         if (!accessToken) return;
@@ -109,9 +109,6 @@ export default function MemberMypage() {
             console.error(e.response?.status, e.response?.data);
         });
     }, [loginRole, paramNo, accessToken]);
-
-
-
 
     useEffect(() => {
         const load = async () => {
@@ -799,25 +796,15 @@ export default function MemberMypage() {
                             aria-labelledby="passwordChangeModalLabel"
                             aria-hidden="true"
                         >
-                            <div
+                           <div
                                 className="modal-dialog modal-dialog-centered password-modal-dialog"
-                            >
+                            > 
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5 className="modal-title block-title" id="passwordChangeModalLabel">
                                             비밀번호 변경
                                         </h5>
-                                        <button
-                                            type="button"
-                                            className="btn-close"
-                                            aria-label="Close"
-                                            onClick={() => {
-                                                setIsPasswordModalOpen(false);
-                                                setCurrentPassword("");
-                                                setNewPassword("");
-                                                setNewPasswordConfirm("");
-                                            }}
-                                        ></button>
+
                                     </div>
 
                                     <div className="modal-body text-center">
