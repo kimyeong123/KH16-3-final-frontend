@@ -7,7 +7,7 @@ import { FaSearch } from 'react-icons/fa';
 import Menu from "./Menu";
 import { FaRegBell } from "react-icons/fa6"; // 일반 알림 아이콘
 import { useAtom, useSetAtom } from "jotai";
-import { accessTokenState, adminState, clearLoginState, loginCompleteState, loginIdState, loginRoleState, loginState } from "../utils/jotai";
+import { accessTokenState, adminState, clearLoginState, loginCompleteState, loginIdState, loginNicknameState, loginRoleState, loginState } from "../utils/jotai";
 import axios from "axios";
 import { BsLightningCharge, BsTrash3 } from "react-icons/bs"; // 중요 알림 아이콘
 import { RiErrorWarningLine } from "react-icons/ri"; // QNA 알림 아이콘
@@ -55,6 +55,7 @@ export default function Header() {
 
     // jotai state
     const [loginId] = useAtom(loginIdState);
+    const [loginNickname] = useAtom(loginNicknameState);
     const [loginRole] = useAtom(loginRoleState);
     const [accessToken] = useAtom(accessTokenState);
     const [isLogin] = useAtom(loginState);
@@ -153,19 +154,19 @@ export default function Header() {
 
         // 서버에서 미확인 알림 개수를 가져오는 비동기 함수
         const fetchUnreadCount = async () => {
-            try {
-                // 백엔드 API 호출: GET /message/unread/count
-                const response = await axios.get(NOTIFICATION_COUNT_URL);
-                
-                const count = Number(response.data.unreadCount); 
+            try {
+                // 백엔드 API 호출: GET /message/unread/count
+                const response = await axios.get(NOTIFICATION_COUNT_URL);
 
-                // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
-                setUnreadCount(count || 0); // // 숫자로 변환된 값을 사용
-            } catch (error) {
-                console.error("알림 개수를 가져오는데 실패했습니다.", error);
-                setUnreadCount(0);
-            }
-        };
+                const count = Number(response.data.unreadCount);
+
+                // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
+                setUnreadCount(count || 0); // // 숫자로 변환된 값을 사용
+            } catch (error) {
+                console.error("알림 개수를 가져오는데 실패했습니다.", error);
+                setUnreadCount(0);
+            }
+        };
 
         // 1. 컴포넌트 마운트 및 isLogin이 true가 되었을 때 즉시 호출
         fetchUnreadCount();
@@ -297,15 +298,36 @@ export default function Header() {
 
                     {/* 3-3. 로그인/로그아웃 상태 조건부 렌더링 */}
                     {isLogin ? (
-                        <div className='d-flex align-items-center'>
-                            <Link className="text-success fw-bold text-decoration-none" to="/member/mypage">
-                                {loginId} ({loginRole})
-                            </Link>
+                        <div className="d-flex align-items-center">
+                            {/* 환영 문구 */}
+                            <span className="me-2">
+                                환영합니다,  <Link
+                                className="text-primary text-decoration-none"
+                                to="/member/mypage"
+                            ><strong>{loginNickname}</strong></Link> 님
+                            </span>
+
+                            {/* 관리자일 때만 표시 */}
+                            {loginRole === "ADMIN" && (
+                                <span className="badge bg-danger me-3">
+                                    관리자
+                                </span>
+                            )}
+                             <div className="ms-3 me-3">|</div>
+                             <a href='/member/mypage'>내 정보</a>
+
+                            
                             <div className="ms-3 me-3">|</div>
-                            <Link className="text-dark text-decoration-none" onClick={logout}>
+
+                            {/* 로그아웃 */}
+                            <Link
+                                className="text-dark text-decoration-none"
+                                onClick={logout}
+                            >
                                 로그아웃
                             </Link>
                         </div>
+
                     ) : (
                         <div className='d-flex align-items-center'>
                             <Link className="text-dark text-decoration-none" to="/member/login">
