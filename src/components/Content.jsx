@@ -85,10 +85,10 @@ export default function Content() {
                     <Route path="/board/edit/:boardNo" element={<Admin><BoardEdit /></Admin>}></Route>
 
                     {/* 문의 페이지(board 재활용) - HEAD 부분 */}
-                    <Route path="/qna/write" element={<Private><QnaWrite /></Private>}></Route>
-                    <Route path="/qna/:boardNo" element={<QnaDetail />}></Route>
-                    <Route path="/qna/main" element={<QnaMain />}></Route>
-                    {/* 관리자용 QNA List는 따로 만들면 좋을듯 */}
+                    <Route path="/qna/main" element={<QnaMain />} /> {/* 여기서 목록(Tab)을 보여줌 */}
+                    <Route path="/qna/write" element={<Private><QnaWrite /></Private>} />
+                    <Route path="/qna/detail/:boardNo" element={<Private><QnaDetail /></Private>} /> {/* Private 추가 추천 */}
+
 
 
                     {/* 메세지(알림) - HEAD 부분 */}

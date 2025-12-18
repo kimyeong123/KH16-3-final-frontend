@@ -1,5 +1,3 @@
-// src/utils/axiosSetup.js
-
 import axios from "axios";
 import { accessTokenState, clearLoginState, refreshTokenState, loginIdState, loginRoleState } from "../jotai";
 import { getDefaultStore } from "jotai";

@@ -1,52 +1,105 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useState, useCallback, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAtomValue } from "jotai";
+import { adminState, loginNoState } from "../../utils/jotai";
+import CommentSection from "../comment/CommentSection";
 
-export default function QnaDetail() {
+const QnaDetail = () => {
     const { boardNo } = useParams();
     const navigate = useNavigate();
-    const [qna, setQna] = useState(null);
+
+    const isAdmin = useAtomValue(adminState);
+    const loginNo = useAtomValue(loginNoState);
+
+    const [board, setBoard] = useState(null);
+    const [comments, setComments] = useState([]);
+
+    const loadData = useCallback(async () => {
+        const token = localStorage.getItem("accessTokenState");
+        if (!token || token === "null") return;
+
+        try {
+            const boardResp = await axios.get(`/qna/detail/${boardNo}`);
+            setBoard(boardResp.data);
+
+            const commentResp = await axios.get(`/comment/list/${boardNo}`);
+            setComments(commentResp.data);
+        } catch (error) {
+            console.error("데이터 로드 중 오류 발생", error);
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                alert("권한이 없습니다.");
+                navigate("/qna/main");
+            }
+        }
+    }, [boardNo, navigate]);
 
     useEffect(() => {
-        // 상세 데이터 로드 (게시글 + 첨부파일 리스트가 같이 들어옴)
-        axios.get(`/qna/${boardNo}`).then(resp => {
-            setQna(resp.data);
-        });
-    }, [boardNo]);
+        loadData();
+    }, [loadData]);
 
-    if (!qna) return <div>로딩 중...</div>;
+    const deleteBoard = async () => {
+        if (!window.confirm("정말 이 문의글을 삭제하시겠습니까?")) return;
+        try {
+            await axios.delete(`/qna/${boardNo}`);
+            alert("문의글이 삭제되었습니다.");
+            navigate("/qna/main");
+        } catch (error) {
+            alert(error.response?.data?.message || "삭제 권한이 없습니다.");
+        }
+    };
+
+    if (!board) return <div className="p-5 text-center">데이터를 불러오는 중입니다...</div>;
 
     return (
         <div className="container mt-5">
-            <div className="card shadow-sm">
-                <div className="card-header bg-white">
-                    <h3 className="fw-bold">{qna.title}</h3>
-                    <div className="text-muted small">
-                        작성자: {qna.writerNickname} | 작성일: {new Date(qna.writeTime).toLocaleString()}
+            {/* 상단 헤더 섹션 - 중앙 정렬 적용 */}
+            <div className="row mb-4">
+                <div className="col-md-8 offset-md-2 text-center border-bottom pb-4">
+                    <span className="badge bg-dark mb-2">{board.type}</span>
+                    <h1 className="fw-bold display-5 mb-3">{board.title}</h1>
+                    <div className="text-muted">
+                        <span>작성자 번호: {board.writerNo}</span>
+                        <span className="mx-2">|</span>
+                        <span>작성일: {board.writeTime ? new Date(board.writeTime).toLocaleString() : '정보 없음'}</span>
                     </div>
                 </div>
-                <div className="card-body" style={{ minHeight: '300px' }}>
-                    {/* 본문 내용 */}
-                    <div className="mb-4">{qna.content}</div>
-                    
-                    {/* 첨부 이미지 (아까 해결한 로직 적용) */}
-                    {qna.attachmentList && qna.attachmentList.map(file => (
-                        <img key={file.attachmentNo} 
-                             src={`/attachment/${file.attachmentNo}`} 
-                             alt="첨부이미지" className="img-fluid mb-2 rounded" />
-                    ))}
+            </div>
+
+            {/* 본문 섹션 - 가독성을 위해 너비 조절 */}
+            <div className="row mb-4">
+                <div className="col-md-8 offset-md-2">
+                    <div className="p-5 bg-white border rounded shadow-sm" style={{ minHeight: "300px" }}>
+                        <div dangerouslySetInnerHTML={{ __html: board.content }} />
+                    </div>
+
+                    {/* 버튼 영역 - 본문 바로 아래 우측 정렬 */}
+                    <div className="text-end mt-3">
+                        {(isAdmin || loginNo == board.writerNo) && (
+                            <button className="btn btn-outline-danger me-2" onClick={deleteBoard}>
+                                삭제하기
+                            </button>
+                        )}
+                        <button className="btn btn-outline-secondary" onClick={() => navigate("/qna/main")}>
+                            목록으로
+                        </button>
+                    </div>
+                </div>
+                {/* 답변(댓글) 섹션 - 본문과 너비 맞춤 */}
+                <div className="row mb-5">
+                    <div className="col-md-8 offset-md-2">
+                        <CommentSection
+                            boardNo={boardNo}
+                            comments={comments}
+                            isAdmin={isAdmin}
+                            loginNo={loginNo}
+                            onRefresh={loadData}
+                        />
+                    </div>
                 </div>
             </div>
-
-            {/* 답변(댓글) 영역 - 여기가 핵심 */}
-            <div className="mt-4">
-                <h5><i className="fa-solid fa-comment-dots me-2"></i>답변 내역</h5>
-                <hr/>
-                {/* 댓글 리스트 컴포넌트를 여기에 넣거나 직접 렌더링 */}
-                {/* 댓글이 없으면 "답변 대기 중입니다" 표시 */}
-            </div>
-
-            <button className="btn btn-secondary mt-3" onClick={() => navigate(-1)}>목록으로</button>
         </div>
     );
-}
+};
+
+export default QnaDetail;
