@@ -182,8 +182,6 @@ export default function Header() {
                 // 백엔드 API 호출: GET /message/unread/count
                 const response = await axios.get(NOTIFICATION_COUNT_URL);
                 
-                const count = Number(response.data.unreadCount); 
-
                 const count = Number(response.data.unreadCount);
 
                 // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
