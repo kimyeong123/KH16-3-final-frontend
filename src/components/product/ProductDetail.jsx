@@ -1,4 +1,3 @@
-// src/components/product/ProductDetail.jsx
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useAtom } from "jotai";
@@ -10,11 +9,32 @@ export default function ProductDetail() {
   const { productNo } = useParams();
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
 
+  // ✅ [추가] 토큰 유지 및 복구 (Hydration) 시작
+  const TOKEN_KEY = "ACCESS_TOKEN";
+  const [hydrated, setHydrated] = useState(false);
+
+  // 1. 마운트 시 로컬스토리지에서 토큰 복구
+  useEffect(() => {
+    const saved = localStorage.getItem(TOKEN_KEY);
+    if ((!accessToken || String(accessToken).trim().length === 0) && saved && saved.trim().length > 0) {
+      setAccessToken(saved);
+    }
+    setHydrated(true);
+  }, []);
+
+  // 2. 토큰 변경 시 로컬스토리지 저장
+  useEffect(() => {
+    if (accessToken && String(accessToken).trim().length > 0) {
+      localStorage.setItem(TOKEN_KEY, accessToken);
+    }
+  }, [accessToken]);
+  // ✅ [추가] 끝
+
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
   const [attachments, setAttachments] = useState([]);
 
-  // ✅ attachmentNo -> blob URL(미리보기)
+  // attachmentNo -> blob URL(미리보기)
   const [previewMap, setPreviewMap] = useState({});
 
   const authHeader = useMemo(() => {
@@ -22,8 +42,6 @@ export default function ProductDetail() {
     return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
   }, [accessToken]);
 
-  // ✅ 여기를 네 AttachmentRestController "파일 보기/다운로드" 주소로 맞춰라
-  // 예: GET /attachment/{attachmentNo} 라면 그대로 사용
   const ATT_VIEW = (attachmentNo) => `http://localhost:8080/attachment/${attachmentNo}`;
 
   const load = async () => {
@@ -63,7 +81,7 @@ export default function ProductDetail() {
     }
   };
 
-  // ✅ 첨부 목록이 바뀌면: attachmentNo로 blob 받아서 미리보기 URL 생성
+  // 첨부 목록이 바뀌면: attachmentNo로 blob 받아서 미리보기 URL 생성
   useEffect(() => {
     let alive = true;
     const revokeList = [];
@@ -83,7 +101,7 @@ export default function ProductDetail() {
         try {
           const r = await axios.get(ATT_VIEW(no), {
             responseType: "blob",
-            // ✅ 다운로드 API가 보호돼있으면 Authorization 필요
+            // 다운로드 API가 보호돼있으면 Authorization 필요
             headers: accessToken ? { Authorization: authHeader } : undefined,
           });
 
@@ -91,7 +109,6 @@ export default function ProductDetail() {
           revokeList.push(blobUrl);
           next[no] = blobUrl;
         } catch (e) {
-          // 여기서 실패하면 그냥 미리보기 없음으로 둠
           console.error("첨부 미리보기 로딩 실패", no, e.response || e);
         }
       }
@@ -105,12 +122,14 @@ export default function ProductDetail() {
       alive = false;
       revokeList.forEach((u) => URL.revokeObjectURL(u));
     };
-  }, [attachments, accessToken, authHeader]); // authHeader는 useMemo라 OK
+  }, [attachments, accessToken, authHeader]); 
 
+  // ✅ [수정] 토큰 복구가 완료된(hydrated) 후에 load 실행
   useEffect(() => {
+    if (!hydrated) return;
     if (productNo) load();
     // eslint-disable-next-line
-  }, [productNo]);
+  }, [hydrated, productNo]);
 
   const remove = async () => {
     if (!accessToken || accessToken.trim().length === 0) {
@@ -143,6 +162,8 @@ export default function ProductDetail() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  // ✅ 로딩 전 상태 처리
+  if (!hydrated) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>페이지 준비중...</div>;
   if (loading) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>로딩중...</div>;
   if (!product) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>상품이 없습니다.</div>;
 
@@ -224,7 +245,6 @@ export default function ProductDetail() {
                     {filename}
                   </div>
 
-                  {/* 원본 열기(미리보기 blob이 있으면 그걸로 열기) */}
                   {src && (
                     <button
                       type="button"

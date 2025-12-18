@@ -1,29 +1,17 @@
-// src/components/product/ProductEdit.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
 import { useNavigate, useParams } from "react-router-dom";
 
-/** ===== 이미지 URL 후보 자동 생성 + 실패 시 다음 후보로 자동 교체 ===== */
-function normalizeUrl(u) {
-  if (!u) return null;
-  if (u.startsWith("/")) return `http://localhost:8080${u}`;
-  return u;
-}
-
+/** ====== 유틸 ====== */
 function pickAttachmentNo(a, idx) {
-  return (
-    a?.attachmentNo ??
-    a?.attachment_no ??
-    a?.no ??
-    a?.id ??
-    idx
-  );
+  return a?.attachmentNo ?? a?.attachment_no ?? a?.no ?? a?.id ?? idx;
 }
-
 function pickAttachmentName(a, idx) {
   return (
+    a?.originalName ??
+    a?.original_name ??
     a?.attachmentName ??
     a?.attachment_name ??
     a?.filename ??
@@ -32,54 +20,101 @@ function pickAttachmentName(a, idx) {
   );
 }
 
-function buildUrlCandidates({ productNo, attachmentNo, rawUrl }) {
-  const base = "http://localhost:8080";
-  const list = [];
+const API = "http://localhost:8080";
 
-  const fixed = normalizeUrl(rawUrl);
-  if (fixed) list.push(fixed);
+// ✅ 이미지 캐시 방지를 위해 URL에 타임스탬프 추가 함수
+const ATT_VIEW = (attachmentNo) => `${API}/attachment/${attachmentNo}`;
 
-  // ✅ 프로젝트마다 흔한 다운로드/미리보기 경로 후보들
-  if (attachmentNo != null) {
-    list.push(`${base}/attachment/download/${attachmentNo}`);
-    list.push(`${base}/attachment/${attachmentNo}`);
-    list.push(`${base}/attachment/file/${attachmentNo}`);
-    list.push(`${base}/product/${productNo}/attachments/${attachmentNo}`);
-    list.push(`${base}/product/${productNo}/attachments/download/${attachmentNo}`);
+/**
+ * ✅ SecureImage: 인증 헤더 포함 이미지 로딩 컴포넌트
+ */
+function SecureImage({ url, authHeader, alt, style }) {
+  const [src, setSrc] = useState(null);
+  const [err, setErr] = useState(false);
+
+  useEffect(() => {
+    let objectUrl = null;
+    let canceled = false;
+
+    const run = async () => {
+      setErr(false);
+      setSrc(null);
+      if (!url) return;
+
+      try {
+        // 1) 토큰 없이 시도
+        try {
+          const r0 = await axios.get(url, { responseType: "blob" });
+          if (canceled) return;
+          objectUrl = URL.createObjectURL(r0.data);
+          setSrc(objectUrl);
+          return;
+        } catch {
+          // ignore
+        }
+
+        // 2) 토큰 포함 시도
+        const r1 = await axios.get(url, {
+          responseType: "blob",
+          headers: authHeader ? { Authorization: authHeader } : undefined,
+        });
+
+        if (canceled) return;
+        objectUrl = URL.createObjectURL(r1.data);
+        setSrc(objectUrl);
+      } catch {
+        if (canceled) return;
+        setErr(true);
+      }
+    };
+
+    run();
+
+    return () => {
+      canceled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [url, authHeader]);
+
+  if (err) {
+    return (
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 12,
+          color: "#999",
+          background: "#fafafa",
+          ...style,
+        }}
+      >
+        (이미지 로드 실패)
+      </div>
+    );
   }
-
-  return Array.from(new Set(list)).filter(Boolean);
-}
-
-function SmartImage({ candidates, alt }) {
-  const [idx, setIdx] = useState(0);
-  const src = candidates[idx];
 
   if (!src) {
     return (
       <div
         style={{
-          height: 110,
+          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#999",
           fontSize: 12,
+          color: "#999",
+          background: "#fafafa",
+          ...style,
         }}
       >
-        (미리보기 URL 없음)
+        로딩...
       </div>
     );
   }
 
-  return (
-    <img
-      src={src}
-      alt={alt}
-      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-      onError={() => setIdx((p) => p + 1)}
-    />
-  );
+  return <img src={src} alt={alt} style={style} />;
 }
 
 export default function ProductEdit() {
@@ -87,15 +122,39 @@ export default function ProductEdit() {
   const navigate = useNavigate();
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
 
+  // ✅ 토큰 유지 및 복구 (Hydration)
+  const TOKEN_KEY = "ACCESS_TOKEN";
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(TOKEN_KEY);
+    if ((!accessToken || String(accessToken).trim().length === 0) && saved && saved.trim().length > 0) {
+      setAccessToken(saved);
+    }
+    setHydrated(true);
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    if (accessToken && String(accessToken).trim().length > 0) {
+      localStorage.setItem(TOKEN_KEY, accessToken);
+    }
+  }, [accessToken]);
+
   const authHeader = useMemo(() => {
     const t = accessToken || "";
     if (!t) return "";
     return t.startsWith("Bearer ") ? t : "Bearer " + t;
   }, [accessToken]);
 
-  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (authHeader) axios.defaults.headers.common["Authorization"] = authHeader;
+    else delete axios.defaults.headers.common["Authorization"];
+  }, [authHeader]);
 
-  // ✅ 상품 폼(기존 Edit에 맞춰서 필드만 맞추면 됨)
+  const [loading, setLoading] = useState(true);
+  const [fileLoading, setFileLoading] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     categoryCode: "",
@@ -107,40 +166,38 @@ export default function ProductEdit() {
     status: "",
   });
 
-  // ✅ 서버에 이미 존재하는 첨부 목록
   const [attachments, setAttachments] = useState([]);
-
-  // ✅ 새로 선택한 파일 목록(서버 첨부랑 분리)
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
+  const [previews, setPreviews] = useState([]); 
 
-  // ✅ 선택 파일 미리보기
-  const [previews, setPreviews] = useState([]); // [{file, url}]
   useEffect(() => {
     const next = files.map((f) => ({ file: f, url: URL.createObjectURL(f) }));
     setPreviews(next);
     return () => next.forEach((p) => URL.revokeObjectURL(p.url));
   }, [files]);
 
+  const applyRenewedToken = (resp) => {
+    const renewed = resp?.headers?.["access-token"] || resp?.headers?.["Access-Token"];
+    if (renewed && renewed !== accessToken) setAccessToken(renewed);
+  };
+
   const changeForm = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  /** ====== 기존 데이터 로드 ====== */
+  /** ====== [중요] 첨부 목록 새로고침 (캐시 방지용 타임스탬프 추가) ====== */
   const refreshAttachments = async () => {
     try {
-      const resp = await axios.get(
-        `http://localhost:8080/product/${productNo}/attachments`,
-        accessToken ? { headers: { Authorization: authHeader } } : undefined
-      );
-
-      const renewed = resp.headers["access-token"] || resp.headers["Access-Token"];
-      if (renewed && renewed !== accessToken) setAccessToken(renewed);
-
+      // url 뒤에 ?t=시간을 붙여서 브라우저가 새 요청으로 인식하게 함
+      const resp = await axios.get(`${API}/product/${productNo}/attachments?t=${Date.now()}`, {
+        headers: authHeader ? { Authorization: authHeader } : undefined,
+      });
+      applyRenewedToken(resp);
       setAttachments(resp.data || []);
     } catch (err) {
-      // 첨부 API 없거나 실패하면 그냥 빈 배열
+      console.error("첨부 목록 조회 실패", err.response || err);
       setAttachments([]);
     }
   };
@@ -148,12 +205,10 @@ export default function ProductEdit() {
   const load = async () => {
     setLoading(true);
     try {
-      const resp = await axios.get(`http://localhost:8080/product/${productNo}`, {
-        headers: accessToken ? { Authorization: authHeader } : undefined,
+      const resp = await axios.get(`${API}/product/${productNo}`, {
+        headers: authHeader ? { Authorization: authHeader } : undefined,
       });
-
-      const renewed = resp.headers["access-token"] || resp.headers["Access-Token"];
-      if (renewed && renewed !== accessToken) setAccessToken(renewed);
+      applyRenewedToken(resp);
 
       const p = resp.data || {};
       setForm({
@@ -162,14 +217,13 @@ export default function ProductEdit() {
         description: p.description ?? "",
         startPrice: String(p.startPrice ?? p.start_price ?? ""),
         instantPrice: String(p.instantPrice ?? p.instant_price ?? ""),
-        startTime: String(p.startTime ?? p.start_time ?? "").slice(0, 16), // datetime-local용
+        startTime: String(p.startTime ?? p.start_time ?? "").slice(0, 16),
         endTime: String(p.endTime ?? p.end_time ?? "").slice(0, 16),
         status: p.status ?? "",
       });
 
-      // attachments가 detail에 포함되면 그걸로
-      if (Array.isArray(p.attachments)) setAttachments(p.attachments);
-      else await refreshAttachments();
+      // 캐시 문제 방지를 위해 별도로 불러옴
+      await refreshAttachments();
     } catch (err) {
       console.error("수정 화면 로딩 실패", err.response || err);
       alert("상품 정보를 불러오지 못했습니다");
@@ -179,11 +233,11 @@ export default function ProductEdit() {
   };
 
   useEffect(() => {
+    if (!hydrated) return;
     if (productNo) load();
     // eslint-disable-next-line
-  }, [productNo]);
+  }, [hydrated, productNo]);
 
-  /** ====== 파일 선택 (누적 + 중복 제거) ====== */
   const changeFiles = (e) => {
     const list = Array.from(e.target.files || []);
     setFiles((prev) => {
@@ -207,123 +261,126 @@ export default function ProductEdit() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  /** ====== ✅ 사용자용 버튼: "선택한 사진 업로드" (추가 업로드) ====== */
+  /** ====== 내부용: 파일 업로드 함수 ====== */
+  const doUpload = async (method, fileList) => {
+    const fd = new FormData();
+    fileList.forEach((f) => fd.append("files", f));
+
+    const resp = await axios({
+      method,
+      url: `${API}/product/${productNo}/attachments`,
+      data: fd,
+      headers: authHeader 
+        ? { Authorization: authHeader, "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "multipart/form-data" },
+    });
+    return resp;
+  };
+
+  /** ====== 사진 추가 (버튼 클릭용) ====== */
   const uploadAppend = async () => {
-    if (!accessToken) return alert("로그인이 필요합니다");
+    if (!authHeader) return alert("로그인이 필요합니다");
     if (files.length === 0) return alert("업로드할 사진을 먼저 선택하세요");
 
+    setFileLoading(true);
     try {
-      const fd = new FormData();
-      files.forEach((f) => fd.append("files", f));
-
-      const resp = await axios.post(
-        `http://localhost:8080/product/${productNo}/attachments`,
-        fd,
-        { headers: { Authorization: authHeader } }
-      );
-
-      const renewed = resp.headers["access-token"] || resp.headers["Access-Token"];
-      if (renewed && renewed !== accessToken) setAccessToken(renewed);
-
-      await refreshAttachments();     // ✅ 업로드 후 즉시 다시 조회 → 총 3개 보이게 됨
+      const resp = await doUpload("post", files);
+      applyRenewedToken(resp);
+      await refreshAttachments();
       clearSelectedFiles();
       alert("사진이 추가되었습니다");
     } catch (err) {
-      console.error("추가 업로드 실패", err.response || err);
-      alert("사진 업로드 실패(서버 첨부 API 확인 필요)");
+      console.error("추가 실패", err);
+      alert("사진 업로드 실패");
+    } finally {
+      setFileLoading(false);
     }
   };
 
-  /** ====== ✅ 사용자용 버튼: "기존 사진 모두 교체" ====== */
+  /** ====== 사진 교체 (버튼 클릭용) ====== */
   const uploadReplace = async () => {
-    if (!accessToken) return alert("로그인이 필요합니다");
+    if (!authHeader) return alert("로그인이 필요합니다");
     if (files.length === 0) return alert("교체할 사진을 먼저 선택하세요");
     if (!confirm("기존 사진을 모두 지우고 새 사진으로 교체할까요?")) return;
 
-    const fd = new FormData();
-    files.forEach((f) => fd.append("files", f));
-
+    setFileLoading(true);
     try {
-      // ✅ 서버에 PUT이 있으면 이게 가장 깔끔
-      const resp = await axios.put(
-        `http://localhost:8080/product/${productNo}/attachments`,
-        fd,
-        { headers: { Authorization: authHeader } }
-      );
-
-      const renewed = resp.headers["access-token"] || resp.headers["Access-Token"];
-      if (renewed && renewed !== accessToken) setAccessToken(renewed);
-
+      const resp = await doUpload("put", files);
+      applyRenewedToken(resp);
       await refreshAttachments();
       clearSelectedFiles();
       alert("사진이 교체되었습니다");
     } catch (err) {
-      console.error("교체 실패", err.response || err);
-      alert("사진 교체 실패(서버 PUT API 없으면 백엔드 구현 필요)");
+      console.error("교체 실패", err);
+      alert("사진 교체 실패");
+    } finally {
+      setFileLoading(false);
     }
   };
 
-  /** ====== 기존 첨부 삭제(엔드포인트는 프로젝트마다 달라서 2개 후보로 시도) ====== */
+  /** ====== 사진 삭제 ====== */
   const deleteExisting = async (attachmentNo) => {
-    if (!accessToken) return alert("로그인이 필요합니다");
+    if (!authHeader) return alert("로그인이 필요합니다");
     if (!confirm("이 사진을 삭제할까요?")) return;
 
+    setFileLoading(true);
     try {
-      // 1차 후보
-      await axios.delete(
-        `http://localhost:8080/product/${productNo}/attachments/${attachmentNo}`,
-        { headers: { Authorization: authHeader } }
-      );
-    } catch (e1) {
-      try {
-        // 2차 후보
-        await axios.delete(
-          `http://localhost:8080/attachment/${attachmentNo}`,
-          { headers: { Authorization: authHeader } }
-        );
-      } catch (e2) {
-        console.error("첨부 삭제 실패", e2.response || e2);
-        alert("삭제 실패(서버 첨부 삭제 API 확인 필요)");
-        return;
-      }
-    }
-
-    await refreshAttachments();
-  };
-
-  /** ====== 상품 정보 저장(첨부 업로드랑 별개) ====== */
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!accessToken) return alert("로그인이 필요합니다");
-
-    const body = {
-      productNo: Number(productNo),
-      name: form.name,
-      categoryCode: form.categoryCode ? Number(form.categoryCode) : null,
-      description: form.description,
-      startPrice: form.startPrice ? Number(form.startPrice) : null,
-      instantPrice: form.instantPrice ? Number(form.instantPrice) : null,
-      startTime: form.startTime ? form.startTime + ":00" : null,
-      endTime: form.endTime ? form.endTime + ":00" : null,
-      status: form.status || null,
-    };
-
-    try {
-      const resp = await axios.put(`http://localhost:8080/product/${productNo}`, body, {
+      const resp = await axios.delete(`${API}/product/${productNo}/attachments/${attachmentNo}`, {
         headers: { Authorization: authHeader },
       });
+      applyRenewedToken(resp);
+      await refreshAttachments();
+    } catch (err) {
+      console.error("삭제 실패", err);
+      alert("삭제 실패");
+    } finally {
+      setFileLoading(false);
+    }
+  };
 
-      const renewed = resp.headers["access-token"] || resp.headers["Access-Token"];
-      if (renewed && renewed !== accessToken) setAccessToken(renewed);
+  /** ====== [최종 저장] 텍스트 수정 + 선택된 파일 자동 업로드 ====== */
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!authHeader) return alert("로그인이 필요합니다");
+
+    setFileLoading(true); // 로딩 시작
+
+    try {
+      // 1️⃣ 만약 선택해둔 파일이 있다면, 사용자가 '추가' 버튼을 안 눌렀어도 자동으로 업로드 처리
+      if (files.length > 0) {
+        await doUpload("post", files); // 추가 모드로 업로드
+      }
+
+      // 2️⃣ 텍스트 정보 수정
+      const body = {
+        productNo: Number(productNo),
+        name: form.name,
+        categoryCode: form.categoryCode ? Number(form.categoryCode) : null,
+        description: form.description,
+        startPrice: form.startPrice ? Number(form.startPrice) : null,
+        instantPrice: form.instantPrice ? Number(form.instantPrice) : null,
+        startTime: form.startTime ? form.startTime + ":00" : null,
+        endTime: form.endTime ? form.endTime + ":00" : null,
+        status: form.status || null,
+      };
+
+      const resp = await axios.put(`${API}/product/${productNo}`, body, {
+        headers: { Authorization: authHeader },
+      });
+      applyRenewedToken(resp);
 
       alert("수정 저장 완료");
+      // 상세 페이지로 이동
       navigate(`/product/detail/${productNo}`);
     } catch (err) {
       console.error("수정 저장 실패", err.response || err);
-      alert("수정 저장 실패");
+      alert(`수정 저장 실패`);
+    } finally {
+      setFileLoading(false);
     }
   };
 
+  if (!hydrated) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>페이지 준비중...</div>;
   if (loading) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>로딩중...</div>;
 
   return (
@@ -331,36 +388,31 @@ export default function ProductEdit() {
       <h2 style={{ marginBottom: 14 }}>상품 수정</h2>
 
       <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {/* 입력 필드들 */}
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ width: 120 }}>상품명</div>
           <input name="name" value={form.name} onChange={changeForm} style={{ flex: 1, padding: 10 }} />
         </div>
-
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ width: 120 }}>카테고리</div>
           <input name="categoryCode" value={form.categoryCode} onChange={changeForm} style={{ width: 220, padding: 10 }} />
         </div>
-
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ width: 120 }}>시작가</div>
           <input name="startPrice" type="number" value={form.startPrice} onChange={changeForm} style={{ width: 220, padding: 10 }} />
         </div>
-
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ width: 120 }}>즉시구매가</div>
           <input name="instantPrice" type="number" value={form.instantPrice} onChange={changeForm} style={{ width: 220, padding: 10 }} />
         </div>
-
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ width: 120 }}>시작시간</div>
           <input name="startTime" type="datetime-local" value={form.startTime} onChange={changeForm} style={{ width: 260, padding: 10 }} />
         </div>
-
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ width: 120 }}>마감시간</div>
           <input name="endTime" type="datetime-local" value={form.endTime} onChange={changeForm} style={{ width: 260, padding: 10 }} />
         </div>
-
         <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
           <div style={{ width: 120, paddingTop: 8 }}>설명</div>
           <textarea name="description" value={form.description} onChange={changeForm} style={{ flex: 1, padding: 10, minHeight: 120 }} />
@@ -368,48 +420,25 @@ export default function ProductEdit() {
 
         <hr style={{ border: "none", borderTop: "1px solid #eee", margin: "16px 0" }} />
 
-        {/* =========================
-           ✅ 첨부 이미지 섹션 (서버 기존 + 새 선택)
-        ========================== */}
         <h3 style={{ textAlign: "center", margin: 0 }}>첨부 이미지</h3>
 
-        {/* 기존 첨부 */}
+        {/* 기존 이미지 리스트 */}
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 12 }}>
-          {attachments.length === 0 && (
-            <div style={{ color: "#777", fontSize: 13 }}>기존 첨부가 없습니다</div>
-          )}
+          {attachments.length === 0 && !fileLoading && <div style={{ color: "#777", fontSize: 13 }}>기존 첨부가 없습니다</div>}
+          {fileLoading && <div style={{ color: "#999", fontSize: 13 }}>처리 중...</div>}
 
           {attachments.map((a, idx) => {
             const no = pickAttachmentNo(a, idx);
             const nm = pickAttachmentName(a, idx);
-            const rawUrl =
-              a?.url ?? a?.downloadUrl ?? a?.download_url ?? a?.attachmentUrl ?? a?.attachment_url ?? null;
-            const candidates = buildUrlCandidates({ productNo, attachmentNo: no, rawUrl });
+            const url = ATT_VIEW(no);
 
             return (
-              <div
-                key={`att_${no}`}
-                style={{
-                  width: 160,
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  padding: 8,
-                  background: "#fff",
-                }}
-              >
+              <div key={`att_${no}`} style={{ width: 160, border: "1px solid #ddd", borderRadius: 8, padding: 8, background: "#fff", opacity: fileLoading ? 0.5 : 1 }}>
                 <div style={{ width: "100%", height: 110, borderRadius: 6, overflow: "hidden", border: "1px solid #eee" }}>
-                  <SmartImage candidates={candidates} alt={nm} />
+                  <SecureImage url={url} authHeader={authHeader} alt={nm} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
-
-                <div style={{ fontSize: 12, marginTop: 6, color: "#333", wordBreak: "break-all" }}>
-                  {nm}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => deleteExisting(no)}
-                  style={{ marginTop: 8, padding: "6px 10px", width: "100%" }}
-                >
+                <div style={{ fontSize: 12, marginTop: 6, color: "#333", wordBreak: "break-all" }}>{nm}</div>
+                <button type="button" onClick={() => deleteExisting(no)} disabled={fileLoading} style={{ marginTop: 8, padding: "6px 10px", width: "100%", cursor: fileLoading ? "not-allowed" : "pointer" }}>
                   삭제
                 </button>
               </div>
@@ -417,33 +446,29 @@ export default function ProductEdit() {
           })}
         </div>
 
-        {/* 새로 선택한 파일 */}
+        {/* 파일 선택 영역 */}
         <div style={{ marginTop: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={changeFiles} />
+            <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={changeFiles} disabled={fileLoading} />
             <div style={{ fontSize: 12, color: "#777" }}>선택된 파일: {files.length}개</div>
 
-            <button type="button" onClick={clearSelectedFiles} disabled={files.length === 0} style={{ padding: "8px 12px" }}>
+            <button type="button" onClick={clearSelectedFiles} disabled={files.length === 0 || fileLoading} style={{ padding: "8px 12px" }}>
               선택 초기화
             </button>
 
-            {/* ✅ 사용자용 버튼(POST/PUT 문구 숨김) */}
-            <button type="button" onClick={uploadAppend} disabled={files.length === 0} style={{ padding: "8px 12px" }}>
-              선택한 사진 추가
+            {/* 개별 업로드 버튼 (원하면 사용, 아니면 맨 아래 수정저장만 눌러도 됨) */}
+            <button type="button" onClick={uploadAppend} disabled={files.length === 0 || fileLoading} style={{ padding: "8px 12px", color: "blue" }}>
+              선택한 사진 바로 추가
             </button>
-            <button type="button" onClick={uploadReplace} disabled={files.length === 0} style={{ padding: "8px 12px" }}>
+            <button type="button" onClick={uploadReplace} disabled={files.length === 0 || fileLoading} style={{ padding: "8px 12px", color: "red" }}>
               기존 사진 모두 교체
             </button>
           </div>
 
+          {/* 미리보기 */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 12 }}>
-            {previews.length === 0 && <div style={{ color: "#777", fontSize: 13 }}>추가할 사진을 선택하면 여기에 미리보기가 뜹니다</div>}
-
             {previews.map((p, idx) => (
-              <div
-                key={`${p.file.name}_${p.file.size}_${idx}`}
-                style={{ width: 160, border: "1px solid #ddd", borderRadius: 8, padding: 8, background: "#fff" }}
-              >
+              <div key={`${p.file.name}_${idx}`} style={{ width: 160, border: "1px solid #ddd", borderRadius: 8, padding: 8, background: "#fff" }}>
                 <div style={{ width: "100%", height: 110, borderRadius: 6, overflow: "hidden", border: "1px solid #eee" }}>
                   <img src={p.url} alt={p.file.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
@@ -457,8 +482,13 @@ export default function ProductEdit() {
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-          <button type="submit" style={{ padding: "10px 14px" }}>수정 저장</button>
-          <button type="button" onClick={() => navigate(-1)} style={{ padding: "10px 14px" }}>취소</button>
+          {/* ✅ 이 버튼을 누르면 텍스트 수정 + 선택된 파일 업로드까지 한 번에 함 */}
+          <button type="submit" disabled={fileLoading} style={{ padding: "12px 20px", fontWeight: "bold", background: "#333", color: "white", border: "none", borderRadius: 6, cursor: fileLoading ? "wait" : "pointer" }}>
+            {fileLoading ? "처리중..." : "수정 저장 (파일 포함)"}
+          </button>
+          <button type="button" onClick={() => navigate(-1)} style={{ padding: "12px 20px", background: "#eee", border: "none", borderRadius: 6 }}>
+            취소
+          </button>
         </div>
       </form>
     </div>

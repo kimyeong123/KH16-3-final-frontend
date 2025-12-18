@@ -8,11 +8,30 @@ export default function ProductMyList() {
   const navigate = useNavigate();
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
 
+  // ✅ 토큰 유지 및 복구 (Hydration)
+  const TOKEN_KEY = "ACCESS_TOKEN";
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(TOKEN_KEY);
+    if ((!accessToken || String(accessToken).trim().length === 0) && saved && saved.trim().length > 0) {
+      setAccessToken(saved);
+    }
+    setHydrated(true);
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    if (accessToken && String(accessToken).trim().length > 0) {
+      localStorage.setItem(TOKEN_KEY, accessToken);
+    }
+  }, [accessToken]);
+
   const [page, setPage] = useState(1);
   const [vo, setVo] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ 대표이미지 캐시: { [productNo]: attachmentNo }
+  // 대표이미지 캐시: { [productNo]: attachmentNo }
   const [thumbMap, setThumbMap] = useState({});
 
   const authHeader = useMemo(() => {
@@ -52,11 +71,9 @@ export default function ProductMyList() {
 
       setVo(resp.data);
 
-      // ✅ 리스트 로딩 후, 각 상품의 첫 첨부(대표이미지) 조회
       const list = resp.data?.list || [];
       const productNos = list.map((x) => x.productNo).filter(Boolean);
 
-      // 이미 가져온 건 재요청 안함
       const need = productNos.filter((no) => thumbMap[no] === undefined);
 
       if (need.length > 0) {
@@ -90,12 +107,20 @@ export default function ProductMyList() {
   };
 
   useEffect(() => {
+    if (!hydrated) return; 
     fetchList(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [hydrated, page]);
 
-  const goDetail = (productNo) => {
-    navigate(`/product/detail/${productNo}`);
+  // ✅ [수정] 상태에 따라 이동할 페이지 분기 처리
+  const goDetail = (productNo, status) => {
+    if (status === 'BIDDING') {
+      // 경매 중이면 -> 경매 현황 페이지(AuctionDetail)로 이동
+      navigate(`/product/auction/detail/${productNo}`);
+    } else {
+      // 그 외(등록중 등) -> 상품 관리 페이지(ProductDetail)로 이동
+      navigate(`/product/detail/${productNo}`);
+    }
   };
 
   const goEdit = (productNo) => {
@@ -117,18 +142,25 @@ export default function ProductMyList() {
     } catch (err) {
       const status = err.response?.status;
       console.error("삭제 실패", err.response || err);
-      if (status === 401) alert("토큰 만료/로그인 필요");
-      else if (status === 403) alert("본인 상품만 삭제할 수 있습니다");
-      else alert("삭제 실패");
+      
+      if (err.response?.data?.message) {
+        alert(err.response.data.message);
+      } else if (status === 401) {
+        alert("토큰 만료/로그인 필요");
+      } else {
+        alert("삭제 실패");
+      }
     }
   };
 
   const list = vo?.list || [];
   const last = !!vo?.last;
 
-  // ✅ 너 프로젝트의 “첨부 보여주는 URL”로 맞춰서 바꿔야 함
-  // 예: /attachment/{attachmentNo}  또는 /attachment/download/{attachmentNo}
   const IMG_URL = (attachmentNo) => `http://localhost:8080/attachment/${attachmentNo}`;
+
+  if (!hydrated) {
+    return <div style={{ maxWidth: 1100, margin: "0 auto", padding: 24 }}>로그인 확인 중...</div>;
+  }
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: 24 }}>
@@ -169,6 +201,9 @@ export default function ProductMyList() {
 
               {list.map((p) => {
                 const thumbNo = thumbMap[p.productNo];
+                // 상태가 BIDDING, ENDED, CLOSED면 수정/삭제 불가
+                const isLocked = p.status === 'BIDDING' || p.status === 'ENDED' || p.status === 'CLOSED';
+
                 return (
                   <tr key={p.productNo} style={{ borderTop: "1px solid #eee" }}>
                     <td style={{ padding: 10, width: 110 }}>
@@ -192,22 +227,43 @@ export default function ProductMyList() {
                     <td style={{ padding: 10 }}>{p.productNo}</td>
                     <td style={{ padding: 10 }}>
                       <span
-                        onClick={() => goDetail(p.productNo)}
-                        style={{ cursor: "pointer", textDecoration: "underline" }}
+                        // ✅ [수정] 클릭 시 상태(status)도 함께 전달하여 분기 처리
+                        onClick={() => goDetail(p.productNo, p.status)}
+                        style={{ cursor: "pointer", textDecoration: "underline", fontWeight: "bold" }}
                       >
                         {p.name}
                       </span>
                     </td>
                     <td style={{ padding: 10, textAlign: "right" }}>{money(p.startPrice)}</td>
                     <td style={{ padding: 10, textAlign: "right" }}>{money(p.finalPrice)}</td>
-                    <td style={{ padding: 10 }}>{p.status}</td>
+                    <td style={{ padding: 10, fontWeight: p.status === 'BIDDING' ? 'bold' : 'normal', color: p.status === 'BIDDING' ? '#ff5722' : 'black' }}>
+                      {p.status}
+                    </td>
                     <td style={{ padding: 10 }}>{dt(p.startTime)}</td>
                     <td style={{ padding: 10 }}>{dt(p.endTime)}</td>
+                    
                     <td style={{ padding: 10, textAlign: "center" }}>
-                      <button onClick={() => goEdit(p.productNo)} style={{ padding: "6px 10px", marginRight: 8 }}>
+                      <button 
+                        onClick={() => !isLocked && goEdit(p.productNo)} 
+                        disabled={isLocked}
+                        style={{ 
+                          padding: "6px 10px", 
+                          marginRight: 8,
+                          opacity: isLocked ? 0.3 : 1, 
+                          cursor: isLocked ? "not-allowed" : "pointer" 
+                        }}
+                      >
                         수정
                       </button>
-                      <button onClick={() => remove(p.productNo)} style={{ padding: "6px 10px" }}>
+                      <button 
+                        onClick={() => !isLocked && remove(p.productNo)} 
+                        disabled={isLocked}
+                        style={{ 
+                          padding: "6px 10px", 
+                          opacity: isLocked ? 0.3 : 1, 
+                          cursor: isLocked ? "not-allowed" : "pointer" 
+                        }}
+                      >
                         삭제
                       </button>
                     </td>
