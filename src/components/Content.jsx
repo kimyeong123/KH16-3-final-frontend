@@ -35,8 +35,11 @@ import AuctionDetail from "./product/AuctionDetail";
 import QnaMain from "./qna/QnaMain";
 import Terms from "./etc/Terms";
 import SignupAgreement from "./etc/SignupAgreement";
-import Privacy from "./etc/PrivacyPolicy";
 import PrivacyPolicy from "./etc/PrivacyPolicy";
+import RequireSignupAgree from "../components/guard/RequireSignupAgree";
+
+
+
 
 export default function Content() {
 
@@ -50,7 +53,16 @@ export default function Content() {
                     <Route path="/error/403" element={<Unauthorization />} />
 
                     {/* 회원 관련 페이지들 */}
-                    <Route path="/member/join" element={<MemberJoin />}></Route>
+
+                    <Route path="/signup-agreement" element={<SignupAgreement />} />
+                    <Route
+                        path="/member/join"
+                        element={
+                            <RequireSignupAgree>
+                                <MemberJoin />
+                            </RequireSignupAgree>
+                        }
+                    />
                     <Route path="/member/login" element={<MemberLogin />}></Route>
                     <Route path="/member/joinfinish" element={<MemberJoinFinish />}></Route>
                     <Route path="/member/mypage" element={<Private><MemberMypage /></Private>}></Route>
@@ -119,11 +131,11 @@ export default function Content() {
                     <Route path="/product/auction/detail/:productNo" element={<AuctionDetail />} />
                     <Route path="/product/auction/list/" element={<ProductAuctionList />} />
                     <Route path="/product/auction/list/*" element={<ProductAuctionList />} />
-                   
+
                     {/* 기타 */}
-                    <Route path="etc/terms" element={<Terms/>} />
-                    <Route path="etc/privacy" element={<PrivacyPolicy/>} />
-                    <Route path="etc/signupagree" element={<SignupAgreement/>} />
+                    <Route path="etc/terms" element={<Terms />} />
+                    <Route path="etc/privacy" element={<PrivacyPolicy />} />
+                    <Route path="etc/signupagree" element={<SignupAgreement />} />
 
 
                 </Routes>

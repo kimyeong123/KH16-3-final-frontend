@@ -34,7 +34,7 @@ export default function SignupAgreement() {
                             서비스 제공을 위해 필요한 최소한의 정보를 수집/이용합니다.
                         </p>
                         <ul className="list-unstyled mb-0">
-                            <li>• 수집: 아이디, 비밀번호(암호화), 이메일, 연락처</li>
+                            <li>• 수집: 아이디, 비밀번호(암호화), 이메일, 연락처 등</li>
                             <li>• 목적: 회원관리, 고객문의 처리</li>
                             <li>• 보관: 탈퇴 시 또는 법령 기준</li>
                         </ul>
@@ -80,7 +80,7 @@ export default function SignupAgreement() {
 
     const goJoin = () => {
         if (!requiredOk) return;
-
+        sessionStorage.setItem("signup_agreed", "true");
         navigate("/member/join", {
             state: {
                 agreedTerms: checks.terms,

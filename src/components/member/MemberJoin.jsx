@@ -415,6 +415,7 @@ export default function MemberJoin() {
 
     try {
       await axios.post("http://localhost:8080/member/register", member);
+      sessionStorage.removeItem("signup_agreed");
       navigate("/member/joinfinish");
     } catch (err) {
       console.error("회원 가입 실패", err);
