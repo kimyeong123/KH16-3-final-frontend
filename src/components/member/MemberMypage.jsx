@@ -40,6 +40,8 @@ export default function MemberMypage() {
     const [, clearLogin] = useAtom(clearLoginState);
     // 충전 내역을 위한 상태
     const [chargeHistory, setChargeHistory] = useState([]);
+    // 입찰 내역을 위한 상태
+    const [bidHistory, setBidHistory] = useState([]);
     // 비밀번호 변경을 위한 상태
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
@@ -155,9 +157,23 @@ export default function MemberMypage() {
 
         if (accessToken) loadChargeHistory();
     }, [accessToken]);
-    const openPostcode = useDaumPostcodePopup();
+    useEffect(() => {
+        const loadBidHistory = async () => {
+            try {
+                const resp = await axios.get("/member/bid/history", {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                });
+                setBidHistory(resp.data);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        if (accessToken) loadBidHistory();
+    }, [accessToken]);
 
     // 주소 검색
+    const openPostcode = useDaumPostcodePopup();
     const searchAddress = () => {
         openPostcode({ onComplete: handleComplete });
     };
@@ -806,8 +822,8 @@ export default function MemberMypage() {
                                     <div>
                                         <div className="d-flex flex-column">
                                             <div className="fw-semibold fs-5">포인트 충전 내역</div>
-                                            <div className="text-secondary fs-6">
-                                                최근 충전 한 내역 10건 제공
+                                            <div className="text-secondary small">
+                                                최근 충전한 내역 10건 제공
                                             </div>
                                         </div>
                                     </div>
@@ -815,6 +831,23 @@ export default function MemberMypage() {
                             </div>
 
                             {/* 입찰 내역 */}
+                            <div
+                                className="d-flex align-items-center justify-content-between px-3 py-3 mb-2 rounded"
+                                style={{
+                                    background: "#f9fafb",
+                                    border: "1px dashed #dee2e6",
+                                    cursor: "pointer",
+                                }}
+                                data-bs-toggle="modal"
+                                data-bs-target="#bidHistoryModal"
+                            >
+                                <div>
+                                    <div className="fw-semibold fs-5">입찰 내역</div>
+                                    <div className="text-secondary small">
+                                        입찰한 상품 {bidHistory.length}개
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* 문의 내역 */}
 
@@ -953,7 +986,6 @@ export default function MemberMypage() {
                             <div className="modal-content">
                                 <div className="modal-header">
                                     <h5 className="modal-title fw-bold">충전 내역</h5>
-                                    <button type="button" className="btn-close" data-bs-dismiss="modal" />
                                 </div>
                                 <div className="modal-body">
                                     <div className="bg-light border rounded p-3">
@@ -1004,6 +1036,62 @@ export default function MemberMypage() {
 
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                                        닫기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* 입찰 내역 모달 */}
+                    <div className="modal fade" id="bidHistoryModal" tabIndex="-1" aria-hidden="true">
+                        <div className="modal-dialog modal-dialog-centered modal-md">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title fw-bold">입찰 내역</h5>
+                                    <div className="text-danger small">
+                                    </div>
+                                </div>
+
+                                <div className="modal-body">
+                                    {bidHistory.length === 0 ? (
+                                        <div className="text-center text-muted py-4">입찰 내역이 없습니다</div>
+                                    ) : (
+                                        <div className="d-grid gap-2">
+                                            {bidHistory.map((b) => (
+                                                <div
+                                                    key={b.productNo}
+                                                    className="p-3 rounded"
+                                                    style={{ background: "#f9fafb", border: "1px solid #e9ecef" }}
+                                                >
+                                                    <div className="d-flex justify-content-between align-items-start">
+                                                        <div className="me-2">
+                                                            <div className="fw-bold">
+                                                                <Link
+                                                                    to={`/product/auction/detail/${b.productNo}`}
+                                                                    className="text-decoration-none text-primary"
+                                                                >
+                                                                    {b.productName}
+                                                                </Link>
+                                                            </div>
+                                                            <div className="text-muted small mt-1">
+                                                                마지막 입찰: {b.lastBidTime ? new Date(b.lastBidTime).toLocaleString("ko-KR") : "-"}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="text-end">
+                                                            <div className="fw-bold fs-5 text-red">
+                                                                {Number(b.lastBidAmount ?? 0).toLocaleString()}원
+                                                            </div>
+                                                            <div className="text-muted small text-secondary">나의 최종 입찰가</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={(e) => e.currentTarget.blur()}>
                                         닫기
                                     </button>
                                 </div>
