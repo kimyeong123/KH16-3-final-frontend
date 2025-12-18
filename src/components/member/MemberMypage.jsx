@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useDaumPostcodePopup } from "react-daum-postcode";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAtomValue } from "jotai";
 import { FaTrash, FaUserLock, FaEnvelope, FaEraser, FaExclamationTriangle } from "react-icons/fa";
 import { FaMagnifyingGlass } from "react-icons/fa6";
@@ -38,6 +38,8 @@ export default function MemberMypage() {
 
     const [accessToken] = useAtom(accessTokenState);
     const [, clearLogin] = useAtom(clearLoginState);
+    // 충전 내역을 위한 상태
+    const [chargeHistory, setChargeHistory] = useState([]);
     // 비밀번호 변경을 위한 상태
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
@@ -117,7 +119,7 @@ export default function MemberMypage() {
                 headers: { Authorization: authHeader }
             });
 
-            setLoginPoint(data.point); 
+            setLoginPoint(data.point);
         };
         load();
     }, []);
@@ -135,9 +137,25 @@ export default function MemberMypage() {
         if (contact) setEditContact(contact);
 
     }, [email, post, address1, address2, contact]); // 상태값이 변경되면 업데이트
+
+
+    useEffect(() => {
+        const loadChargeHistory = async () => {
+            try {
+                const resp = await axios.get("/member/point/charged-history", {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                setChargeHistory(resp.data);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        if (accessToken) loadChargeHistory();
+    }, [accessToken]);
     const openPostcode = useDaumPostcodePopup();
-
-
 
     // 주소 검색
     const searchAddress = () => {
@@ -513,7 +531,7 @@ export default function MemberMypage() {
                 <div className="row g-4">
 
                     {/* 회원 정보 카드 */}
-                    <div className="col-md-8">
+                    <div className="col-md-7">
                         <div className="card shadow-sm p-4 h-100">
                             <h4 className="mb-3" style={{ fontWeight: "bold" }}>회원 정보</h4>
 
@@ -707,7 +725,7 @@ export default function MemberMypage() {
                     </div>
 
                     {/* 계정 관리 */}
-                    <div className="col-md-4">
+                    <div className="col-md-5">
                         <div className="card shadow-lg p-4 rounded-3">
                             <h5 className="mb-3 text-center fw-bold text-primary">계정 관리</h5>
 
@@ -777,9 +795,34 @@ export default function MemberMypage() {
                     <div className="col-12">
                         <div className="card shadow-sm p-4">
                             <h5 className="mb-3">기타 정보</h5>
-                            <div>최근 문의내역, 상품 즐겨찾기, 충전 등 추가 기능을 여기에 표시</div>
+
+                            {/* 포인트 충전 내역 */}
+                            <div
+                                data-bs-toggle="modal"
+                                data-bs-target="#chargeHistoryModal"
+                            >
+                                <div className="d-flex align-items-center justify-content-between px-3 py-3 mb-2 rounded"
+                                    style={{ background: "#f9fafb", border: "1px dashed #dee2e6", cursor: "pointer" }}>
+                                    <div>
+                                        <div className="d-flex flex-column">
+                                            <div className="fw-semibold fs-5">포인트 충전 내역</div>
+                                            <div className="text-secondary fs-6">
+                                                최근 충전 한 내역 10건 제공
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 입찰 내역 */}
+
+                            {/* 문의 내역 */}
+
+                            {/* 등록한 물품 */}
+
                         </div>
                     </div>
+
                     {isPasswordModalOpen && (
                         <div
                             className="modal-backdrop-custom"
@@ -796,9 +839,9 @@ export default function MemberMypage() {
                             aria-labelledby="passwordChangeModalLabel"
                             aria-hidden="true"
                         >
-                           <div
+                            <div
                                 className="modal-dialog modal-dialog-centered password-modal-dialog"
-                            > 
+                            >
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5 className="modal-title block-title" id="passwordChangeModalLabel">
@@ -823,7 +866,6 @@ export default function MemberMypage() {
                                             />
                                         </div>
                                         <hr className="my-4" />
-                                        {/* 새 비밀번호 */}
                                         {/* 새 비밀번호 */}
                                         <div className="mb-3">
                                             <label htmlFor="newPassword" className="form-label fw-bold">새 비밀번호</label>
@@ -900,6 +942,75 @@ export default function MemberMypage() {
                             </div>
                         </div>
                     )}
+                    {/* 포인트 충전 내역 모달 */}
+                    <div
+                        className="modal fade"
+                        id="chargeHistoryModal"
+                        tabIndex="-1"
+                        aria-hidden="true"
+                    >
+                        <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "400px" }}>
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title fw-bold">충전 내역</h5>
+                                    <button type="button" className="btn-close" data-bs-dismiss="modal" />
+                                </div>
+                                <div className="modal-body">
+                                    <div className="bg-light border rounded p-3">
+                                        <div className="text-center fw-bold fs-4">BIDHOUSE</div>
+                                        <div className="text-center fw-bold fs-6">POINT RECEIPT</div>
+                                        <div className="my-2" style={{ borderTop: "1px dashed #999" }} />
+                                        {(chargeHistory?.length ?? 0) === 0 ? (
+                                            <div className="text-center text-muted py-4 small">
+                                                최근 충전한 내역이 없습니다.
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="small text-muted d-flex justify-content-between">
+                                                    <span className="fw-bold">날짜</span>
+                                                    <span className="fw-bold">금액</span>
+                                                </div>
+                                                <div className="mt-2">
+                                                    {chargeHistory.slice(0, 10).map((h) => (
+                                                        <div key={h.pointHistoryNo} className="d-flex justify-content-between align-items-start mb-2">
+                                                            <div className="me-2">
+                                                                <div>
+                                                                    {h.createdTime ? new Date(h.createdTime).toLocaleDateString("ko-KR") : "-"}
+                                                                </div>
+                                                            </div>
+                                                            <div className="fw-bold">
+                                                                +{Number(h.amount ?? 0).toLocaleString()}P
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                <div className="my-2" style={{ borderTop: "1px dashed #999" }} />
+
+                                                <div className="d-flex justify-content-between fw-bold">
+                                                    <span>TOTAL</span>
+                                                    <span>
+                                                        +{chargeHistory.slice(0, 10).reduce((sum, h) => sum + Number(h.amount ?? 0), 0).toLocaleString()}P
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className="text-muted small mt-2">
+                                        * 최근 10건만 표시됩니다
+                                    </div>
+                                </div>
+
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                                        닫기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </>

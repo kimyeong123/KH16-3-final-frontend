@@ -309,7 +309,7 @@ export default function Header() {
 
                             {/* 관리자일 때만 표시 */}
                             {loginRole === "ADMIN" && (
-                                <span className="badge bg-danger me-3">
+                                <span className="badge bg-success me-3">
                                     관리자
                                 </span>
                             )}
