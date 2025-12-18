@@ -72,7 +72,6 @@ export default function MemberLogin() {
             setAccessToken(data.accessToken);
             setRefreshToken(data.refreshToken);
             setLoginComplete(true);
-            console.log(data);
 
             // axios 기본 헤더도 설정
             axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
@@ -240,7 +239,7 @@ export default function MemberLogin() {
                 <div className="row mt-4">
                     <div className="col text-center">
                         아직 계정이 없으신가요?
-                        <Link to="/member/join" className="text-success ms-2" style={{ textDecoration: "underline" }}>
+                        <Link to="/etc/signupagree?next=/member/join" className="text-success ms-2" style={{ textDecoration: "underline" }}>
                             회원가입
                         </Link>
                     </div>

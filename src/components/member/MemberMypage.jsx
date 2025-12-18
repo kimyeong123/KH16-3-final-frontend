@@ -29,9 +29,10 @@ export default function MemberMypage() {
     const [post, setLoginPost] = useAtom(loginPostState);
     const [address1, setLoginAddress1] = useAtom(loginAddress1State);
     const [address2, setLoginAddress2] = useAtom(loginAddress2State);
-    const [point] = useAtom(loginPointState);
+    const [point, setLoginPoint] = useAtom(loginPointState);
     const [contact, setLoginContact] = useAtom(loginContactState);
     const [createdTime] = useAtom(loginCreatedTimeState);
+
 
     const navigete = useNavigate();
 
@@ -91,7 +92,7 @@ export default function MemberMypage() {
         email
     };
     const isAdmin = loginRole === "ADMIN";
-
+    //자기 자신이 다른 사람의 마이페이지를 볼 때
     console.log("paramNo =", paramNo);
     useEffect(() => {
         if (!accessToken) return;
@@ -106,11 +107,20 @@ export default function MemberMypage() {
             setViewMember(resp.data);
         }).catch(e => {
             console.error(e.response?.status, e.response?.data);
-            // 401/404 같은 초기 타이밍은 조용히 넘겨도 됨
         });
     }, [loginRole, paramNo, accessToken]);
 
+    useEffect(() => {
+        const load = async () => {
+            const authHeader = axios.defaults.headers.common["Authorization"];
+            const { data } = await axios.get("/member/mypage", {
+                headers: { Authorization: authHeader }
+            });
 
+            setLoginPoint(data.point); 
+        };
+        load();
+    }, []);
 
     useEffect(() => {
         if (email) {
@@ -671,7 +681,7 @@ export default function MemberMypage() {
 
                             {/* 기타 정보 */}
                             <div className="mb-2 mt-2">
-                                <div className="mb-2"><strong>보유 머니:</strong> {view?.point}p</div>
+                                <div className="mb-2"><strong>보유 포인트:</strong> {view?.point}p</div>
                                 <div className="mb-2 mt-1"><strong>가입일:</strong> {view?.createdTime ? new Date(createdTime).toLocaleDateString("ko-KR") : "-"}</div>
                             </div>
 
@@ -786,25 +796,15 @@ export default function MemberMypage() {
                             aria-labelledby="passwordChangeModalLabel"
                             aria-hidden="true"
                         >
-                            <div
+                           <div
                                 className="modal-dialog modal-dialog-centered password-modal-dialog"
-                            >
+                            > 
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5 className="modal-title block-title" id="passwordChangeModalLabel">
                                             비밀번호 변경
                                         </h5>
-                                        <button
-                                            type="button"
-                                            className="btn-close"
-                                            aria-label="Close"
-                                            onClick={() => {
-                                                setIsPasswordModalOpen(false);
-                                                setCurrentPassword("");
-                                                setNewPassword("");
-                                                setNewPasswordConfirm("");
-                                            }}
-                                        ></button>
+
                                     </div>
 
                                     <div className="modal-body text-center">

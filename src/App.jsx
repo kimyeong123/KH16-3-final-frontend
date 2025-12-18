@@ -25,7 +25,6 @@ function AuthRoot() {
   const clearLogin = useSetAtom(clearLoginState);
   const currentAccessToken = useAtomValue(accessTokenState);
   const isLoginComplete = useAtomValue(loginCompleteState);
-  
 
   // 앱 로드/새로고침 시 Jotai 상태를 복구하고 인증 상태를 확인합니다.
 useEffect(() => {

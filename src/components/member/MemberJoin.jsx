@@ -415,6 +415,7 @@ export default function MemberJoin() {
 
     try {
       await axios.post("http://localhost:8080/member/register", member);
+      sessionStorage.removeItem("signup_agreed");
       navigate("/member/joinfinish");
     } catch (err) {
       console.error("회원 가입 실패", err);
@@ -835,9 +836,9 @@ export default function MemberJoin() {
         </Modal.Footer>
       </Modal>
       {/* 가입버튼 */}
-      <div className="row mt-5">
+      <div className="row">
         <div className="col text-center">
-          <button type="button" className="btn btn-lg btn-success"
+          <button type="button" className="btn btn-success"
             disabled={memberValid === false || isDuplicatePassed === false} onClick={sendData}>
             <FaUser className="me-2" />
             <span>

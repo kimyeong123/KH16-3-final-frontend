@@ -1,5 +1,3 @@
-// src/components/message/MessageDetail.js
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -11,9 +9,9 @@ import { loginIdState } from '../../utils/jotai'; // 현재 로그인된 ID를 �
 const DETAIL_BASE_URL = "/message";
 
 export default function MessageDetail() {
+    const navigate = useNavigate();
     // URL 파라미터에서 messageNo를 가져옵니다.
     const { messageNo } = useParams();
-    const navigate = useNavigate();
     const [loginId] = useAtom(loginIdState); // 현재 로그인된 사용자 ID
 
     const [message, setMessage] = useState(null);
@@ -125,8 +123,7 @@ export default function MessageDetail() {
         try {
             await axios.delete(deleteEndpoint);
             toast.success("메세지가 성공적으로 삭제되었습니다.");
-            const listPath = isSentMessage ? '/message/sent/page' : '/message/received/page';
-            navigate(listPath);
+            navigate("/message/list");
         } catch (error) {
             console.error("메세지 삭제 실패:", error);
             const errorMessage = error.response?.data?.message || "메세지 삭제에 실패했습니다.";
