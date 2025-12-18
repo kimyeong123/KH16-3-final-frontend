@@ -12,7 +12,7 @@ import BoardEdit from "./board/BoardEdit";
 import QnaWrite from "./qna/QnaWrite";
 import QnaDetail from "./qna/QnaDetail";
 import MemberJoinFinish from "./member/MemberJoinFinish";
-import MemberMypage from "./member/MemberMypage";
+import MemberMypage from "./member/mypage/MemberMypage";
 import KakaoPay from "./pay/KakaoPay";
 import KakaoPaySuccess from "./pay/KakaoPaySuccess";
 import KakaoPayCancel from "./pay/KakaoPayCancel";
