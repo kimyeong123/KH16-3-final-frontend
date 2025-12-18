@@ -69,6 +69,30 @@ export default function Header() {
     // [추가] 알림 목록 로딩 상태
     const [isLoading, setIsLoading] = useState(false);
 
+    // =========================================================
+    // [추가됨] 검색 관련 로직 시작
+    // =========================================================
+    const [keyword, setKeyword] = useState(""); 
+
+    // 검색 실행 함수 (돋보기 클릭 or 엔터)
+    const handleSearch = () => {
+        if (!keyword.trim()) return; // 빈칸이면 검색 안 함
+        
+        // 검색 페이지로 이동하면서 URL에 검색어를 붙임 (?q=검색어)
+        navigate(`/product/auction/list?q=${encodeURIComponent(keyword)}`);
+    };
+
+    // 엔터키 눌렀을 때 검색 실행
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            handleSearch();
+        }
+    };
+    // =========================================================
+    // [추가됨] 검색 관련 로직 끝
+    // =========================================================
+
+
     // ***** 2. 콜백 및 이펙트 (Callback & Effect) *****
 
     // 알림 목록을 서버에서 가져오는 함수
@@ -157,6 +181,8 @@ export default function Header() {
             try {
                 // 백엔드 API 호출: GET /message/unread/count
                 const response = await axios.get(NOTIFICATION_COUNT_URL);
+                
+                const count = Number(response.data.unreadCount); 
 
                 const count = Number(response.data.unreadCount);
 
@@ -200,16 +226,23 @@ export default function Header() {
                     <span className="text-black">bidHouse</span>
                 </Link>
 
-                {/* 2. 검색창 영역 */}
+                {/* 2. 검색창 영역 (수정됨) */}
                 <div className="flex-grow-1 mx-5">
                     <div className="input-group" style={{ maxWidth: '400px', margin: '0 auto' }}>
                         <input
                             type="text"
                             className="form-control form-control-sm"
-                            placeholder="상품 검색"
+                            placeholder="물품명"       // [변경] 문구 변경
                             aria-label="Search items"
+                            value={keyword}           // [추가] 입력값 연결
+                            onChange={(e) => setKeyword(e.target.value)} // [추가] 입력 시 업데이트
+                            onKeyDown={handleKeyDown} // [추가] 엔터키 처리
                         />
-                        <button className="btn btn-outline-primary btn-sm" type="button">
+                        <button 
+                            className="btn btn-outline-primary btn-sm" 
+                            type="button"
+                            onClick={handleSearch}    // [추가] 클릭 시 이동 함수 연결
+                        >
                             <FaSearch />
                         </button>
                     </div>
