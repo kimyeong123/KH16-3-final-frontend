@@ -17,12 +17,12 @@ import {
   Form,
   InputGroup,
   Spinner,
-  ListGroup,
 } from "react-bootstrap";
 
 import { FaGavel, FaBolt, FaArrowLeft } from "react-icons/fa";
 
-// 유틸
+/* ================= utils ================= */
+
 const normalizeBidAmount = (value, currentPrice, instantPrice) => {
   let v = Number(value);
   if (isNaN(v)) return currentPrice;
@@ -34,7 +34,7 @@ const normalizeBidAmount = (value, currentPrice, instantPrice) => {
 
 const formatRemainingTime = (endTime) => {
   const diff = new Date(endTime).getTime() - Date.now();
-  if (diff <= 0) return { text: "경매 종료", expired: true };
+  if (diff <= 0) return "경매 종료";
 
   const sec = Math.floor(diff / 1000);
   const d = Math.floor(sec / 86400);
@@ -48,24 +48,11 @@ const formatRemainingTime = (endTime) => {
   if (m > 0 || h > 0 || d > 0) text += `${m}분 `;
   text += `${s}초`;
 
-  return { text: text.trim(), expired: false };
+  return text.trim();
 };
 
-// confirm
+/* ================= component ================= */
 
-const confirmBid = (amount) =>
-  swalConfirm(
-    "입찰 Point 확인",
-    `${amount.toLocaleString()} Point로 입찰하시겠습니까?\n입찰 후에는 취소할 수 없습니다.`
-  );
-
-const confirmInstantBuy = (price) =>
-  swalConfirm(
-    "즉시구매 확인",
-    `${price.toLocaleString()} Point에 즉시 낙찰됩니다.\n즉시구매를 진행하시겠습니까?`
-  );
-
-// 컴포넌트
 export default function AuctionDetail() {
   const { productNo } = useParams();
   const navigate = useNavigate();
@@ -73,19 +60,20 @@ export default function AuctionDetail() {
   const [accessToken] = useAtom(accessTokenState);
   const myMemberNo = Number(useAtomValue(loginNoState) || 0);
 
-  // 상태
+  // ===== 기존 UI에서 쓰는 상태들 (이름 유지) =====
   const [product, setProduct] = useState(null);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
   const [remaining, setRemaining] = useState("");
-  const [expired, setExpired] = useState(false);
+  const [expired, setExpired] = useState(false); // ✅ 의미만 재정의
   const [loading, setLoading] = useState(true);
   const [processingInstantBuy, setProcessingInstantBuy] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
 
-  // 파생 상태
+  // ===== 파생 상태 =====
   const hasInstantBuy = !!product?.instantPrice;
 
+  // ❗ UI는 이 값들을 쓰므로 그대로 둔다
   const instantButtonText = expired
     ? "경매 종료"
     : processingInstantBuy
@@ -95,7 +83,7 @@ export default function AuctionDetail() {
   const instantDisabled =
     expired ||
     processingInstantBuy ||
-    (hasInstantBuy && currentPrice >= Number(product.instantPrice));
+    (hasInstantBuy && currentPrice >= Number(product?.instantPrice));
 
   const authHeader = useMemo(() => {
     if (!accessToken) return null;
@@ -104,81 +92,66 @@ export default function AuctionDetail() {
       : `Bearer ${accessToken}`;
   }, [accessToken]);
 
-  // 상품 로딩
-  useEffect(() => {
-    if (!productNo) return;
+  /* ================= 상품 로딩 ================= */
 
-    const load = async () => {
-      setLoading(true);
-      try {
-        const { data } = await axios.get(
-          `http://localhost:8080/product/${productNo}`,
-          { headers: authHeader ? { Authorization: authHeader } : undefined }
-        );
+  const loadProduct = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(
+        `http://localhost:8080/product/${productNo}`,
+        { headers: authHeader ? { Authorization: authHeader } : undefined }
+      );
 
-        setProduct(data);
+      setProduct(data);
 
-        const price = data.currentPrice ?? data.startPrice ?? 0;
-        setCurrentPrice(price);
-        setBidAmount(String(price));
+      const price = data.currentPrice ?? data.startPrice ?? 0;
+      setCurrentPrice(price);
+      setBidAmount(String(price));
 
-        // 처음 로딩 시 남은시간도 즉시 세팅
-        if (data?.endTime) {
-          const { text, expired } = formatRemainingTime(data.endTime);
-          setRemaining(expired ? "경매 종료" : text);
-          setExpired(expired);
-          if (expired) setBidAmount("");
-        }
-      } finally {
-        setLoading(false);
+      // ✅ 핵심: expired는 서버 status 기준
+      if (data.status === "ENDED") {
+        setExpired(true);
+        setRemaining("경매 종료");
+        setBidAmount("");
+      } else {
+        setExpired(false);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    load();
-  }, [productNo, authHeader]);
+  useEffect(() => {
+    if (productNo) loadProduct();
+  }, [productNo]);
 
-  // 이미지 url 세팅
+  /* ================= 이미지 ================= */
+
   useEffect(() => {
     if (!productNo) return;
 
     axios
       .get(`http://localhost:8080/product/${productNo}/image`)
       .then((res) => {
-        // attachment 없으면 기본 이미지
-        if (!res.data || res.data.length === 0) {
-          setImageUrl("/no-image.png");
-          return;
-        }
-
-        setImageUrl(`http://localhost:8080/attachment/${res.data}`);
+        if (!res.data) setImageUrl("/no-image.png");
+        else setImageUrl(`http://localhost:8080/attachment/${res.data}`);
       })
       .catch(() => setImageUrl("/no-image.png"));
   }, [productNo]);
 
-  // 남은시간
-  // 1 expired가 true면 타이머 effect 자체가 다시 돌지 않게 의존성에 expired 추가
-  // 2 expired true일 때 remaining을 무조건 "경매 종료"로 고정
+  /* ================= 남은시간 (표시 전용) ================= */
+
   useEffect(() => {
     if (!product?.endTime) return;
 
-    // 이미 종료된 경우(즉시구매/시간종료/STOMP end 포함)면 "경매 종료" 고정 + 타이머 중단
+    // ❗ 이미 서버에서 종료된 상태면 타이머 안 돌림
     if (expired) {
       setRemaining("경매 종료");
       return;
     }
 
     const tick = () => {
-      const { text, expired: timeExpired } = formatRemainingTime(
-        product.endTime
-      );
-
-      if (timeExpired) {
-        setExpired(true);
-        setRemaining("경매 종료");
-        setBidAmount("");
-      } else {
-        setRemaining(text);
-      }
+      setRemaining(formatRemainingTime(product.endTime));
     };
 
     tick();
@@ -186,7 +159,7 @@ export default function AuctionDetail() {
     return () => clearInterval(timer);
   }, [product?.endTime, expired]);
 
-  // STOMP
+  /* ================= STOMP ================= */
 
   useEffect(() => {
     if (!productNo) return;
@@ -197,25 +170,17 @@ export default function AuctionDetail() {
     });
 
     client.onConnect = () => {
-      // 입찰 갱신
       client.subscribe(`/topic/products/${productNo}/bid`, (msg) => {
-        if (!msg?.body) return;
         const body = JSON.parse(msg.body);
-
-        console.log("📨 bid message:", body);
-        console.log("myMemberNo:", myMemberNo);
-
         setCurrentPrice(body.currentPrice);
 
-        // 내 입력값이 현재가보다 작으면 끌어올림
         setBidAmount((prev) => {
           const n = Number(prev);
-          if (isNaN(n) || n < body.currentPrice)
-            return String(body.currentPrice);
-          return prev;
+          return isNaN(n) || n < body.currentPrice
+            ? String(body.currentPrice)
+            : prev;
         });
 
-        // 남이 갱신하면 토스트
         if (Number(body.bidderNo) !== myMemberNo) {
           toast.info(
             `최고가가 ${Number(
@@ -226,21 +191,9 @@ export default function AuctionDetail() {
         }
       });
 
-      // 경매 종료
-      client.subscribe(`/topic/products/${productNo}/end`, (msg) => {
-        if (!msg?.body) return;
-        const body = JSON.parse(msg.body);
-
-        setExpired(true);
-        setRemaining("경매 종료");
-        setBidAmount("");
-        setProcessingInstantBuy(false);
-
-        if (body.finalPrice) setCurrentPrice(body.finalPrice);
-
-        Number(body.buyerNo) === myMemberNo
-          ? toast.success("낙찰에 성공하였습니다", { autoClose: false })
-          : toast.error("경매가 종료되었습니다", { autoClose: false });
+      client.subscribe(`/topic/products/${productNo}/end`, async () => {
+        await loadProduct(); // 🔑 서버 상태 재동기화
+        toast.info("경매가 종료되었습니다", { autoClose: false });
       });
     };
 
@@ -248,28 +201,27 @@ export default function AuctionDetail() {
     return () => client.deactivate();
   }, [productNo, myMemberNo]);
 
-  // 액션
+  /* ================= 액션 ================= */
 
-  const resolveBidAmount = (forcedAmount) =>
-    typeof forcedAmount === "number"
-      ? forcedAmount
-      : normalizeBidAmount(bidAmount, currentPrice, product?.instantPrice);
-
-  const placeBid = async (forcedAmount, skipConfirm = false) => {
+  const placeBid = async () => {
     if (!accessToken) {
-      await swalInfo("로그인이 필요합니다", "입찰하려면 로그인해주세요");
+      await swalInfo("로그인이 필요합니다");
       return;
     }
 
-    const amount = resolveBidAmount(forcedAmount);
+    const amount = normalizeBidAmount(
+      bidAmount,
+      currentPrice,
+      product?.instantPrice
+    );
 
-    // 클릭 시에도 보정값을 입력창에 반영 (UX)
     setBidAmount(String(amount));
 
-    if (!skipConfirm) {
-      const ok = await confirmBid(amount);
-      if (!ok) return;
-    }
+    const ok = await swalConfirm(
+      "입찰 확인",
+      `${amount.toLocaleString()} Point로 입찰하시겠습니까?`
+    );
+    if (!ok) return;
 
     try {
       await axios.post(
@@ -280,20 +232,22 @@ export default function AuctionDetail() {
       toast.success("입찰에 성공하였습니다", { autoClose: 1200 });
     } catch {
       await swalError("입찰 실패", "잠시 후 다시 시도해주세요");
-      // 즉시구매 반영중 켜놓고 실패하면 다시 풀어줌
-      setProcessingInstantBuy(false);
     }
   };
 
   const placeInstantBuy = async () => {
-    const ok = await confirmInstantBuy(product.instantPrice);
+    const ok = await swalConfirm(
+      "즉시구매 확인",
+      `${product.instantPrice.toLocaleString()} Point에 즉시 낙찰됩니다`
+    );
     if (!ok) return;
 
     setProcessingInstantBuy(true);
-    await placeBid(product.instantPrice, true);
+    await placeBid();
+    setProcessingInstantBuy(false);
   };
 
-  // 렌더
+  /* ================= 렌더 ================= */
 
   if (loading) {
     return (
