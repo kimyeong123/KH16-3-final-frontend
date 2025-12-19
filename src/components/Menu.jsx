@@ -131,7 +131,7 @@ export default function Menu() {
                                         onClick={closeMenu}
                                     >
                                         <FaListUl className="fs-5 me-1" />
-                                        내상품리스트
+                                        거래내역
                                     </Link>
                                 </li>
 
