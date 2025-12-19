@@ -201,7 +201,7 @@ body {
 }
 
 .password-modal-dialog {
-  max-width: 420px !important;   /* 너무 넓지 않게 */
+  max-width: 420px !important;
 }
 .block-title {
   width: 100%;

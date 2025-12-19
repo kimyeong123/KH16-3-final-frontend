@@ -609,24 +609,26 @@ export default function MemberMypage() {
                     {/* 계정 관리 */}
                     <div className="col-md-5">
                         <div className="card shadow-lg rounded-3 overflow-hidden">
-
-                            {/* 상단 배너 */}
-                            <div
-                                className=" text-white p-3 rounded"
-                                style={{ backgroundColor: "#2C3E50" }}
-                            >
-
-                                <div className="d-flex align-items-center justify-content-between ">
-                                    <div>
-                                        <div className="fw-bold fs-5">계정 관리</div>
-                                        <div className="small opacity-75">내 정보 수정 · 보안 · 계정 설정</div>
+                            <div className="mb-4">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className="fw-bold fs-5 text-dark">
+                                        계정 관리
                                     </div>
-                                    <div className="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center"
-                                        style={{ width: 42, height: 42, fontWeight: 700 }}>
-                                        ID
-                                    </div>
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            height: 1,
+                                            backgroundColor: "#e5e7eb"
+                                        }}
+                                    />  
                                 </div>
+                                {!isViewAs && (
+                                <div className="small text-muted mt-1">
+                                    내 정보 수정 · 보안
+                                </div>)}
                             </div>
+
+
 
                             <div className="p-4">
 
@@ -745,7 +747,20 @@ export default function MemberMypage() {
                     {/* 기타 정보 */}
                     <div className="col-12">
                         <div className="card shadow-sm p-4">
-                            <h5 className="mb-3">기타 정보</h5>
+                            <div className="d-flex align-items-center gap-2 mb-3 mt-4">
+                                <div
+                                    style={{
+                                        width: 6,
+                                        height: 22,
+                                        backgroundColor: "#2C3E50",
+                                        borderRadius: 3
+                                    }}
+                                />
+                                <h5 className="mb-0 fw-bold" style={{ color: "#2C3E50" }}>
+                                    기타 정보
+                                </h5>
+                            </div>
+
                             {/* 포인트 충전 내역 */}
                             <div
                                 className="d-flex align-items-center justify-content-between px-3 py-3 mb-2 rounded"
