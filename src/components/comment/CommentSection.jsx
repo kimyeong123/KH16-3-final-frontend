@@ -75,7 +75,7 @@ const CommentSection = ({ boardNo, comments, isAdmin, loginNo, onRefresh }) => {
                                     )}
                                 </div>
                             </div>
-                            <p className="mb-0 text-secondary" style={{ whiteSpace: "pre-wrap" }}>
+                            <p className="mb-0 text-black" style={{ whiteSpace: "pre-wrap" }}>
                                 {comment.content}
                             </p>
                         </div>

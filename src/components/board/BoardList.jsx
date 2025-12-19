@@ -98,7 +98,6 @@ export default function BoardList() {
                     <tr>
                         <th style={{ width: '10%' }}>No</th>
                         <th style={{ width: '50%' }}>제목</th>
-                        <th style={{ width: '15%' }}>작성자</th>
                         <th style={{ width: '15%' }}>작성일</th>
                         <th style={{ width: '10%' }}>조회수</th>
                     </tr>
@@ -109,7 +108,6 @@ export default function BoardList() {
                             <tr key={board.boardNo} onClick={() => goToDetail(board.boardNo)} style={{ cursor: 'pointer' }}>
                                 <td>{board.boardNo}</td>
                                 <td>{board.title}</td>
-                                <td>{board.writer}</td>
                                 <td>{board.writeTime ? board.writeTime.substring(0, 10) : '-'}</td>
                                 <td>{board.readCount}</td>
                             </tr>
