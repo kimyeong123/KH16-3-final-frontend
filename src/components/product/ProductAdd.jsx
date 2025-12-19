@@ -347,7 +347,6 @@ export default function ProductAdd() {
             ))}
           </div>
         </div>
-
         <button type="submit" style={{ padding: "10px 14px", marginTop: 8 }}>
           상품 등록
         </button>
