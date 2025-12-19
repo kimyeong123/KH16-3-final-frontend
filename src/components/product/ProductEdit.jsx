@@ -22,11 +22,11 @@ function pickAttachmentName(a, idx) {
 
 const API = "http://localhost:8080";
 
-// ✅ 이미지 캐시 방지를 위해 URL에 타임스탬프 추가 함수
+//  이미지 캐시 방지를 위해 URL에 타임스탬프 추가 함수
 const ATT_VIEW = (attachmentNo) => `${API}/attachment/${attachmentNo}`;
 
 /**
- * ✅ SecureImage: 인증 헤더 포함 이미지 로딩 컴포넌트
+ *  SecureImage: 인증 헤더 포함 이미지 로딩 컴포넌트
  */
 function SecureImage({ url, authHeader, alt, style }) {
   const [src, setSrc] = useState(null);
@@ -122,7 +122,7 @@ export default function ProductEdit() {
   const navigate = useNavigate();
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
 
-  // ✅ 토큰 유지 및 복구 (Hydration)
+  //  토큰 유지 및 복구 (Hydration)
   const TOKEN_KEY = "ACCESS_TOKEN";
   const [hydrated, setHydrated] = useState(false);
 
@@ -482,7 +482,7 @@ export default function ProductEdit() {
         </div>
 
         <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-          {/* ✅ 이 버튼을 누르면 텍스트 수정 + 선택된 파일 업로드까지 한 번에 함 */}
+          {/*  이 버튼을 누르면 텍스트 수정 + 선택된 파일 업로드까지 한 번에 함 */}
           <button type="submit" disabled={fileLoading} style={{ padding: "12px 20px", fontWeight: "bold", background: "#333", color: "white", border: "none", borderRadius: 6, cursor: fileLoading ? "wait" : "pointer" }}>
             {fileLoading ? "처리중..." : "수정 저장 (파일 포함)"}
           </button>

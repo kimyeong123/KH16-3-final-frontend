@@ -9,7 +9,7 @@ export default function ProductDetail() {
   const { productNo } = useParams();
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
 
-  // ✅ [추가] 토큰 유지 및 복구 (Hydration) 시작
+  //  [추가] 토큰 유지 및 복구 (Hydration) 시작
   const TOKEN_KEY = "ACCESS_TOKEN";
   const [hydrated, setHydrated] = useState(false);
 
@@ -32,7 +32,7 @@ export default function ProductDetail() {
       localStorage.setItem(TOKEN_KEY, accessToken);
     }
   }, [accessToken]);
-  // ✅ [추가] 끝
+  //  [추가] 끝
 
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
@@ -139,7 +139,7 @@ export default function ProductDetail() {
     };
   }, [attachments, accessToken, authHeader]);
 
-  // ✅ [수정] 토큰 복구가 완료된(hydrated) 후에 load 실행
+  //  [수정] 토큰 복구가 완료된(hydrated) 후에 load 실행
   useEffect(() => {
     if (!hydrated) return;
     if (productNo) load();
@@ -181,25 +181,9 @@ export default function ProductDetail() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  // ✅ 로딩 전 상태 처리
-  if (!hydrated)
-    return (
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
-        페이지 준비중...
-      </div>
-    );
-  if (loading)
-    return (
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
-        로딩중...
-      </div>
-    );
-  if (!product)
-    return (
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
-        상품이 없습니다.
-      </div>
-    );
+  if (!hydrated) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>페이지 준비중...</div>;
+  if (loading) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>로딩중...</div>;
+  if (!product) return <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>상품이 없습니다.</div>;
 
   const p = product;
   const name = p.name ?? "";

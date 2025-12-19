@@ -6,35 +6,9 @@ import { accessTokenState } from "../../utils/jotai";
 
 export default function ProductAuctionList() {
   const navigate = useNavigate();
+  
+  // [핵심 수정] Jotai 상태만 사용하고, localStorage 수동 복구 로직은 삭제했습니다.
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
-
-  // === 토큰 유지 ===
-  const TOKEN_KEY = "ACCESS_TOKEN";
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(TOKEN_KEY);
-    if (
-      (!accessToken || String(accessToken).trim().length === 0) &&
-      saved &&
-      saved.trim().length > 0
-    ) {
-      setAccessToken(saved);
-    }
-    setHydrated(true);
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    if (accessToken && String(accessToken).trim().length > 0) {
-      localStorage.setItem(TOKEN_KEY, accessToken);
-    }
-  }, [accessToken]);
-
-  const clearToken = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    setAccessToken("");
-  };
 
   // === 상태 관리 ===
   const [page, setPage] = useState(1);
@@ -57,6 +31,7 @@ export default function ProductAuctionList() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
+  // [핵심] 인증 헤더 생성
   const authHeader = useMemo(() => {
     if (!accessToken) return "";
     return accessToken.startsWith("Bearer ")
@@ -92,7 +67,6 @@ export default function ProductAuctionList() {
   const normalize = (data) => {
     const root = data?.data ?? data;
     if (Array.isArray(root)) return { list: root, last: true };
-    // API 응답 구조에 따라 list 추출
     const list = root?.list || root?.content || root?.data || [];
     const last = root?.last ?? root?.lastPage ?? true;
     return { list, last };
@@ -133,7 +107,6 @@ export default function ProductAuctionList() {
     setErrorInfo(null);
 
     try {
-      // 정렬값 변환
       let serverSort = sort;
       if (sort === "PRICE_HIGH") serverSort = "PRICE_DESC";
       else if (sort === "PRICE_LOW") serverSort = "PRICE_ASC";
@@ -159,7 +132,8 @@ export default function ProductAuctionList() {
     } catch (err) {
       const status = err.response?.status;
       if (status === 401) {
-        if (accessToken) clearToken();
+        // [수정] 인증 실패 시 Jotai 상태만 비움
+        if (accessToken) setAccessToken("");
         setErrorInfo({ status: 401, message: "로그인 필요" });
       } else {
         setErrorInfo({ status: status || "?", message: "로딩 실패" });
@@ -177,36 +151,27 @@ export default function ProductAuctionList() {
 
   // 2. 페이지 변경 시 로드
   useEffect(() => {
-    if (!hydrated) return;
     fetchList(page);
     // eslint-disable-next-line
-  }, [hydrated, page]);
+  }, [page]); // hydrated 의존성 제거
 
-  // =================================================================
-  //  🔥 [여기부터] 요즘 스타일: 실시간 반영 로직
-  // =================================================================
-
-  // 3. [즉시 반영] 정렬(sort)이나 카테고리가 바뀌면 바로 검색
+  // 3. [즉시 반영] 정렬이나 카테고리 변경 시 검색
   useEffect(() => {
-    if (!hydrated) return;
-    setPage(1); // 1페이지로 리셋
-    fetchList(1);
-    // eslint-disable-next-line
+      setPage(1); 
+      fetchList(1);
+      // eslint-disable-next-line
   }, [sort, selectedTopCode, selectedChildCode]);
 
-  // 4. [지연 반영] 검색어(q), 가격(min, max)은 타자 칠 때마다 요청하면 안되니까 0.5초 기다림 (디바운싱)
+  // 4. [지연 반영] 검색어, 가격 등
   useEffect(() => {
-    if (!hydrated) return;
-    const timer = setTimeout(() => {
-      setPage(1);
-      fetchList(1);
-    }, 500); // 0.5초 딜레이
+      const timer = setTimeout(() => {
+          setPage(1);
+          fetchList(1);
+      }, 500); 
 
-    return () => clearTimeout(timer); // 0.5초 안에 또 입력하면 타이머 리셋
-    // eslint-disable-next-line
+      return () => clearTimeout(timer); 
+      // eslint-disable-next-line
   }, [q, minPrice, maxPrice]);
-
-  // =================================================================
 
   // 필터 초기화
   const resetFilter = () => {
@@ -218,7 +183,6 @@ export default function ProductAuctionList() {
     setMaxPrice("");
     setOpenParents({});
     setPage(1);
-    // 상태가 바뀌면 위 useEffect들이 알아서 fetchList를 호출하므로 여기서 호출 안 해도 됨
   };
 
   const goDetail = (no) => navigate(`/product/auction/detail/${no}`);
@@ -232,7 +196,7 @@ export default function ProductAuctionList() {
 
   // 썸네일 번호 찾기
   useEffect(() => {
-    if (!hydrated || !vo.list.length) return;
+    if (!vo.list.length) return;
     let alive = true;
     const run = async () => {
       const targets = [];
@@ -267,58 +231,44 @@ export default function ProductAuctionList() {
       }
     };
     run();
-    return () => {
-      alive = false;
-    };
-  }, [vo.list, hydrated]);
+    return () => { alive = false; };
+  }, [vo.list]); // hydrated 제거
 
-  // Blob URL 생성
+  // Blob URL 생성 (에러 수정됨)
   useEffect(() => {
-    if (!hydrated || !vo.list.length) return;
+    if (!vo.list.length) return;
     let alive = true;
     const run = async () => {
-      const needed = [];
-      for (const p of vo.list) {
-        const pNo = get(p, ["productNo", "product_no"]);
-        const attNo = resolveThumbNo(p) || thumbNoByProduct[pNo];
-        if (attNo && !thumbMap[attNo]) needed.push(attNo);
-      }
-      const uniq = [...new Set(needed)];
-      if (uniq.length === 0) return;
+        const needed = [];
+        for (const p of vo.list) {
+            const pNo = get(p, ["productNo", "product_no"]);
+            const attNo = resolveThumbNo(p) || thumbNoByProduct[pNo];
+            if (attNo && !thumbMap[attNo]) needed.push(attNo);
+        }
+        const uniq = [...new Set(needed)];
+        if (uniq.length === 0) return;
 
-      for (let i = 0; i < uniq.length; i += 6) {
-        const chunk = uniq.slice(i, i + chunkSize);
-        const res = await Promise.all(
-          chunk.map(async (attNo) => {
-            try {
-              const r = await axios.get(ATT_VIEW(attNo), {
-                responseType: "blob",
-                headers: accessToken
-                  ? { Authorization: authHeader }
-                  : undefined,
-              });
-              return { attNo, url: URL.createObjectURL(r.data) };
-            } catch {
-              return { attNo, url: null };
-            }
-          })
-        );
-        if (!alive) return;
-        const patch = {};
-        res.forEach((x) => {
-          if (x.url) {
-            patch[x.attNo] = x.url;
-            revokeRef.current.push(x.url);
-          }
-        });
-        setThumbMap((prev) => ({ ...prev, ...patch }));
-      }
+        // [수정] chunkSize 변수 선언 추가 (ReferenceError 해결)
+        const chunkSize = 6; 
+        for (let i = 0; i < uniq.length; i += 6) {
+            const chunk = uniq.slice(i, i + chunkSize);
+            const res = await Promise.all(chunk.map(async (attNo) => {
+                try {
+                    const r = await axios.get(ATT_VIEW(attNo), { responseType: 'blob', headers: accessToken ? { Authorization: authHeader } : undefined });
+                    return { attNo, url: URL.createObjectURL(r.data) };
+                } catch { return { attNo, url: null }; }
+            }));
+            if (!alive) return;
+            const patch = {};
+            res.forEach(x => {
+                if(x.url) { patch[x.attNo] = x.url; revokeRef.current.push(x.url); }
+            });
+            setThumbMap(prev => ({...prev, ...patch}));
+        }
     };
     run();
-    return () => {
-      alive = false;
-    };
-  }, [vo.list, thumbNoByProduct, hydrated, accessToken]);
+    return () => { alive = false; };
+  }, [vo.list, thumbNoByProduct, accessToken]); // hydrated 제거
 
   // === 렌더링 ===
   const list = vo.list;
@@ -337,8 +287,8 @@ export default function ProductAuctionList() {
         }}
       >
         <div style={{ fontSize: 26, fontWeight: 900 }}>경매 리스트</div>
-
-        {/* 정렬 (적용 버튼 삭제됨) */}
+        
+        {/* 정렬 */}
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <select
             value={sort}
@@ -372,7 +322,7 @@ export default function ProductAuctionList() {
         >
           <div style={{ fontWeight: 800, marginBottom: 10 }}>필터</div>
 
-          {/* 검색 (타자 치면 0.5초 뒤 자동 반영) */}
+          {/* 검색 */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 13, color: "#666", marginBottom: 6 }}>
               검색
@@ -390,7 +340,7 @@ export default function ProductAuctionList() {
             />
           </div>
 
-          {/* 카테고리 (누르면 바로 반영) */}
+          {/* 카테고리 */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 13, color: "#666", marginBottom: 6 }}>
               카테고리
@@ -495,7 +445,7 @@ export default function ProductAuctionList() {
             </div>
           </div>
 
-          {/* 가격 (입력 멈추면 0.5초 뒤 자동 반영) */}
+          {/* 가격 */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 13, color: "#666", marginBottom: 6 }}>
               가격
@@ -528,7 +478,7 @@ export default function ProductAuctionList() {
             </div>
           </div>
 
-          {/* 버튼: 초기화만 남김 */}
+          {/* 버튼 */}
           <div>
             <button
               onClick={resetFilter}
