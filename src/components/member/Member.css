@@ -201,7 +201,7 @@ body {
 }
 
 .password-modal-dialog {
-  max-width: 420px !important;   /* 너무 넓지 않게 */
+  max-width: 420px !important;
 }
 .block-title {
   width: 100%;
@@ -221,4 +221,9 @@ body {
     height: 100%;
     background: rgba(236, 240, 241, 0.55) !important;
     backdrop-filter: blur(0.3px); 
+}
+.info-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
 }

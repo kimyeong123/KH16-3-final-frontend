@@ -89,8 +89,7 @@ export default function BoardDetail() {
                                 {board.attachmentList.map((file) => (
                                     <div key={file.attachmentNo} className="text-center">
                                         <img 
-                                            // 서버의 다운로드/출력 주소에 맞게 수정하세요
-                                            src={`/attachment/${file.attachmentNo}`} 
+                                            src={`http://localhost:8080/attachment/${file.attachmentNo}`}
                                             alt={file.originalName} 
                                             className="img-fluid rounded shadow-sm"
                                             style={{ maxWidth: '100%', height: 'auto' }}
