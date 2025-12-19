@@ -20,7 +20,7 @@ import {
   ListGroup,
 } from "react-bootstrap";
 
-import { FaGavel, FaBolt } from "react-icons/fa";
+import { FaGavel, FaBolt, FaArrowLeft } from "react-icons/fa";
 
 // 유틸
 const normalizeBidAmount = (value, currentPrice, instantPrice) => {
@@ -81,6 +81,7 @@ export default function AuctionDetail() {
   const [expired, setExpired] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processingInstantBuy, setProcessingInstantBuy] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
 
   // 파생 상태
   const hasInstantBuy = !!product?.instantPrice;
@@ -135,6 +136,24 @@ export default function AuctionDetail() {
 
     load();
   }, [productNo, authHeader]);
+
+  // 이미지 url 세팅
+  useEffect(() => {
+    if (!productNo) return;
+
+    axios
+      .get(`http://localhost:8080/product/${productNo}/image`)
+      .then((res) => {
+        // attachment 없으면 기본 이미지
+        if (!res.data || res.data.length === 0) {
+          setImageUrl("/no-image.png");
+          return;
+        }
+
+        setImageUrl(`http://localhost:8080/attachment/${res.data}`);
+      })
+      .catch(() => setImageUrl("/no-image.png"));
+  }, [productNo]);
 
   // 남은시간
   // 1 expired가 true면 타이머 effect 자체가 다시 돌지 않게 의존성에 expired 추가
@@ -296,11 +315,32 @@ export default function AuctionDetail() {
       <Row className="gy-4">
         {/* 이미지 영역 */}
         <Col md={7}>
-          <img
-            src={product.thumbnailUrl || "/no-image.png"}
-            alt="상품"
-            style={{ maxWidth: "100%", borderRadius: 8 }}
-          />
+          <Card className="shadow-sm h-100">
+            <Card.Body className="d-flex align-items-center justify-content-center p-3">
+              <div
+                style={{
+                  width: "100%",
+                  aspectRatio: "1 / 1",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: 8,
+                }}
+              >
+                <img
+                  src={imageUrl || "/no-image.png"}
+                  alt="상품"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "contain",
+                    borderRadius: 8,
+                  }}
+                />
+              </div>
+            </Card.Body>
+          </Card>
         </Col>
 
         {/* 경매 패널 */}
@@ -321,8 +361,14 @@ export default function AuctionDetail() {
 
               {/* 현재 입찰가 */}
               <div className="mb-4">
-                <div className="text-muted small mb-1">현재 입찰가</div>
-                <div className="fs-3 fw-bold text-blue">
+                <div className="text-muted small mb-1">
+                  {expired ? "낙찰가" : "현재 입찰가"}
+                </div>
+                <div
+                  className={`fs-3 fw-bold ${
+                    expired ? "text-red" : "text-blue"
+                  }`}
+                >
                   {currentPrice.toLocaleString()}
                   <span className="ms-1 text-muted fs-6">Point</span>
                 </div>
@@ -422,9 +468,21 @@ export default function AuctionDetail() {
         </Col>
       </Row>
 
-      <div className="mt-4">
-        <Button variant="link" onClick={() => navigate(-1)}>
-          ← 뒤로가기
+      {/* 뒤로가기 */}
+      <div className="mb-2">
+        <Button
+          variant="link"
+          onClick={() => navigate(-1)}
+          className="d-inline-flex align-items-center gap-2 text-decoration-none fw-semibold px-0 mt-3"
+          style={{
+            color: "#495057",
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#0d6efd")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#495057")}
+        >
+          <FaArrowLeft />
+          <span>목록으로</span>
         </Button>
       </div>
     </Container>

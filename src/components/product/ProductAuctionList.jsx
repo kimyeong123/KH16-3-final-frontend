@@ -6,7 +6,7 @@ import { accessTokenState } from "../../utils/jotai";
 
 export default function ProductAuctionList() {
   const navigate = useNavigate();
-  
+
   // [핵심 수정] Jotai 상태만 사용하고, localStorage 수동 복구 로직은 삭제했습니다.
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
 
@@ -157,20 +157,20 @@ export default function ProductAuctionList() {
 
   // 3. [즉시 반영] 정렬이나 카테고리 변경 시 검색
   useEffect(() => {
-      setPage(1); 
-      fetchList(1);
-      // eslint-disable-next-line
+    setPage(1);
+    fetchList(1);
+    // eslint-disable-next-line
   }, [sort, selectedTopCode, selectedChildCode]);
 
   // 4. [지연 반영] 검색어, 가격 등
   useEffect(() => {
-      const timer = setTimeout(() => {
-          setPage(1);
-          fetchList(1);
-      }, 500); 
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchList(1);
+    }, 500);
 
-      return () => clearTimeout(timer); 
-      // eslint-disable-next-line
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line
   }, [q, minPrice, maxPrice]);
 
   // 필터 초기화
@@ -231,7 +231,9 @@ export default function ProductAuctionList() {
       }
     };
     run();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [vo.list]); // hydrated 제거
 
   // Blob URL 생성 (에러 수정됨)
@@ -239,35 +241,49 @@ export default function ProductAuctionList() {
     if (!vo.list.length) return;
     let alive = true;
     const run = async () => {
-        const needed = [];
-        for (const p of vo.list) {
-            const pNo = get(p, ["productNo", "product_no"]);
-            const attNo = resolveThumbNo(p) || thumbNoByProduct[pNo];
-            if (attNo && !thumbMap[attNo]) needed.push(attNo);
-        }
-        const uniq = [...new Set(needed)];
-        if (uniq.length === 0) return;
+      const needed = [];
+      for (const p of vo.list) {
+        const pNo = get(p, ["productNo", "product_no"]);
+        const attNo = resolveThumbNo(p) || thumbNoByProduct[pNo];
+        if (attNo && !thumbMap[attNo]) needed.push(attNo);
+      }
+      const uniq = [...new Set(needed)];
+      if (uniq.length === 0) return;
 
-        // [수정] chunkSize 변수 선언 추가 (ReferenceError 해결)
-        const chunkSize = 6; 
-        for (let i = 0; i < uniq.length; i += 6) {
-            const chunk = uniq.slice(i, i + chunkSize);
-            const res = await Promise.all(chunk.map(async (attNo) => {
-                try {
-                    const r = await axios.get(ATT_VIEW(attNo), { responseType: 'blob', headers: accessToken ? { Authorization: authHeader } : undefined });
-                    return { attNo, url: URL.createObjectURL(r.data) };
-                } catch { return { attNo, url: null }; }
-            }));
-            if (!alive) return;
-            const patch = {};
-            res.forEach(x => {
-                if(x.url) { patch[x.attNo] = x.url; revokeRef.current.push(x.url); }
-            });
-            setThumbMap(prev => ({...prev, ...patch}));
-        }
+      // [수정] chunkSize 변수 선언 추가 (ReferenceError 해결)
+      const chunkSize = 6;
+      for (let i = 0; i < uniq.length; i += 6) {
+        const chunk = uniq.slice(i, i + chunkSize);
+        const res = await Promise.all(
+          chunk.map(async (attNo) => {
+            try {
+              const r = await axios.get(ATT_VIEW(attNo), {
+                responseType: "blob",
+                headers: accessToken
+                  ? { Authorization: authHeader }
+                  : undefined,
+              });
+              return { attNo, url: URL.createObjectURL(r.data) };
+            } catch {
+              return { attNo, url: null };
+            }
+          })
+        );
+        if (!alive) return;
+        const patch = {};
+        res.forEach((x) => {
+          if (x.url) {
+            patch[x.attNo] = x.url;
+            revokeRef.current.push(x.url);
+          }
+        });
+        setThumbMap((prev) => ({ ...prev, ...patch }));
+      }
     };
     run();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [vo.list, thumbNoByProduct, accessToken]); // hydrated 제거
 
   // === 렌더링 ===
@@ -287,7 +303,7 @@ export default function ProductAuctionList() {
         }}
       >
         <div style={{ fontSize: 26, fontWeight: 900 }}>경매 리스트</div>
-        
+
         {/* 정렬 */}
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <select
