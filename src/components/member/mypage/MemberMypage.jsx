@@ -22,7 +22,7 @@ import PasswordChangeModal from "./modals/PasswordChangeModal";
 import ChargeHistoryModal from "./modals/ChargeHistoryModal";
 import BidHistoryModal from "./modals/BidHistoryModal";
 import MemberInfoCard from "./sections/MemberInfoCard";
-
+import WinProductModal from "./modals/WinProductModal";
 
 const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$])[A-Za-z0-9!@#$]{8,16}$/;
 export default function MemberMypage() {
@@ -47,6 +47,8 @@ export default function MemberMypage() {
     const [chargeHistory, setChargeHistory] = useState([]);
     // 입찰 내역을 위한 상태
     const [bidHistory, setBidHistory] = useState([]);
+    // 낙찰 내역을 위한 상태
+    const [winProduct, setWinProduct] = useState([]);
     // 비밀번호 변경을 위한 상태
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [onlyBidding, setOnlyBidding] = useState(true);
@@ -189,6 +191,29 @@ export default function MemberMypage() {
 
         if (accessToken && (!isViewAs || viewMember)) loadBidHistory();
     }, [accessToken, isViewAs, targetNo, viewMember]);
+    //낙찰내역
+    // 낙찰내역
+useEffect(() => {
+  const loadWinProduct = async () => {
+    try {
+      const url = isViewAs
+        ? `/admin/members/${targetNo}/win-products/history`
+        : `/member/win-products/history`; // 
+
+      const resp = await axios.get(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      setWinProduct(resp.data);
+    } catch (e) {
+      console.error(e);
+      setWinProduct([]);
+    }
+  };
+
+  if (accessToken && (!isViewAs || viewMember)) loadWinProduct();
+}, [accessToken, isViewAs, targetNo, viewMember]);
+
 
 
     // 주소 검색
@@ -628,8 +653,6 @@ export default function MemberMypage() {
                                 </div>)}
                             </div>
 
-
-
                             <div className="p-4">
 
                                 {/* 메뉴형 액션 리스트 */}
@@ -786,7 +809,18 @@ export default function MemberMypage() {
                                     <div className="text-secondary small">입찰한 상품 {bidHistory.length}개</div>
                                 </div>
                             </div>
-                            {/* 문의 내역 */}
+                            {/* 낙찰 내역 */}
+                             <div
+                                className="d-flex align-items-center justify-content-between px-3 py-3 mb-2 rounded"
+                                style={{ background: "#f9fafb", border: "1px dashed #dee2e6", cursor: "pointer" }}
+                                data-bs-toggle="modal"
+                                data-bs-target="#winProductModal"
+                            >
+                                <div className="info-text">
+                                    <div className="fw-semibold fs-5">낙찰 내역</div>
+                                    <div className="text-secondary small">낙찰받은 상품 {winProduct.length}개</div>
+                                </div>
+                            </div>
                             {/* 등록한 물품 */}
                         </div>
                     </div>
@@ -817,6 +851,8 @@ export default function MemberMypage() {
                         setOnlyBidding={setOnlyBidding}
                         filtered={filtered}
                     />
+                    <WinProductModal winProduct={winProduct} />
+
                 </div>
             </div>
         </>
