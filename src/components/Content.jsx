@@ -22,7 +22,6 @@ import ProductAddDone from "./product/ProductAddDone";
 import Admin from "./guard/Admin";
 import MessageWrite from "./message/MessageWrite";
 import AdminHome from "./admin/AdminHome";
-import AdminQnaList from "./admin/AdminQnaList";
 import MemberManage from "./admin/MemberManage";
 import Unauthorization from "./error/Unauthorization";
 import ProductDetail from "./product/ProductDetail";
@@ -37,6 +36,7 @@ import Terms from "./etc/Terms";
 import SignupAgreement from "./etc/SignupAgreement";
 import PrivacyPolicy from "./etc/PrivacyPolicy";
 import RequireSignupAgree from "../components/guard/RequireSignupAgree";
+import AdminMemberDetail from "./admin/AdminMemberDetail";
 
 export default function Content() {
   return (
@@ -76,17 +76,10 @@ export default function Content() {
             <Route path="/member/mypage/:memberNo" element={<MemberMypage />} />
 
             {/* 관리자 홈 */}
-            <Route
-              path="/admin/home"
-              element={
-                <Admin>
-                  <AdminHome />
-                </Admin>
-              }
-            >
+            <Route path="/admin/home" element={<Admin><AdminHome /></Admin>}>
               <Route index element={<div>관리자 대시보드</div>} />
               <Route path="member" element={<MemberManage />} />
-              <Route path="qnalist" element={<AdminQnaList />} />
+              <Route path="member/detail/:memberNo" element={<AdminMemberDetail />} />
             </Route>
 
             {/* 게시글 페이지(공지만) - HEAD 부분 */}
@@ -118,9 +111,8 @@ export default function Content() {
                 </Private>
               }
             ></Route>
-            <Route path="/qna/:boardNo" element={<QnaDetail />}></Route>
+            <Route path="/qna/:detail/:boardNo" element={<QnaDetail />}></Route>
             <Route path="/qna/main" element={<QnaMain />}></Route>
-            {/* 관리자용 QNA List는 따로 만들면 좋을듯 */}
 
             {/* 메세지(알림) - HEAD 부분 */}
             <Route

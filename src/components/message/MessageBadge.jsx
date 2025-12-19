@@ -24,7 +24,7 @@ export default function MessageBadge({ isLogin, onClick, isDropdownOpen, unreadC
                 style={{ cursor: 'pointer', display: 'inline-block' }}
             >
                 <FaRegBell 
-                    className="fs-5 text-muted" 
+                    className="fs-5 text-muted ms-2" 
                 />
             </div>
         );
@@ -39,7 +39,7 @@ export default function MessageBadge({ isLogin, onClick, isDropdownOpen, unreadC
             style={{ display: 'inline-block' }} // 부모 div에 이 스타일을 적용해야 배치가 잘 됩니다.
         >
             <FaRegBell 
-                className={`fs-5 ${isDropdownOpen ? 'text-primary' : 'text-black'}`}
+                className={`fs-5 ms-2 me-2 ${isDropdownOpen ? 'text-primary' : 'text-black'}`}
                 aria-expanded={isDropdownOpen}
                 style={{ cursor: 'pointer' }}
             />

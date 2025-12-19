@@ -41,4 +41,10 @@
   color: #888;
 }
 
-
+@media (max-width: 991px) {
+  .dropdown-menu-end {
+    right: 5px !important; 
+    left: auto !important;
+    width: 280px !important; 
+  }
+}

@@ -16,9 +16,6 @@ export default function AdminSidebar() {
         회원
       </NavLink>
 
-      <NavLink to="/admin/home/qnalist" className="admin-menu">
-        문의사항
-      </NavLink>
     </div>
   );
 }
