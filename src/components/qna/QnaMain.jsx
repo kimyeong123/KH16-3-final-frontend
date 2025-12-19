@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { atom, useAtomValue } from "jotai";
+import { useNavigate } from "react-router-dom";
 
 export default function QnaMain() {
     const [tab, setTab] = useState('faq');
     const [faqs, setFaqs] = useState([]);
     const [myQna, setMyQna] = useState([]);
-    
+    const navigate = useNavigate();
+
     const loadFaqs = async () => {
         try {
             const resp = await axios.get("/qna/list", { params: { type: 'FREE', size: 100 } });
@@ -33,9 +35,9 @@ export default function QnaMain() {
         <div className="container mt-5" style={{ maxWidth: '900px' }}>
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2 className="fw-bold m-0">고객센터</h2>
-                    <button className="btn btn-primary" onClick={() => window.location.href = '/qna/write'}>
-                        <i className="fa-solid fa-pen me-2"></i>1:1 문의하기
-                    </button>
+                <button className="btn btn-primary" onClick={() => window.location.href = '/qna/write'}>
+                    <i className="fa-solid fa-pen me-2"></i>1:1 문의하기
+                </button>
             </div>
 
             {/* 탭 메뉴 */}
@@ -92,11 +94,13 @@ export default function QnaMain() {
                             </thead>
                             <tbody>
                                 {myQna.map(q => (
-                                    <tr key={q.boardNo} onClick={() => window.location.href = `/qna/detail/${q.boardNo}`} style={{ cursor: 'pointer' }}>
+                                    <tr key={q.boardNo} onClick={() => navigate(`/qna/detail/${q.boardNo}`)} style={{ cursor: 'pointer' }}>
                                         <td className="text-center">
-                                            {q.replyCount > 0 ?
-                                                <span className="badge bg-success">답변완료</span> :
-                                                <span className="badge bg-secondary">답변대기</span>}
+                                            {q.commentCount > 0 ? ( 
+                                                <span className="badge bg-success">답변완료</span>
+                                            ) : (
+                                                <span className="badge bg-secondary">답변대기</span>
+                                            )}
                                         </td>
                                         <td>{q.title}</td>
                                         <td className="text-center text-muted small">

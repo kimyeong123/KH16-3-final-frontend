@@ -52,6 +52,7 @@ export default function Header() {
 
     // 드롭다운 컨테이너 DOM 참조
     const dropdownRef = useRef(null);
+    const closeMenu = useCallback(() => { setOpen(false) }, []);
 
     // jotai state
     const [loginId] = useAtom(loginIdState);
@@ -61,6 +62,7 @@ export default function Header() {
     const [isLogin] = useAtom(loginState);
     const clearLogin = useSetAtom(clearLoginState);
     const [, setLoginComplete] = useAtom(loginCompleteState);
+
 
     // [추가] 미확인 알림 개수 상태 (폴링으로 업데이트됨)
     const [unreadCount, setUnreadCount] = useState(0);
@@ -72,12 +74,12 @@ export default function Header() {
     // =========================================================
     // [추가됨] 검색 관련 로직 시작
     // =========================================================
-    const [keyword, setKeyword] = useState(""); 
+    const [keyword, setKeyword] = useState("");
 
     // 검색 실행 함수 (돋보기 클릭 or 엔터)
     const handleSearch = () => {
         if (!keyword.trim()) return; // 빈칸이면 검색 안 함
-        
+
         // 검색 페이지로 이동하면서 URL에 검색어를 붙임 (?q=검색어)
         navigate(`/product/auction/list?q=${encodeURIComponent(keyword)}`);
     };
@@ -88,10 +90,6 @@ export default function Header() {
             handleSearch();
         }
     };
-    // =========================================================
-    // [추가됨] 검색 관련 로직 끝
-    // =========================================================
-
 
     // ***** 2. 콜백 및 이펙트 (Callback & Effect) *****
 
@@ -145,6 +143,7 @@ export default function Header() {
 
     // [현재 탭에 맞는 알림 필터링] - 실제 데이터(notifications)와 DB TYPE 사용
     const filteredNotifications = notifications.filter(notif => {
+        if (notif.isRead === 'Y') return false;
         if (activeTab === 'all') return true;
         // 중요 탭: SYSTEM_ALERT 타입만 필터링
         if (activeTab === 'important') return notif.type === 'SYSTEM_ALERT';
@@ -176,12 +175,12 @@ export default function Header() {
             return;
         }
 
-        // 서버에서 미확인 알림 개수를 가져오는 비동기 함수
+        // 서버에서 미확인 알림 개수를 가져옴
         const fetchUnreadCount = async () => {
             try {
                 // 백엔드 API 호출: GET /message/unread/count
                 const response = await axios.get(NOTIFICATION_COUNT_URL);
-                
+
                 const count = Number(response.data.unreadCount);
 
                 // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
@@ -211,6 +210,40 @@ export default function Header() {
         }
     }, [isLogin, isDropdownOpen, fetchNotifications]);
 
+    const handleNotifClick = async (notif) => {
+        setIsDropdownOpen(false); // // 드롭다운 닫기
+
+        // // 2. 읽음 처리 (백그라운드)
+        if (notif.isRead === 'N') {
+            try {
+                await axios.get(`/message/${notif.messageNo}`);
+            } catch (e) {
+                console.error("읽음 처리 실패", e);
+            }
+        }
+
+        // // 3. 이동 조건문 (데이터 로그에 찍힌 대문자와 정확히 일치시켜야 함)
+        // // notif.type === 'SYSTEM_ALERT' 인지 꼭 확인!
+        if (notif.type === 'SYSTEM_ALERT' && notif.url) {
+            console.log("조건 일치: QNA 상세로 이동합니다.");
+            navigate(notif.url); // // /qna/detail/46 으로 이동
+        } else {
+            console.log("조건 불일치: 일반 쪽지함으로 이동합니다.");
+            navigate(`/message/${notif.messageNo}`);
+        }
+    };
+
+    const handleReadAll = async () => {
+        try {
+            await axios.patch("/message/read-all");
+            // // 읽음 처리 후 목록과 개수 새로고침
+            setUnreadCount(0);  // // 안 읽은 개수 다시 불러오는 함수
+            fetchNotifications();
+        } catch (error) {
+            console.error("전체 읽음 처리 실패", error);
+        }
+    };
+
 
     // ***** 3. 렌더링 (Render) *****
     return (
@@ -236,8 +269,8 @@ export default function Header() {
                             onChange={(e) => setKeyword(e.target.value)} // [추가] 입력 시 업데이트
                             onKeyDown={handleKeyDown} // [추가] 엔터키 처리
                         />
-                        <button 
-                            className="btn btn-outline-primary btn-sm" 
+                        <button
+                            className="btn btn-outline-primary btn-sm"
                             type="button"
                             onClick={handleSearch}    // [추가] 클릭 시 이동 함수 연결
                         >
@@ -298,15 +331,23 @@ export default function Header() {
                                         // 실제 알림 데이터 렌더링
                                         filteredNotifications.map(notif => (
                                             // messageNo를 key로 사용
-                                            <Link key={notif.messageNo} to={`/message/${notif.messageNo}`} className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2">
+                                            <div
+                                                key={notif.messageNo}
+                                                className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2"
+                                                onClick={() => handleNotifClick(notif)} // // 비동기 로직이 담긴 함수 호출
+                                                style={{ cursor: 'pointer' }} // // 클릭 가능함을 시각적으로 표시
+                                            >
                                                 <div className="d-flex align-items-center">
                                                     {getNotificationIcon(notif.type)} {/* 타입에 맞는 아이콘 표시 */}
-                                                    {/* 쪽지 내용의 일부를 제목으로 사용 */}
-                                                    <small className="mb-0 text-black fw-bold">{notif.content ? notif.content.substring(0, 30) + (notif.content.length > 30 ? '...' : '') : '알림 내용 없음'}</small>
+                                                    <small className="mb-0 text-black fw-bold">
+                                                        {notif.content ? (notif.content.length > 30 ? notif.content.substring(0, 30) + '...' : notif.content) : '알림 내용 없음'}
+                                                    </small>
                                                 </div>
-                                                {/* 보낸 시간 표시 (실제 데이터 필드에 맞게 조정 필요) */}
-                                                <small className="text-muted ms-4">발송: {new Date(notif.sentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</small>
-                                            </Link>
+                                                {/* 보낸 시간 표시 */}
+                                                <small className="text-muted ms-4">
+                                                    발송: {new Date(notif.sentTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                                </small>
+                                            </div>
                                         ))
                                     ) : (
                                         // 알림이 없을 때
@@ -315,15 +356,29 @@ export default function Header() {
                                 )}
                             </div>
 
-                            {/* 전체 쪽지함으로 이동 버튼 (바닥) - notifications 데이터 기반으로 개수 표시 */}
-                            <Link
-                                to="/message/list"
-                                className="dropdown-item text-center border-top py-2"
-                                onClick={() => setIsDropdownOpen(false)}
-                            >
-                                전체 쪽지함으로 이동 ({notifications.length}개)
-                            </Link>
+                            <div className="p-2 border-top bg-light rounded-bottom">
+                                <div className="d-flex justify-content-between align-items-center px-2">
+                                    {/* 왼쪽: 전체 이동 */}
+                                    <Link to="/message/list" className="btn btn-link btn-sm text-decoration-none text-primary p-0" style={{ fontSize: '13px' }}>
+                                        전체 쪽지함 ({notifications.length}개)
+                                    </Link>
 
+                                    <span className="text-muted" style={{ fontSize: '12px' }}>|</span>
+
+                                    {/* 오른쪽: 모두 읽음 */}
+                                    <button
+                                        type="button"
+                                        className="btn btn-link btn-sm text-decoration-none text-secondary p-0"
+                                        style={{ fontSize: '13px' }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleReadAll();
+                                        }}
+                                    >
+                                        모두 읽음
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -333,9 +388,9 @@ export default function Header() {
                             {/* 환영 문구 */}
                             <span className="me-2">
                                 환영합니다,  <Link
-                                className="text-primary text-decoration-none"
-                                to="/member/mypage"
-                            ><strong>{loginNickname}</strong></Link> 님
+                                    className="text-primary text-decoration-none"
+                                    to="/member/mypage"
+                                ><strong>{loginNickname}</strong></Link> 님
                             </span>
 
                             {/* 관리자일 때만 표시 */}
@@ -344,10 +399,10 @@ export default function Header() {
                                     관리자
                                 </span>
                             )}
-                             <div className="ms-3 me-3">|</div>
-                             <a href='/member/mypage'>내 정보</a>
+                            <div className="ms-3 me-3">|</div>
+                            <a href='/member/mypage'>내 정보</a>
 
-                            
+
                             <div className="ms-3 me-3">|</div>
 
                             {/* 로그아웃 */}
