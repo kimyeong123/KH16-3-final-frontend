@@ -1,26 +1,10 @@
 import { Route, Routes } from "react-router-dom";
-
-// 공통 및 에러 처리
 import Home from "./Home";
-import Unauthorization from "./error/Unauthorization";
-
-// 가드(Guard) 컴포넌트
 import Private from "./guard/Private";
-import Admin from "./guard/Admin";
-import RequireSignupAgree from "../components/guard/RequireSignupAgree";
-
-// 회원(Member) 관련
 import MemberJoin from "./member/MemberJoin";
 import MemberLogin from "./member/MemberLogin";
-import MemberJoinFinish from "./member/MemberJoinFinish";
-import MemberMypage from "./member/MemberMypage";
-
-// 관리자(Admin) 관련
-import AdminHome from "./admin/AdminHome";
-import AdminQnaList from "./admin/AdminQnaList";
-import MemberManage from "./admin/MemberManage";
-
-// 게시판(Board) & 문의(Qna) 관련
+import MessageList from "./message/MessageList";
+import MessageDetail from "./message/MessageDetail";
 import BoardWrite from "./board/BoardWrite";
 import BoardList from "./board/BoardList";
 import BoardDetail from "./board/BoardDetail";
@@ -33,21 +17,22 @@ import KakaoPay from "./pay/KakaoPay";
 import KakaoPaySuccess from "./pay/KakaoPaySuccess";
 import KakaoPayCancel from "./pay/KakaoPayCancel";
 import KakaoPayFail from "./pay/KakaoPayFail";
-import Exchange from "./pay/Exchange";
-
-// 상품(Product) 관련
 import ProductAdd from "./product/ProductAdd";
 import ProductAddDone from "./product/ProductAddDone";
+import Admin from "./guard/Admin";
+import MessageWrite from "./message/MessageWrite";
+import AdminHome from "./admin/AdminHome";
+import AdminQnaList from "./admin/AdminQnaList";
+import MemberManage from "./admin/MemberManage";
+import Unauthorization from "./error/Unauthorization";
 import ProductDetail from "./product/ProductDetail";
 import ProductEdit from "./product/ProductEdit";
 import ProductList from "./product/ProductList";
+import Exchange from "./pay/Exchange";
 import ProductMyList from "./product/ProductMyList";
-// ▼▼▼ [새로 추가된 구매 내역 컴포넌트] ▼▼▼
-import ProductPurchaseList from "./product/ProductPurchaseList"; 
 import ProductAuctionList from "./product/ProductAuctionList";
 import AuctionDetail from "./product/AuctionDetail";
-
-// 기타(Etc) 약관 관련
+import QnaMain from "./qna/QnaMain";
 import Terms from "./etc/Terms";
 import SignupAgreement from "./etc/SignupAgreement";
 import PrivacyPolicy from "./etc/PrivacyPolicy";
