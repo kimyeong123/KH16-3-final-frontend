@@ -184,7 +184,7 @@ export default function Header() {
                 
                 const count = Number(response.data.unreadCount); 
 
-                const count = Number(response.data.unreadCount);
+             
 
                 // 응답 데이터에서 unreadCount 값을 추출하여 상태 업데이트
                 setUnreadCount(count || 0); // // 숫자로 변환된 값을 사용
