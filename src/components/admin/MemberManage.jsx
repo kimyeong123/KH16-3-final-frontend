@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
@@ -6,7 +6,6 @@ import { accessTokenState } from "../../utils/jotai";
 
 export default function MemberManage() {
     const navigate = useNavigate();
-
     const [accessToken] = useAtom(accessTokenState);
 
     const [memberList, setMemberList] = useState([]);
@@ -20,37 +19,26 @@ export default function MemberManage() {
     const [page, setPage] = useState(1);
     const size = 10;
 
-    useEffect(() => {
-        if (accessToken) {
-            loadMemberList(1);
-        } else {
-            setLoading(false);
-        }
-    }, [accessToken]);
-
     const mapType = (t) => {
         if (t === "memberId") return "id";
         if (t === "memberNickname") return "nickname";
         return null;
     };
 
-    const loadMemberList = async (targetPage = page) => {
+    const loadMemberList = useCallback(async (targetPage = 1) => {
         if (!accessToken) return;
-
         setLoading(true);
         try {
             const trimmed = keyword.trim();
-
             const resp = await axios.get("/admin/members", {
                 params: {
                     page: targetPage,
                     size,
                     type: trimmed ? mapType(type) : null,
                     keyword: trimmed ? trimmed : null,
+                    role: onlyAdmin ? null : "MEMBER_ONLY" 
                 },
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
+                headers: { Authorization: `Bearer ${accessToken}` },
             });
 
             setPageVO(resp.data);
@@ -62,65 +50,65 @@ export default function MemberManage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [accessToken, keyword, type, onlyAdmin]);
+
+    useEffect(() => {
+        if (accessToken) {
+            loadMemberList(1);
+        } else {
+            setLoading(false);
+        }
+    }, [accessToken, onlyAdmin, loadMemberList]);
 
     const onSubmit = (e) => {
         e.preventDefault();
         loadMemberList(1);
     };
 
-    const filteredList = onlyAdmin
-        ? memberList.filter((m) => m.role === "ADMIN")
-        : memberList;
-
     return (
-        <div className="container w-800 mt-5">
+        <div className="container-fluid container-lg mt-3 mt-md-5 mb-5">
             <div className="card shadow-sm rounded-4 border-1">
-                <div className="card-body table-responsive p-4" style={{ overflowY: "auto" }}>
-                    <h3 className="fw-bold mb-5">회원 관리</h3>
+                <div className="card-body p-3 p-md-4">
+                    <h3 className="fw-bold mb-4">회원 관리</h3>
 
-                    {/* 토큰 없음 안내 */}
                     {!accessToken && (
-                        <div className="alert alert-warning py-2 mb-3">
+                        <div className="alert alert-warning py-2 mb-3 small">
                             관리자 인증 토큰이 없습니다. 로그인 후 이용해주세요.
                         </div>
                     )}
 
-                    {/* 검색 */}
-                    <form className="row g-2 align-items-center mb-3" onSubmit={onSubmit}>
-                        <div className="col-2">
-                            <select
-                                className="form-select form-select-sm"
-                                value={type}
-                                onChange={(e) => setType(e.target.value)}
-                                disabled={!accessToken || loading}
-                            >
-                                <option value="memberId">ID</option>
-                                <option value="memberNickname">닉네임</option>
-                            </select>
-                        </div>
-
-                        <div className="col-7">
-                            <input
-                                className="form-control form-control-sm"
-                                value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
-                                placeholder={type === "memberId" ? "회원 ID로 검색" : "회원 닉네임으로 검색"}
-                                disabled={!accessToken || loading}
-                            />
-                        </div>
-
-                        <div className="col-3">
-                            <div className="d-flex gap-2 align-items-center">
+                    {/* 검색 영역 반응형 개선 */}
+                    <form className="mb-4" onSubmit={onSubmit}>
+                        <div className="row g-2">
+                            <div className="col-4 col-md-2">
+                                <select
+                                    className="form-select"
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                    disabled={!accessToken || loading}
+                                >
+                                    <option value="memberId">ID</option>
+                                    <option value="memberNickname">닉네임</option>
+                                </select>
+                            </div>
+                            <div className="col-8 col-md-6">
+                                <input
+                                    className="form-control"
+                                    value={keyword}
+                                    onChange={(e) => setKeyword(e.target.value)}
+                                    placeholder="검색어 입력"
+                                    disabled={!accessToken || loading}
+                                />
+                            </div>
+                            <div className="col-12 col-md-4 d-flex gap-2 justify-content-between align-items-center mt-2 mt-md-0">
                                 <button
                                     type="submit"
-                                    className="btn btn-sm btn-primary flex-grow-1"
+                                    className="btn btn-primary flex-grow-1"
                                     disabled={!accessToken || loading}
                                 >
                                     검색
                                 </button>
-
-                                <div className="form-check mb-0">
+                                <div className="form-check mb-0 flex-shrink-0">
                                     <input
                                         className="form-check-input"
                                         type="checkbox"
@@ -129,143 +117,88 @@ export default function MemberManage() {
                                         onChange={(e) => setOnlyAdmin(e.target.checked)}
                                         disabled={!accessToken || loading}
                                     />
-                                    <label className="form-check-label small" htmlFor="onlyAdmin">
-                                        관리자
+                                    <label className="form-check-label small" htmlFor="onlyAdmin" style={{ whiteSpace: 'nowrap' }}>
+                                        관리자 포함
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </form>
 
-                    {/* 테이블 */}
-                    <table className="table table-hover table-bordered mt-4" style={{ tableLayout: "fixed" }}>
-                        <thead className="table-light">
-                            <tr>
-                                <th>회원번호</th>
-                                <th>ID</th>
-                                <th>닉네임</th>
-                                <th>권한</th>
-                                <th>포인트</th>
-                                <th>가입일</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {!loading &&
-                                filteredList.map((m) => (
-                                    <tr key={m.memberNo}>
-                                        <td>
-                                            <span
-                                                className="badge bg-success text-primary border"
-                                                style={{ cursor: "pointer" }}
-                                                onClick={() => navigate(`/member/mypage/${m.memberNo}`)}
-                                                title="회원 상세로 이동"
-                                            >
-                                                #{m.memberNo}
-                                            </span>
-                                        </td>
-
+                    {/* PC용 테이블 (768px 이상) */}
+                    <div className="d-none d-md-block table-responsive">
+                        <table className="table table-hover table-bordered align-middle">
+                            <thead className="table-light text-center">
+                                <tr>
+                                    <th style={{ width: '80px' }}>번호</th>
+                                    <th>ID</th>
+                                    <th>닉네임</th>
+                                    <th style={{ width: '110px' }}>권한</th>
+                                    <th>포인트</th>
+                                    <th>가입일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {!loading && memberList.map((m) => (
+                                    <tr key={m.memberNo} onClick={() => navigate(`/admin/home/member/detail/${m.memberNo}`)} style={{ cursor: 'pointer' }}>
+                                        <td className="text-center"><span className="badge bg-light text-dark border">#{m.memberNo}</span></td>
                                         <td>{m.id}</td>
-
-                                        <td className="text-truncate" style={{ maxWidth: "120px" }} title={m.nickname}>
-                                            {m.nickname}
-                                        </td>
-
-                                        <td>
-                                            <span
-                                                className={`badge ${m.role === "ADMIN" ? "bg-primary" : "bg-secondary-subtle text-dark"
-                                                    }`}
-                                            >
+                                        <td className="text-truncate" style={{maxWidth: '150px'}}>{m.nickname}</td>
+                                        <td className="text-center">
+                                            <span className={`badge ${m.role === 'ADMIN' ? 'bg-danger' : m.role === 'SUSPENDED' ? 'bg-warning text-dark' : 'bg-primary'}`}>
                                                 {m.role}
                                             </span>
                                         </td>
-
-                                        <td>{m.point?.toLocaleString?.() ?? "-"}</td>
-
-                                        <td>
-                                            {m.createdTime
-                                                ? new Date(m.createdTime).toLocaleDateString("ko-KR")
-                                                : "-"}
-                                        </td>
+                                        <td className="text-end">{m.point?.toLocaleString() ?? "0"}</td>
+                                        <td className="text-center">{m.createdTime ? new Date(m.createdTime).toLocaleDateString("ko-KR") : "-"}</td>
                                     </tr>
                                 ))}
+                            </tbody>
+                        </table>
+                    </div>
 
-                            {loading && (
-                                <tr>
-                                    <td colSpan={6} className="text-center text-muted py-4">
-                                        불러오는 중...
-                                    </td>
-                                </tr>
-                            )}
+                    {/* 모바일용 카드 리스트 (768px 미만) */}
+                    <div className="d-md-none">
+                        {!loading && memberList.map((m) => (
+                            <div key={m.memberNo} className="card mb-2 border rounded-3 p-3" onClick={() => navigate(`/admin/home/member/detail/${m.memberNo}`)}>
+                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <span className="badge bg-light text-dark border">#{m.memberNo}</span>
+                                    <span className={`badge ${m.role === 'ADMIN' ? 'bg-danger' : m.role === 'SUSPENDED' ? 'bg-warning text-dark' : 'bg-primary'}`}>
+                                        {m.role}
+                                    </span>
+                                </div>
+                                <div className="fw-bold text-primary mb-1">{m.nickname} <span className="text-muted small fw-normal">({m.id})</span></div>
+                                <div className="d-flex justify-content-between small text-muted">
+                                    <span>포인트: {m.point?.toLocaleString()} P</span>
+                                    <span>{m.createdTime ? new Date(m.createdTime).toLocaleDateString("ko-KR") : "-"}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
 
-                            {!loading && accessToken && filteredList.length === 0 && (
-                                <tr>
-                                    <td colSpan={6} className="text-center text-muted py-4">
-                                        데이터가 없습니다
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                    {/* 공통 로딩/데이터 없음 처리 */}
+                    {loading && <div className="text-center py-5 text-muted">데이터를 불러오는 중...</div>}
+                    {!loading && memberList.length === 0 && <div className="text-center py-5 text-muted">검색 결과가 없습니다.</div>}
 
-                    {/* 페이징 */}
+                    {/* 페이지네이션 반응형 */}
                     {accessToken && pageVO && (
-                        <div className="d-flex justify-content-center align-items-center gap-1 mt-3">
+                        <div className="d-flex flex-wrap justify-content-center align-items-center gap-1 mt-4">
+                            <button className="btn btn-outline-secondary btn-sm px-2" disabled={pageVO.firstBlock || loading} onClick={() => loadMemberList(pageVO.prevPage)}>«</button>
+                            
+                            <div className="d-flex gap-1">
+                                {Array.from({ length: pageVO.blockFinish - pageVO.blockStart + 1 }, (_, i) => pageVO.blockStart + i).map((p) => (
+                                    <button
+                                        key={p}
+                                        className={`btn btn-sm ${p === page ? "btn-primary" : "btn-outline-primary"}`}
+                                        disabled={loading}
+                                        onClick={() => loadMemberList(p)}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
 
-                            {/* 이전 블록 */}
-                            <button
-                                className="btn btn-outline-secondary btn-sm"
-                                disabled={pageVO.firstBlock || loading}
-                                onClick={() => loadMemberList(pageVO.prevPage)}
-                                title="이전 블록"
-                            >
-                                «
-                            </button>
-
-                            {/* 이전 페이지 */}
-                            <button
-                                className="btn btn-outline-secondary btn-sm"
-                                disabled={page <= 1 || loading}
-                                onClick={() => loadMemberList(page - 1)}
-                            >
-                                이전
-                            </button>
-
-                            {/* 페이지 번호 */}
-                            {Array.from(
-                                { length: pageVO.blockFinish - pageVO.blockStart + 1 },
-                                (_, i) => pageVO.blockStart + i
-                            ).map((p) => (
-                                <button
-                                    key={p}
-                                    className={`btn btn-sm ${p === page ? "btn-primary" : "btn-outline-primary"
-                                        }`}
-                                    disabled={loading}
-                                    onClick={() => loadMemberList(p)}
-                                >
-                                    {p}
-                                </button>
-                            ))}
-
-                            {/* 다음 페이지 */}
-                            <button
-                                className="btn btn-outline-secondary btn-sm"
-                                disabled={page >= pageVO.totalPage || loading}
-                                onClick={() => loadMemberList(page + 1)}
-                            >
-                                다음
-                            </button>
-
-                            {/* 다음 블록 */}
-                            <button
-                                className="btn btn-outline-secondary btn-sm"
-                                disabled={pageVO.lastBlock || loading}
-                                onClick={() => loadMemberList(pageVO.nextPage)}
-                                title="다음 블록"
-                            >
-                                »
-                            </button>
-
+                            <button className="btn btn-outline-secondary btn-sm px-2" disabled={pageVO.lastBlock || loading} onClick={() => loadMemberList(pageVO.nextPage)}>»</button>
                         </div>
                     )}
                 </div>
