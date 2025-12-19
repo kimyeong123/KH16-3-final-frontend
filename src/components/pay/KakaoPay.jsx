@@ -98,12 +98,11 @@ export default function KakaoPay() {
     <>
 
       <div className="container mt-4" style={{ maxWidth: 720 }}>
-        {/* 🔹 카드 헤더 */}
         <div className="position-relative mb-4 text-center">
           {/* 가운데 텍스트 */}
 
           <div>
-            <div className="fw-bold fs-3">카카오페이 포인트 충전</div>
+            <div className="fw-bold fs-3">포인트 충전</div>
             <a
               href="https://www.kakaopay.com/"
               target="_blank"
@@ -116,21 +115,34 @@ export default function KakaoPay() {
               />
             </a>
           </div>
+          <div
+            style={{
+              marginTop: 12,
+              height: 1,
+              backgroundColor: "#e5e7eb"
+            }}
+          />
         </div>
-
         <div className="card p-3">
-          <div className="d-flex justify-content-between align-items-center">
+          <div className="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3"
+            style={{
+              background: "#f9fafb",
+              border: "1px solid #eef1f4"
+            }}>
             <div>
-              <h5 className="mb-1">보유 포인트</h5>
+              <h5 className="mb-1">현재 보유 포인트</h5>
               <small className="text-muted">충전 후 바로 사용할 수 있어요</small>
             </div>
             <h4 className="mb-0">{Number(currentPoint).toLocaleString()} P</h4>
           </div>
         </div>
-        <div className="card p-3 mt-3">
+        <div
+          className="card p-3 mt-3"
+        >
+
           <h5 className="mb-3">충전 금액</h5>
 
-          <div className="d-flex flex-wrap gap-2 mb-3">
+          <div className="d-flex flex-wrap gap-2 mb-3 mt-2">
             {presets.map((v) => (
               <button
                 key={v}
@@ -144,7 +156,7 @@ export default function KakaoPay() {
             ))}
           </div>
 
-          <label className="form-label">직접 입력</label>
+          <label className="form-label fw-4t">직접 입력</label>
           <input
             type="number"
             className="form-control"
@@ -171,7 +183,7 @@ export default function KakaoPay() {
           </div>
 
           <div className="d-flex justify-content-between mt-1">
-            <span>결제 후 예상 포인트</span>
+            <span>결제 후 보유 포인트</span>
             <strong>{expectedPoint.toLocaleString()} P</strong>
           </div>
           <div className="d-flex justify-content-center">
@@ -190,12 +202,12 @@ export default function KakaoPay() {
         </div>
 
         {/* 4) 안내/FAQ */}
-         <div className="mt-5 mb-3 text-center">
-            <div className="fw-bold fs-5">
-              <FaCircleQuestion className="fa-regular fa-circle-question me-1"/>
-              자주 묻는 질문
-            </div>
+        <div className="mt-5 mb-3 text-center">
+          <div className="fw-bold fs-5">
+            <FaCircleQuestion className="fa-regular fa-circle-question me-1" />
+            자주 묻는 질문
           </div>
+        </div>
         <div className="accordion mt-1" id="chargeFaq">
           <div className="accordion-item mt-2">
             <h2 className="accordion-header">
