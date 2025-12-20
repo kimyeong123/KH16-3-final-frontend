@@ -58,7 +58,7 @@ export const loginAddress2State = atomWithStorage(
 );
 export const loginPointState = atomWithStorage(
   "loginPointState",
-  "",
+  0,
   localStorage
 );
 export const loginCreatedTimeState = atomWithStorage(
