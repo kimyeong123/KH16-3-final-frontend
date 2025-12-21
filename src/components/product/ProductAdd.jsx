@@ -6,14 +6,16 @@ import { useNavigate } from "react-router-dom";
 
 export default function ProductAdd() {
   const navigate = useNavigate();
-  
+
   // [핵심] Jotai에서 토큰 가져오기 (수동 복구 로직 삭제됨)
   const [accessToken] = useAtom(accessTokenState);
 
   // [핵심] 토큰이 변경될 때마다 Authorization 헤더 자동 생성
   const authHeader = useMemo(() => {
     if (!accessToken) return "";
-    return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+    return accessToken.startsWith("Bearer ")
+      ? accessToken
+      : "Bearer " + accessToken;
   }, [accessToken]);
 
   // === 입력 폼 상태 ===
@@ -76,7 +78,10 @@ export default function ProductAdd() {
 
   // 소분류 선택 시 폼 상태 업데이트
   useEffect(() => {
-    setForm((prev) => ({ ...prev, categoryCode: childCode ? String(childCode) : "" }));
+    setForm((prev) => ({
+      ...prev,
+      categoryCode: childCode ? String(childCode) : "",
+    }));
   }, [childCode]);
 
   const changeForm = (e) => {
@@ -117,7 +122,7 @@ export default function ProductAdd() {
     if (!accessToken) {
       alert("로그인이 필요합니다");
       // 로그인 페이지로 이동시키는 게 더 친절함
-      navigate("/member/login"); 
+      navigate("/member/login");
       return;
     }
     if (!form.name.trim()) return alert("물품 제목을 입력하세요");
@@ -147,9 +152,13 @@ export default function ProductAdd() {
     try {
       // 3. 상품 등록 API 호출
       // BoardEdit와 마찬가지로 Authorization 헤더만 잘 넣어주면 됩니다.
-      const createResp = await axios.post("http://localhost:8080/product/", body, {
-        headers: { Authorization: authHeader },
-      });
+      const createResp = await axios.post(
+        "http://localhost:8080/product/",
+        body,
+        {
+          headers: { Authorization: authHeader },
+        }
+      );
 
       const productNo =
         createResp.data?.productNo ??
@@ -158,7 +167,9 @@ export default function ProductAdd() {
         null;
 
       if (!productNo) {
-        alert("상품 등록은 되었으나 번호를 반환받지 못해 사진 업로드를 실패했습니다.");
+        alert(
+          "상품 등록은 되었으나 번호를 반환받지 못해 사진 업로드를 실패했습니다."
+        );
         return;
       }
 
@@ -174,9 +185,11 @@ export default function ProductAdd() {
 
       // 5. 완료 페이지 이동
       navigate("/product/done", {
-        state: { message: "상품과 첨부가 정상적으로 등록되었습니다.", productNo },
+        state: {
+          message: "상품과 첨부가 정상적으로 등록되었습니다.",
+          productNo,
+        },
       });
-
     } catch (err) {
       console.error("등록 실패", err.response || err);
       const status = err.response?.status;
@@ -194,7 +207,10 @@ export default function ProductAdd() {
     <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
       <h2 style={{ marginBottom: 18 }}>온라인 물품등록</h2>
 
-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <form
+        onSubmit={submit}
+        style={{ display: "flex", flexDirection: "column", gap: 14 }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 120 }}>물품제목</div>
           <input
@@ -219,7 +235,9 @@ export default function ProductAdd() {
               >
                 <option value="">- 대분류 선택 -</option>
                 {parents.map((p) => (
-                  <option key={p.categoryCode} value={p.categoryCode}>{p.name}</option>
+                  <option key={p.categoryCode} value={p.categoryCode}>
+                    {p.name}
+                  </option>
                 ))}
               </select>
 
@@ -232,7 +250,9 @@ export default function ProductAdd() {
               >
                 <option value="">- 소분류 선택 -</option>
                 {children.map((c) => (
-                  <option key={c.categoryCode} value={c.categoryCode}>{c.name}</option>
+                  <option key={c.categoryCode} value={c.categoryCode}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -298,10 +318,19 @@ export default function ProductAdd() {
         </div>
 
         {/* 첨부 이미지 섹션 */}
-        <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eee" }}>
+        <div
+          style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eee" }}
+        >
           <h3 style={{ marginBottom: 10 }}>첨부 이미지</h3>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
             <input
               ref={fileInputRef}
               type="file"
@@ -309,31 +338,72 @@ export default function ProductAdd() {
               accept="image/*"
               onChange={changeFiles}
             />
-            <div style={{ fontSize: 12, color: "#777" }}>선택된 파일: {files.length}개</div>
+            <div style={{ fontSize: 12, color: "#777" }}>
+              선택된 파일: {files.length}개
+            </div>
 
-            <button type="button" onClick={clearFiles} disabled={files.length === 0} style={{ padding: "8px 12px" }}>
+            <button
+              type="button"
+              onClick={clearFiles}
+              disabled={files.length === 0}
+              style={{ padding: "8px 12px" }}
+            >
               선택 초기화
             </button>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              marginTop: 12,
+            }}
+          >
             {previews.length === 0 && (
-              <div style={{ color: "#777", fontSize: 13 }}>선택된 첨부가 없습니다</div>
+              <div style={{ color: "#777", fontSize: 13 }}>
+                선택된 첨부가 없습니다
+              </div>
             )}
 
             {previews.map((p, idx) => (
               <div
                 key={`${p.file.name}_${idx}`}
-                style={{ width: 160, border: "1px solid #ddd", borderRadius: 8, padding: 8, background: "#fff" }}
+                style={{
+                  width: 160,
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  padding: 8,
+                  background: "#fff",
+                }}
               >
-                <div style={{ width: "100%", height: 110, borderRadius: 6, overflow: "hidden", border: "1px solid #eee" }}>
+                <div
+                  style={{
+                    width: "100%",
+                    height: 110,
+                    borderRadius: 6,
+                    overflow: "hidden",
+                    border: "1px solid #eee",
+                  }}
+                >
                   <img
                     src={p.url}
                     alt={p.file.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
                   />
                 </div>
-                <div style={{ fontSize: 12, marginTop: 6, color: "#333", wordBreak: "break-all" }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    marginTop: 6,
+                    color: "#333",
+                    wordBreak: "break-all",
+                  }}
+                >
                   {p.file.name}
                 </div>
                 <button

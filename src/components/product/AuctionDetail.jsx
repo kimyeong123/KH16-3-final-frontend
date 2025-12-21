@@ -80,10 +80,7 @@ export default function AuctionDetail() {
     ? "즉시구매 반영중"
     : "즉시구매하기";
 
-  const instantDisabled =
-    expired ||
-    processingInstantBuy ||
-    (hasInstantBuy && currentPrice >= Number(product?.instantPrice));
+  const instantDisabled = expired || processingInstantBuy;
 
   const authHeader = useMemo(() => {
     if (!accessToken) return null;
@@ -191,9 +188,31 @@ export default function AuctionDetail() {
         }
       });
 
-      client.subscribe(`/topic/products/${productNo}/end`, async () => {
-        await loadProduct(); // 🔑 서버 상태 재동기화
-        toast.info("경매가 종료되었습니다", { autoClose: false });
+      client.subscribe(`/topic/products/${productNo}/end`, async (msg) => {
+        if (!msg?.body) return;
+
+        const body = JSON.parse(msg.body);
+        const { buyerNo, finalPrice } = body;
+
+        // 서버 상태 재동기화
+        await loadProduct();
+
+        // 낙찰자 여부 판단
+        if (Number(buyerNo) === myMemberNo) {
+          toast.success(
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                낙찰에 성공하였습니다!
+              </div>
+              <div style={{ fontSize: 14 }}>
+                낙찰가: {Number(finalPrice).toLocaleString()} Point
+              </div>
+            </div>,
+            { autoClose: false }
+          );
+        } else {
+          toast.info("경매가 종료되었습니다", { autoClose: false });
+        }
       });
     };
 
@@ -236,6 +255,11 @@ export default function AuctionDetail() {
   };
 
   const placeInstantBuy = async () => {
+    if (!accessToken) {
+      await swalInfo("로그인이 필요합니다");
+      return;
+    }
+
     const ok = await swalConfirm(
       "즉시구매 확인",
       `${product.instantPrice.toLocaleString()} Point에 즉시 낙찰됩니다`
@@ -243,8 +267,19 @@ export default function AuctionDetail() {
     if (!ok) return;
 
     setProcessingInstantBuy(true);
-    await placeBid();
-    setProcessingInstantBuy(false);
+
+    try {
+      // ✅ 즉시구매가는 무조건 instantPrice
+      await axios.post(
+        `http://localhost:8080/products/${productNo}/bid/`,
+        { amount: product.instantPrice },
+        { headers: { Authorization: authHeader } }
+      );
+    } catch {
+      await swalError("즉시구매 실패", "잠시 후 다시 시도해주세요");
+    } finally {
+      setProcessingInstantBuy(false);
+    }
   };
 
   /* ================= 렌더 ================= */
@@ -359,10 +394,10 @@ export default function AuctionDetail() {
                 <InputGroup size="lg">
                   <Form.Control
                     value={bidAmount}
-                    disabled={expired || instantDisabled}
+                    disabled={instantDisabled}
                     placeholder={
                       expired
-                        ? "경매가 종료되었습니다"
+                        ? ""
                         : `현재가(${currentPrice.toLocaleString()} Point)보다 높은 금액`
                     }
                     onChange={(e) =>
