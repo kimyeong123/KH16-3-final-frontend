@@ -3,55 +3,52 @@ import axios from "axios";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
 import { useNavigate } from "react-router-dom";
-import OrderTrackingModal from "../order/OrderTrackingModal";
+import OrderShippingModal from "../order/OrderShippingModal";
 
-export default function ProductSalesList() {
+export default function ProductPurchaseList() {
   const navigate = useNavigate();
   const [accessToken] = useAtom(accessTokenState);
 
-  /* ================= 상태 ================= */
+  // ✅ 배송지 모달 상태
+  const [showShip, setShowShip] = useState(false);
+  const [selected, setSelected] = useState(null);
 
+  // ✅ 목록/로딩
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // ✅ 페이징
   const [page, setPage] = useState(1);
-  const [pageInfo, setPageInfo] = useState(null);
+  const [pageInfo, setPageInfo] = useState(null); // PageVO 전체 보관
 
-  const [showTrack, setShowTrack] = useState(false);
-  const [selected, setSelected] = useState(null);
-
-  /* ================= 인증 ================= */
-
+  // ✅ 인증 헤더
   const authHeader = useMemo(() => {
     return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
   }, [accessToken]);
 
-  /* ================= 데이터 로딩 ================= */
-
+  // ✅ 목록 로딩 (page 바뀌면 다시 호출)
   const fetchList = useCallback(async () => {
     if (!accessToken) return;
 
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/product/sales", {
+      const res = await axios.get("http://localhost:8080/product/purchase", {
         headers: authHeader,
-        params: { page },
+        params: { page }, // ✅ 페이징 핵심
       });
 
       const data = res.data;
 
+      // ✅ 방어: list.map 에러 방지
       const rows = Array.isArray(data)
         ? data
         : Array.isArray(data?.list)
         ? data.list
         : [];
-
-      console.log("[SALES LIST RAW ROW 0]", rows?.[0]);
-
       setList(rows);
-      setPageInfo(Array.isArray(data) ? null : data);
+      setPageInfo(Array.isArray(data) ? null : data); // PageVO면 저장
     } catch (err) {
-      console.error("판매 내역 로드 실패:", err);
+      console.error("구매 내역 로드 실패:", err);
       setList([]);
       setPageInfo(null);
     } finally {
@@ -63,28 +60,7 @@ export default function ProductSalesList() {
     fetchList();
   }, [fetchList]);
 
-  /* ================= 주문 상태 ================= */
-
-  const ORDER_STATUS_LABEL = {
-    CREATED: "주문 생성",
-    SHIPPING_READY: "배송지 입력 완료",
-    SHIPPED: "배송중",
-    DELIVERED: "배송 완료",
-    COMPLETED: "거래 완료",
-    CANCELLED: "거래 취소",
-  };
-
-  const ORDER_STATUS_BADGE = {
-    CREATED: { bg: "#e7f5ff", color: "#1c7ed6" },
-    SHIPPING_READY: { bg: "#fff3bf", color: "#f08c00" },
-    SHIPPED: { bg: "#d0ebff", color: "#1971c2" },
-    DELIVERED: { bg: "#d3f9d8", color: "#2b8a3e" },
-    COMPLETED: { bg: "#dee2e6", color: "#343a40" },
-    CANCELLED: { bg: "#ffe3e3", color: "#c92a2a" },
-  };
-
-  /* ================= 유틸 ================= */
-
+  // ✅ 유틸
   const money = (val) => {
     if (val === null || val === undefined) return "-";
     const n = Number(val);
@@ -95,23 +71,51 @@ export default function ProductSalesList() {
   const dt = (dateStr) => {
     if (!dateStr) return "-";
     const s = String(dateStr).trim().replace("T", " ");
-    if (s.length >= 19)
+
+    // "YYYY-MM-DD HH:mm:ss"
+    if (s.length >= 19) {
       return `${s.slice(0, 4)}.${s.slice(5, 7)}.${s.slice(8, 10)} ${s.slice(
         11,
         13
       )}:${s.slice(14, 16)}:${s.slice(17, 19)}`;
-    if (s.length >= 16)
+    }
+    // "YYYY-MM-DD HH:mm"
+    if (s.length >= 16) {
       return `${s.slice(0, 4)}.${s.slice(5, 7)}.${s.slice(8, 10)} ${s.slice(
         11,
         13
       )}:${s.slice(14, 16)}`;
-    if (s.length >= 10)
+    }
+    // "YYYY-MM-DD"
+    if (s.length >= 10) {
       return `${s.slice(0, 4)}.${s.slice(5, 7)}.${s.slice(8, 10)}`;
+    }
     return "-";
   };
 
-  /* ================= 스타일 ================= */
+  // 낙찰 여부(선두 여부)
+  const isLeadingByRow = (item) => {
+    const my = Number(item?.myBidPrice ?? -1);
+    const fin = Number(item?.finalPrice ?? -1);
+    return my >= fin && fin >= 0;
+  };
 
+  // ✅ 모달 열기/닫기
+  const openShippingModal = (item) => {
+    if (!item?.orderNo) {
+      alert("orderNo가 없습니다. (purchase list에서 orderNo 내려줘야 함)");
+      return;
+    }
+    setSelected(item);
+    setShowShip(true);
+  };
+
+  const closeShippingModal = () => {
+    setShowShip(false);
+    setSelected(null);
+  };
+
+  // ===== UI 스타일 (기존 컨셉 유지) =====
   const cardStyle = {
     border: "1px solid #e9ecef",
     borderRadius: 10,
@@ -119,7 +123,7 @@ export default function ProductSalesList() {
     overflow: "hidden",
   };
 
-  const badgePill = ({ bg, color }) => ({
+  const badgePill = ({ bg, color, border }) => ({
     display: "inline-block",
     padding: "4px 10px",
     borderRadius: 999,
@@ -127,8 +131,18 @@ export default function ProductSalesList() {
     fontWeight: 900,
     background: bg,
     color,
-    border: "1px solid #e9ecef",
+    border: border || "1px solid #e9ecef",
     lineHeight: 1.2,
+  });
+
+  const btnOutline = (borderColor, color) => ({
+    padding: "6px 10px",
+    borderRadius: 8,
+    border: `1px solid ${borderColor}`,
+    background: "white",
+    color,
+    fontWeight: 800,
+    cursor: "pointer",
   });
 
   const btnSolid = (bg, color = "white") => ({
@@ -151,43 +165,37 @@ export default function ProductSalesList() {
     cursor: "not-allowed",
   };
 
-  // ===== 정렬 통일 =====
-  const cellCenter = {
-    padding: 12,
-    textAlign: "center",
-    verticalAlign: "middle",
+  // 배지 계산
+  const auctionStatusBadge = (isBidding) => {
+    return isBidding
+      ? badgePill({ bg: "#d3f9d8", color: "#2b8a3e" }) // 진행중
+      : badgePill({ bg: "#f1f3f5", color: "#495057" }); // 종료
   };
 
-  const cellRight = {
-    padding: 12,
-    textAlign: "right",
-    verticalAlign: "middle",
+  const resultBadge = (isBidding, isLeading) => {
+    if (isBidding) return badgePill({ bg: "#e7f5ff", color: "#1c7ed6" }); // 경매중
+    if (isLeading) return badgePill({ bg: "#fff3bf", color: "#f08c00" }); // 낙찰
+    return badgePill({ bg: "#ffe3e3", color: "#c92a2a" }); // 패찰
   };
 
-  const inlineRow = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-  };
+  const priceLabelStyle = (isBidding) => ({
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 900,
+    marginRight: 8,
+    background: isBidding ? "#e7f5ff" : "#f1f3f5",
+    color: isBidding ? "#1c7ed6" : "#495057",
+    border: "1px solid #e9ecef",
+  });
 
-  /* ================= 모달 ================= */
+  const priceValueStyle = (isBidding) => ({
+    fontWeight: 900,
+    color: isBidding ? "#1c7ed6" : "#212529",
+  });
 
-  const openTrackingModal = (row) => {
-    if (!row?.orderNo) {
-      alert("orderNo가 없습니다.");
-      return;
-    }
-    setSelected(row);
-    setShowTrack(true);
-  };
-
-  const closeTrackingModal = () => {
-    setShowTrack(false);
-    setSelected(null);
-  };
-
-  /* ================= 페이징 ================= */
-
+  // ✅ PageVO에서 totalPage 계산
   const totalPage =
     pageInfo?.totalPage ??
     (pageInfo?.dataCount && pageInfo?.size
@@ -197,16 +205,15 @@ export default function ProductSalesList() {
   const canPrev = page > 1;
   const canNext = totalPage ? page < totalPage : false;
 
-  /* ================= 렌더 ================= */
-
   return (
     <>
       <div style={cardStyle}>
         {/* 헤더 */}
         <div style={{ padding: 18, borderBottom: "1px solid #eef1f4" }}>
-          <div style={{ fontSize: 18, fontWeight: 900 }}>판매 관리</div>
+          <div style={{ fontSize: 18, fontWeight: 900 }}>내 입찰/낙찰 내역</div>
           <div style={{ color: "#6c757d", fontSize: 13 }}>
-            주문 상태 기준으로 판매 흐름을 관리합니다.
+            경매 상태와 낙찰 결과를 분리해서 보여줍니다. (배송지 입력은 낙찰 시
+            활성화)
           </div>
         </div>
 
@@ -223,14 +230,17 @@ export default function ProductSalesList() {
                 <th style={{ padding: 12, textAlign: "left", width: 420 }}>
                   상품
                 </th>
-                <th style={{ padding: 12, textAlign: "right", width: 160 }}>
+                <th style={{ padding: 12, textAlign: "right", width: 140 }}>
+                  내 입찰가
+                </th>
+                <th style={{ padding: 12, textAlign: "right", width: 190 }}>
                   현재가/낙찰가
                 </th>
-                <th style={{ padding: 12, textAlign: "center", width: 140 }}>
+                <th style={{ padding: 12, textAlign: "center", width: 120 }}>
                   경매상태
                 </th>
-                <th style={{ padding: 12, textAlign: "center", width: 160 }}>
-                  주문단계
+                <th style={{ padding: 12, textAlign: "center", width: 120 }}>
+                  낙찰결과
                 </th>
                 <th style={{ padding: 12, textAlign: "center", width: 190 }}>
                   마감일시
@@ -244,7 +254,14 @@ export default function ProductSalesList() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 40, textAlign: "center" }}>
+                  <td
+                    colSpan={7}
+                    style={{
+                      padding: 40,
+                      textAlign: "center",
+                      color: "#6c757d",
+                    }}
+                  >
                     불러오는 중...
                   </td>
                 </tr>
@@ -252,49 +269,43 @@ export default function ProductSalesList() {
 
               {!loading && list.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 60, textAlign: "center" }}>
-                    판매 내역이 없습니다.
+                  <td
+                    colSpan={7}
+                    style={{
+                      padding: 60,
+                      textAlign: "center",
+                      color: "#868e96",
+                    }}
+                  >
+                    참여한 입찰 내역이 없습니다.
                   </td>
                 </tr>
               )}
 
               {!loading &&
                 list.map((item) => {
-                  const actionState = (() => {
-                    if (item.productStatus === "BIDDING")
-                      return { label: "경매중", disabled: true };
-
-                    if (item.orderStatus === "CREATED")
-                      return { label: "배송지 입력 대기", disabled: true };
-
-                    if (
-                      item.orderStatus === "SHIPPING_READY" &&
-                      !item.invoiceRegistered
-                    )
-                      return { label: "송장 입력", disabled: false };
-
-                    if (
-                      item.invoiceRegistered ||
-                      ["SHIPPED", "DELIVERED", "COMPLETED"].includes(
-                        item.orderStatus
-                      )
-                    )
-                      return { label: "입력 완료", disabled: true };
-
-                    return { label: "-", disabled: true };
-                  })();
+                  const isBidding = item.status === "BIDDING";
+                  const isEnded = !isBidding;
+                  const isLeading = isLeadingByRow(item);
+                  const shippingDone = Boolean(item.shippingCompleted);
 
                   return (
                     <tr
                       key={item.productNo}
                       style={{ borderBottom: "1px solid #f1f3f5" }}
                     >
-                      {/* 상품 */}
+                      {/* 상품정보 */}
                       <td style={{ padding: 12 }}>
-                        <div style={{ display: "flex", gap: 14 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 14,
+                            alignItems: "center",
+                          }}
+                        >
                           <img
                             src={
-                              item.attachmentNo
+                              item.attachmentNo > 0
                                 ? `http://localhost:8080/attachment/${item.attachmentNo}`
                                 : ""
                             }
@@ -305,102 +316,119 @@ export default function ProductSalesList() {
                               objectFit: "cover",
                               borderRadius: 10,
                               border: "1px solid #e9ecef",
+                              background: "#f1f3f5",
                             }}
-                            onError={(e) =>
-                              (e.currentTarget.style.display = "none")
-                            }
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
                           />
-                          <div>
+
+                          <div style={{ minWidth: 0 }}>
                             <div
-                              style={{ fontWeight: 900, cursor: "pointer" }}
                               onClick={() =>
                                 navigate(`/product/detail/${item.productNo}`)
                               }
+                              style={{
+                                fontWeight: 900,
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                maxWidth: 320,
+                              }}
                             >
                               {item.productName}
                             </div>
                             <div style={{ fontSize: 12, color: "#6c757d" }}>
-                              구매자: {item.buyerNickname}
+                              판매자: {item.sellerNickname}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      {/* 가격 */}
-                      <td style={cellRight}>
-                        <div style={inlineRow}>
-                          <span
-                            style={{
-                              padding: "2px 8px",
-                              borderRadius: 999,
-                              fontSize: 12,
-                              fontWeight: 900,
-                              background:
-                                item.productStatus === "BIDDING"
-                                  ? "#e7f5ff"
-                                  : "#f1f3f5",
-                              color:
-                                item.productStatus === "BIDDING"
-                                  ? "#1c7ed6"
-                                  : "#495057",
-                              border: "1px solid #e9ecef",
-                            }}
-                          >
-                            {item.productStatus === "BIDDING"
-                              ? "현재가"
-                              : "낙찰가"}
-                          </span>
-
-                          <span style={{ fontWeight: 900 }}>
-                            {money(item.finalPrice)}원
-                          </span>
-                        </div>
+                      <td style={{ padding: 12, textAlign: "right" }}>
+                        <span style={{ fontWeight: 900, color: "#e03131" }}>
+                          {money(item.myBidPrice)}
+                        </span>
+                        원
                       </td>
 
-                      {/* 경매상태 */}
-                      <td style={cellCenter}>
-                        <span
-                          style={badgePill(
-                            item.productStatus === "BIDDING"
-                              ? { bg: "#d3f9d8", color: "#2b8a3e" }
-                              : { bg: "#f1f3f5", color: "#495057" }
-                          )}
-                        >
-                          {item.productStatus === "BIDDING" ? "진행중" : "종료"}
+                      <td style={{ padding: 12, textAlign: "right" }}>
+                        <span style={priceLabelStyle(isBidding)}>
+                          {isBidding ? "현재가" : "낙찰가"}
+                        </span>
+                        <span style={priceValueStyle(isBidding)}>
+                          {money(item.finalPrice)}원
                         </span>
                       </td>
 
-                      {/* 주문단계 */}
-                      <td style={cellCenter}>
-                        {item.orderStatus ? (
-                          <span
-                            style={badgePill(
-                              ORDER_STATUS_BADGE[item.orderStatus]
-                            )}
-                          >
-                            {ORDER_STATUS_LABEL[item.orderStatus]}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
+                      <td style={{ padding: 12, textAlign: "center" }}>
+                        <span style={auctionStatusBadge(isBidding)}>
+                          {isBidding ? "진행중" : "종료"}
+                        </span>
                       </td>
 
-                      {/* 마감일시 */}
-                      <td style={cellCenter}>{dt(item.endTime)}</td>
+                      <td style={{ padding: 12, textAlign: "center" }}>
+                        <span style={resultBadge(isBidding, isLeading)}>
+                          {isBidding ? "진행중" : isLeading ? "낙찰" : "패찰"}
+                        </span>
+                      </td>
 
-                      {/* 액션 */}
-                      <td style={cellCenter}>
-                        {actionState.disabled ? (
-                          <button style={btnDisabled} disabled>
-                            {actionState.label}
-                          </button>
-                        ) : (
-                          <button
-                            style={btnSolid("#212529")}
-                            onClick={() => openTrackingModal(item)}
+                      <td
+                        style={{
+                          padding: 12,
+                          textAlign: "center",
+                          color: "#6c757d",
+                          fontSize: 13,
+                        }}
+                      >
+                        {dt(item.endTime)}
+                      </td>
+
+                      <td style={{ padding: 12, textAlign: "center" }}>
+                        {isBidding &&
+                          (isLeading ? (
+                            <button style={btnDisabled} disabled>
+                              현재 최고가
+                            </button>
+                          ) : (
+                            <button
+                              style={btnOutline("#e03131", "#e03131")}
+                              onClick={() =>
+                                navigate(
+                                  `/product/auction/detail/${item.productNo}`
+                                )
+                              }
+                            >
+                              재입찰하기
+                            </button>
+                          ))}
+
+                        {isEnded &&
+                          isLeading &&
+                          (shippingDone ? (
+                            <button style={btnDisabled} disabled>
+                              배송지 입력완료
+                            </button>
+                          ) : (
+                            <button
+                              style={btnSolid("#212529")}
+                              onClick={() => openShippingModal(item)}
+                            >
+                              배송지설정
+                            </button>
+                          ))}
+
+                        {isEnded && !isLeading && (
+                          <span
+                            style={{
+                              fontSize: 13,
+                              color: "#adb5bd",
+                              fontWeight: 900,
+                            }}
                           >
-                            {actionState.label}
-                          </button>
+                            배송 대상 아님
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -410,35 +438,53 @@ export default function ProductSalesList() {
           </table>
         </div>
 
-        {/* 페이징 */}
+        {/* ✅ 페이징 바 */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
+            alignItems: "center",
             padding: 14,
             borderTop: "1px solid #eef1f4",
+            background: "white",
           }}
         >
-          <div style={{ fontSize: 13 }}>
-            페이지 <b>{page}</b>
-            {totalPage && (
+          <div style={{ color: "#6c757d", fontSize: 13 }}>
+            {pageInfo ? (
               <>
-                {" "}
-                / <b>{totalPage}</b>
+                페이지 <b>{page}</b>
+                {totalPage ? (
+                  <>
+                    {" "}
+                    / <b>{totalPage}</b>
+                  </>
+                ) : null}
+                {pageInfo?.dataCount !== null &&
+                pageInfo?.dataCount !== undefined ? (
+                  <>
+                    {" "}
+                    · 총 <b>{pageInfo.dataCount}</b>건
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <>
+                페이지 <b>{page}</b>
               </>
             )}
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
             <button
-              style={canPrev ? btnSolid("#495057") : btnDisabled}
+              style={canPrev ? btnOutline("#495057", "#495057") : btnDisabled}
               disabled={!canPrev}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
               ← 이전
             </button>
+
             <button
-              style={canNext ? btnSolid("#495057") : btnDisabled}
+              style={canNext ? btnOutline("#495057", "#495057") : btnDisabled}
               disabled={!canNext}
               onClick={() => setPage((p) => p + 1)}
             >
@@ -448,15 +494,23 @@ export default function ProductSalesList() {
         </div>
       </div>
 
-      {/* 송장 입력 모달 */}
-      <OrderTrackingModal
-        show={showTrack}
-        onHide={closeTrackingModal}
-        orderNo={selected?.orderNo}
+      {/* ✅ 배송지 모달 */}
+      <OrderShippingModal
+        show={showShip}
+        onHide={closeShippingModal}
         authHeader={authHeader}
+        orderNo={selected?.orderNo}
+        defaultValue={{
+          orderNo: selected?.orderNo ?? null,
+          receiverName: "",
+          receiverPhone: "",
+          post: "",
+          address1: "",
+          address2: "",
+        }}
         onSaved={() => {
-          closeTrackingModal();
-          fetchList();
+          closeShippingModal();
+          fetchList(); // ✅ 저장 후 현재 페이지 새로고침
         }}
       />
     </>
