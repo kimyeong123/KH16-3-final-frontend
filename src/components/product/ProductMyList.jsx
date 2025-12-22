@@ -3,11 +3,17 @@ import axios from "axios";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
 import { useNavigate } from "react-router-dom";
+
+// ▼▼▼ [추가] 구매 내역 컴포넌트 임포트 (같은 폴더에 있다고 가정)
 import ProductPurchaseList from "./ProductPurchaseList"; 
 
 export default function ProductMyList() {
   const navigate = useNavigate();
+  
+  // === [추가] 탭 상태 관리 ('SALES': 판매내역, 'PURCHASE': 구매내역) ===
   const [activeTab, setActiveTab] = useState("SALES");
+
+  // Jotai
   const [accessToken, setAccessToken] = useAtom(accessTokenState);
 
   // === 판매 내역 관련 State ===
@@ -24,8 +30,8 @@ export default function ProductMyList() {
 
   // === 유틸리티 함수 ===
   const ATT_VIEW = (attachmentNo) => `http://localhost:8080/attachment/${attachmentNo}`;
-  const money = (v) => (v ? Number(v).toLocaleString() : "0");
-  const dt = (v) => (v ? new Date(v).toLocaleString().split('. ').slice(0, 3).join('.') : "-");
+  const money = (v) => (v ? Number(v).toLocaleString() : "-");
+  const dt = (v) => (v ? new Date(v).toLocaleString() : "-");
   
   const get = (obj, keys) => {
     if (!obj) return undefined;
@@ -36,9 +42,9 @@ export default function ProductMyList() {
     return undefined;
   };
 
-  // === 데이터 불러오기 ===
+  // === 데이터 불러오기 (판매 내역용) ===
   const fetchList = async (targetPage) => {
-    if (!accessToken || activeTab !== "SALES") return;
+    if (!accessToken || activeTab !== "SALES") return; // 탭이 다르면 요청 안 함
 
     setLoading(true);
     try {
@@ -50,7 +56,7 @@ export default function ProductMyList() {
       if (renewed) setAccessToken(renewed);
 
       const data = resp.data;
-      const list = data?.list || [];
+      const list = data?.list || data?.content || data || [];
       const last = data?.last ?? true;
 
       setVo({ list, last });
@@ -64,10 +70,12 @@ export default function ProductMyList() {
     }
   };
 
+  // useEffect: 탭이 'SALES'일 때만 데이터 로드
   useEffect(() => {
     if (activeTab === "SALES") {
         fetchList(page);
     }
+    // eslint-disable-next-line
   }, [page, accessToken, activeTab]); 
 
   // 썸네일 로직
@@ -113,18 +121,33 @@ export default function ProductMyList() {
     return () => { alive = false; };
   }, [vo.list, activeTab]);
 
+  // 버튼 기능
   const goDetail = (pNo, status) => {
     if (status === 'BIDDING') navigate(`/product/auction/detail/${pNo}`);
     else navigate(`/product/detail/${pNo}`);
   };
 
+  const remove = async (pNo) => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      await axios.delete(`http://localhost:8080/product/${pNo}`, {
+        headers: { Authorization: authHeader },
+      });
+      alert("삭제되었습니다.");
+      fetchList(page);
+    } catch (err) {
+      alert("삭제 실패");
+    }
+  };
+
   // === 스타일 ===
   const tabStyle = (isActive) => ({
-      padding: "16px 24px",
+      padding: "12px 24px",
       fontSize: "16px",
       fontWeight: "bold",
       cursor: "pointer",
-      color: isActive ? "#333" : "#aaa",
+      borderBottom: isActive ? "3px solid #333" : "3px solid transparent",
+      color: isActive ? "#333" : "#999",
       background: "transparent",
       border: "none",
       borderBottom: isActive ? "3px solid #333" : "1px solid #ddd",
@@ -133,111 +156,130 @@ export default function ProductMyList() {
   });
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 20px" }}>
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px" }}>
       
-      {/* 탭 버튼 영역 */}
-      <div style={{ display: "flex", marginBottom: "30px" }}>
-          <button style={tabStyle(activeTab === "SALES")} onClick={() => setActiveTab("SALES")}>내 판매 내역</button>
-          <button style={tabStyle(activeTab === "PURCHASE")} onClick={() => setActiveTab("PURCHASE")}>내 구매/입찰 내역</button>
+      {/* === [탭 버튼 영역] === */}
+      <div style={{ display: "flex", marginBottom: "30px", borderBottom: "1px solid #ddd" }}>
+          <button 
+            style={tabStyle(activeTab === "SALES")}
+            onClick={() => setActiveTab("SALES")}
+          >
+            내 판매 내역 (물품등록)
+          </button>
+          <button 
+            style={tabStyle(activeTab === "PURCHASE")}
+            onClick={() => setActiveTab("PURCHASE")}
+          >
+            내 구매/입찰 내역
+          </button>
       </div>
 
-      {activeTab === "PURCHASE" && <ProductPurchaseList />}
+      {/* === [조건부 렌더링 1] 구매 내역 탭 선택 시 === */}
+      {activeTab === "PURCHASE" && (
+          <ProductPurchaseList />
+      )}
 
+      {/* === [조건부 렌더링 2] 판매 내역 탭 선택 시 (기존 코드) === */}
       {activeTab === "SALES" && (
           <>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: 20 }}>
-                <h3 style={{ margin: 0, fontWeight: "800", fontSize: "22px" }}>내가 등록한 물품</h3>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: 15 }}>
+                <h3 style={{ margin: 0, fontWeight: "bold" }}>내가 등록한 물품</h3>
                 <button 
                     onClick={() => navigate("/product/productadd")} 
-                    style={{ padding: "10px 20px", background: "#333", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: "bold" }}
+                    style={{ padding: "8px 16px", background: "#333", color: "white", border: "none", borderRadius: 4, cursor: "pointer", fontWeight: "bold" }}
                 >
                     + 새 물품 등록
                 </button>
             </div>
 
-            <div style={{ borderTop: "2px solid #333", background: "white", borderRadius: "0 0 8px 8px", overflow: "hidden" }}>
+            <div style={{ border: "1px solid #ddd", borderRadius: 8, overflow: "hidden", background: "white" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                    <tr style={{ background: "#f9f9f9", borderBottom: "1px solid #eee" }}>
-                        <th style={{ padding: "15px", textAlign: "left", width: "100px", color: "#666" }}>이미지</th>
-                        <th style={{ padding: "15px", textAlign: "left", color: "#666" }}>상품명</th>
-                        <th style={{ padding: "15px", textAlign: "right", color: "#666" }}>금액 정보</th>
-                        <th style={{ padding: "15px", textAlign: "center", color: "#666" }}>경매 기간</th>
-                        <th style={{ padding: "15px", textAlign: "center", width: "100px", color: "#666" }}>상태</th>
+                    <tr style={{ background: "#f8f9fa", borderBottom: "2px solid #eee" }}>
+                    <th style={{ padding: 12, textAlign: "left" }}>이미지</th>
+                    <th style={{ padding: 12, textAlign: "left" }}>번호</th>
+                    <th style={{ padding: 12, textAlign: "left" }}>상품명</th>
+                    <th style={{ padding: 12, textAlign: "right" }}>시작가</th>
+                    <th style={{ padding: 12, textAlign: "right" }}>현재가</th>
+                    <th style={{ padding: 12, textAlign: "center" }}>상태</th>
+                    <th style={{ padding: 12, textAlign: "center" }}>시작일</th>
+                    <th style={{ padding: 12, textAlign: "center" }}>마감일</th>
+                    <th style={{ padding: 12, textAlign: "center" }}>관리</th>
                     </tr>
                 </thead>
                 <tbody>
                     {vo.list.length === 0 && !loading && (
                     <tr>
-                        <td colSpan={5} style={{ padding: 80, textAlign: "center", color: "#999" }}>등록된 물품이 없습니다.</td>
+                        <td colSpan={9} style={{ padding: 50, textAlign: "center", color: "#999" }}>등록된 물품이 없습니다.</td>
                     </tr>
                     )}
                     {vo.list.map((p) => {
-                        const pNo = get(p, ["productNo", "product_no"]);
-                        const attNo = resolveThumbNo(p) || thumbNoByProduct[pNo];
-                        const status = get(p, ["status"]);
+                    const pNo = get(p, ["productNo", "product_no"]);
+                    const attNo = resolveThumbNo(p) || thumbNoByProduct[pNo];
+                    const status = get(p, ["status"]);
+                    const isLocked = status === 'BIDDING' || status === 'ENDED' || status === 'CLOSED';
 
-                        return (
-                            <tr key={pNo} 
-                                onClick={() => goDetail(pNo, status)}
-                                style={{ borderBottom: "1px solid #f0f0f0", cursor: "pointer" }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#fafafa"}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                    return (
+                        <tr key={pNo} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                        <td style={{ padding: 12 }}>
+                            {attNo ? (
+                            <img src={ATT_VIEW(attNo)} alt="thumb" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4, border: "1px solid #eee" }} />
+                            ) : (
+                            <div style={{ width: 80, height: 60, background: "#f0f0f0", borderRadius: 4 }} />
+                            )}
+                        </td>
+                        <td style={{ padding: 12 }}>{pNo}</td>
+                        <td style={{ padding: 12 }}>
+                            <span 
+                            onClick={() => goDetail(pNo, status)} 
+                            style={{ cursor: "pointer", fontWeight: "bold", textDecoration: "underline" }}
                             >
-                                <td style={{ padding: "15px" }}>
-                                    {attNo ? (
-                                    <img src={ATT_VIEW(attNo)} alt="thumb" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 8 }} />
-                                    ) : (
-                                    <div style={{ width: 80, height: 80, background: "#f5f5f5", borderRadius: 8 }} />
-                                    )}
-                                </td>
-                                <td style={{ padding: "15px" }}>
-                                    <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "4px" }}>No. {pNo}</div>
-                                    <div style={{ fontWeight: "bold", fontSize: "16px" }}>{get(p, ["name", "productName"])}</div>
-                                </td>
-                                <td style={{ padding: "15px", textAlign: "right" }}>
-                                    <div style={{ fontSize: "13px", color: "#999" }}>시작가 {money(get(p, ["startPrice", "start_price"]))}원</div>
-                                    <div style={{ fontSize: "16px", fontWeight: "bold", color: "#d32f2f", marginTop: "4px" }}>
-                                        {money(get(p, ["finalPrice", "final_price"]))}원
-                                    </div>
-                                </td>
-                                <td style={{ padding: "15px", textAlign: "center", fontSize: "13px", color: "#666" }}>
-                                    <div>{dt(get(p, ["startTime", "start_time"]))}</div>
-                                    <div style={{ color: "#eee", margin: "2px 0" }}>~</div>
-                                    <div>{dt(get(p, ["endTime", "end_time"]))}</div>
-                                </td>
-                                <td style={{ padding: "15px", textAlign: "center" }}>
-                                    <span style={{ 
-                                        fontSize: "11px", 
-                                        padding: "4px 10px", 
-                                        borderRadius: "20px",
-                                        background: status === 'BIDDING' ? "#e3f2fd" : "#f5f5f5",
-                                        color: status === 'BIDDING' ? "#1976d2" : "#888",
-                                        fontWeight: "bold"
-                                    }}>
-                                        {status}
-                                    </span>
-                                </td>
-                            </tr>
-                        );
+                            {get(p, ["name", "productName"])}
+                            </span>
+                        </td>
+                        <td style={{ padding: 12, textAlign: "right" }}>{money(get(p, ["startPrice", "start_price"]))}</td>
+                        <td style={{ padding: 12, textAlign: "right", color: "#d32f2f", fontWeight: "bold" }}>
+                            {money(get(p, ["finalPrice", "final_price"])) || "-"}
+                        </td>
+                        <td style={{ padding: 12, textAlign: "center" }}>
+                            <span style={{ fontSize: 12, padding: "4px 8px", background: "#f0f0f0", borderRadius: 4, color: "#666" }}>
+                                {status}
+                            </span>
+                        </td>
+                        <td style={{ padding: 12, textAlign: "center", fontSize: 13, color: "#555" }}>
+                            {dt(get(p, ["startTime", "start_time"]))}
+                        </td>
+                        <td style={{ padding: 12, textAlign: "center", fontSize: 13, color: "#555" }}>
+                            {dt(get(p, ["endTime", "end_time"]))}
+                        </td>
+                        <td style={{ padding: 12, textAlign: "center" }}>
+                            <button 
+                            onClick={() => !isLocked && navigate(`/product/edit/${pNo}`)} 
+                            disabled={isLocked}
+                            style={{ marginRight: 5, padding: "5px 10px", cursor: isLocked ? "not-allowed" : "pointer", opacity: isLocked ? 0.3 : 1 }}
+                            >
+                            수정
+                            </button>
+                            <button 
+                            onClick={() => !isLocked && remove(pNo)} 
+                            disabled={isLocked}
+                            style={{ color: "red", padding: "5px 10px", cursor: isLocked ? "not-allowed" : "pointer", opacity: isLocked ? 0.3 : 1 }}
+                            >
+                            삭제
+                            </button>
+                        </td>
+                        </tr>
+                    );
                     })}
                 </tbody>
                 </table>
             </div>
 
-            {/* 페이지네이션 */}
-            <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 40 }}>
-                <button 
-                  onClick={() => setPage(p => Math.max(1, p - 1))} 
-                  disabled={page <= 1} 
-                  style={{ padding: "8px 16px", border: "1px solid #ddd", background: "white", cursor: "pointer", borderRadius: 4 }}
-                >이전</button>
-                <span style={{ padding: "8px 16px", fontWeight: "bold" }}>{page}</span>
-                <button 
-                  onClick={() => setPage(p => (vo.last ? p : p + 1))} 
-                  disabled={vo.last} 
-                  style={{ padding: "8px 16px", border: "1px solid #ddd", background: "white", cursor: "pointer", borderRadius: 4 }}
-                >다음</button>
+            {/* 페이지네이션 (판매내역용) */}
+            <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 20 }}>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} style={{ padding: "6px 12px" }}>이전</button>
+                <span style={{ padding: "6px 12px", fontWeight: "bold" }}>page {page}</span>
+                <button onClick={() => setPage(p => (vo.last ? p : p + 1))} disabled={vo.last} style={{ padding: "6px 12px" }}>다음</button>
             </div>
           </>
       )}
