@@ -14,7 +14,7 @@ import { RiAuctionLine, RiErrorWarningLine, RiCustomerService2Line } from "react
 import MessageBadge from "./message/MessageBadge";
 
 const NOTIFICATION_COUNT_URL = "/message/unread/count";
-const POLLING_INTERVAL = 30000;
+const POLLING_INTERVAL = 2000;
 const NOTIFICATION_LIST_URL = "/message/unread/list";
 
 const getNotificationIcon = (type) => {

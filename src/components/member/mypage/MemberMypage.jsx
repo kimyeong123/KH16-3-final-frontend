@@ -23,6 +23,7 @@ import ChargeHistoryModal from "./modals/ChargeHistoryModal";
 import BidHistoryModal from "./modals/BidHistoryModal";
 import MemberInfoCard from "./sections/MemberInfoCard";
 import WinProductModal from "./modals/WinProductModal";
+import WithdrawModal from "./modals/WithdrawModal";
 
 const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$])[A-Za-z0-9!@#$]{8,16}$/;
 export default function MemberMypage() {
@@ -37,6 +38,8 @@ export default function MemberMypage() {
     const [point, setLoginPoint] = useAtom(loginPointState);
     const [contact, setLoginContact] = useAtom(loginContactState);
     const [createdTime] = useAtom(loginCreatedTimeState);
+    const [withdrawFilter, setWithdrawFilter] = useState("ALL");
+
 
 
     const navigete = useNavigate();
@@ -52,6 +55,15 @@ export default function MemberMypage() {
     // 비밀번호 변경을 위한 상태
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [onlyBidding, setOnlyBidding] = useState(true);
+
+    //환전요청을 위한 상태
+    const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
+    const [withdrawList, setWithdrawList] = useState([]);
+    const [withdrawAmount, setWithdrawAmount] = useState("");
+    const [bankName, setBankName] = useState("");
+    const [accountNumber, setAccountNumber] = useState("");
+    const [accountHolder, setAccountHolder] = useState("");
+
 
     // 비밀번호 변경 모달
     const [currentPassword, setCurrentPassword] = useState("");       // 현재 비밀번호
@@ -91,6 +103,7 @@ export default function MemberMypage() {
     const isViewAs = !!paramNo;
     const targetNo = isViewAs ? Number(paramNo) : loginNo;
     const [viewMember, setViewMember] = useState(null);
+
     const view = isViewAs ? viewMember : {
         id: loginId,
         nickname,
@@ -124,6 +137,22 @@ export default function MemberMypage() {
             console.error(e.response?.status, e.response?.data);
         });
     }, [loginRole, paramNo, accessToken]);
+    const loadWithdrawHistory = async () => {
+        try {
+            const resp = await axios.get("/member/withdraw/history", {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            setWithdrawList(resp.data);
+        } catch (e) {
+            console.error(e);
+            setWithdrawList([]);
+        }
+    };
+
+    useEffect(() => {
+        if (accessToken) loadWithdrawHistory();
+    }, [accessToken]);
+
 
     useEffect(() => {
         const load = async () => {
@@ -136,6 +165,39 @@ export default function MemberMypage() {
         };
         load();
     }, []);
+    // 내 환전 내역
+    useEffect(() => {
+        if (!accessToken) return;
+        //환전 요청 함수
+        const requestWithdraw = async () => {
+            if (!withdrawAmount || withdrawAmount < 1000) {
+                alert("환전 금액은 1000원 이상이어야 합니다");
+                return;
+            }
+
+            await axios.post(
+                "/member/withdraw",
+                {
+                    amount: Number(withdrawAmount),
+                    bankName,
+                    accountNumber,
+                    accountHolder
+                },
+                {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                }
+            );
+
+            alert("환전 요청이 접수되었습니다");
+        };
+
+
+        axios.get("/member/withdraw/history", {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        })
+            .then(resp => setWithdrawList(resp.data))
+            .catch(err => console.error(err));
+    }, [accessToken]);
 
     useEffect(() => {
         if (email) {
@@ -191,28 +253,28 @@ export default function MemberMypage() {
 
         if (accessToken && (!isViewAs || viewMember)) loadBidHistory();
     }, [accessToken, isViewAs, targetNo, viewMember]);
-    //낙찰내역
+
     // 낙찰내역
-useEffect(() => {
-  const loadWinProduct = async () => {
-    try {
-      const url = isViewAs
-        ? `/admin/members/${targetNo}/win-products/history`
-        : `/member/win-products/history`; // 
+    useEffect(() => {
+        const loadWinProduct = async () => {
+            try {
+                const url = isViewAs
+                    ? `/admin/members/${targetNo}/win-products/history`
+                    : `/member/win-products/history`; // 
 
-      const resp = await axios.get(url, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+                const resp = await axios.get(url, {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                });
 
-      setWinProduct(resp.data);
-    } catch (e) {
-      console.error(e);
-      setWinProduct([]);
-    }
-  };
+                setWinProduct(resp.data);
+            } catch (e) {
+                console.error(e);
+                setWinProduct([]);
+            }
+        };
 
-  if (accessToken && (!isViewAs || viewMember)) loadWinProduct();
-}, [accessToken, isViewAs, targetNo, viewMember]);
+        if (accessToken && (!isViewAs || viewMember)) loadWinProduct();
+    }, [accessToken, isViewAs, targetNo, viewMember]);
 
 
 
@@ -574,6 +636,22 @@ useEffect(() => {
             Swal.fire({ icon: "error", title: "삭제 실패", text: msg });
         }
     };
+    const withdrawStatusText = (status) => {
+        const s = String(status ?? "").toUpperCase();
+        if (s === "REQUEST") return "요청 중";
+        if (s === "APPROVED") return "승인";
+        if (s === "REJECTED") return "거절";
+        return status ?? "-";
+    };
+
+    const withdrawStatusClass = (status) => {
+        const s = String(status ?? "").toUpperCase();
+        if (s === "REQUEST") return "text-warning fw-semibold";
+        if (s === "APPROVED") return "text-success fw-semibold";
+        if (s === "REJECTED") return "text-danger fw-semibold";
+        return "";
+    };
+
 
 
     return (
@@ -629,7 +707,16 @@ useEffect(() => {
                         setIsEmailVerified={setIsEmailVerified}
                         setContactError={setContactError}
                         handleUpdateInfo={handleUpdateInfo}
+
+                        withdrawList={withdrawList}
+                        showWithdrawHistory={showWithdrawHistory}
+                        setShowWithdrawHistory={setShowWithdrawHistory}
+                        withdrawStatusText={withdrawStatusText}
+                        withdrawStatusClass={withdrawStatusClass}
+                        withdrawFilter={withdrawFilter}
+                        setWithdrawFilter={setWithdrawFilter}
                     />
+
 
                     {/* 계정 관리 */}
                     <div className="col-md-5">
@@ -645,12 +732,12 @@ useEffect(() => {
                                             height: 1,
                                             backgroundColor: "#e5e7eb"
                                         }}
-                                    />  
+                                    />
                                 </div>
                                 {!isViewAs && (
-                                <div className="small text-muted mt-1">
-                                    내 정보 수정 · 보안
-                                </div>)}
+                                    <div className="small text-muted mt-1">
+                                        내 정보 수정 · 보안
+                                    </div>)}
                             </div>
 
                             <div className="p-4">
@@ -810,7 +897,7 @@ useEffect(() => {
                                 </div>
                             </div>
                             {/* 낙찰 내역 */}
-                             <div
+                            <div
                                 className="d-flex align-items-center justify-content-between px-3 py-3 mb-2 rounded"
                                 style={{ background: "#f9fafb", border: "1px dashed #dee2e6", cursor: "pointer" }}
                                 data-bs-toggle="modal"
@@ -821,7 +908,13 @@ useEffect(() => {
                                     <div className="text-secondary small">낙찰받은 상품 {winProduct.length}개</div>
                                 </div>
                             </div>
-                            {/* 등록한 물품 */}
+                            <WithdrawModal
+                                accessToken={accessToken}
+                                onSuccess={() => {
+                                    loadWithdrawHistory();
+                                }}
+                            />
+
                         </div>
                     </div>
                     {/*모달 영역 */}

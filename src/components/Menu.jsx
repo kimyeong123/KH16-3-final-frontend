@@ -138,7 +138,7 @@ export default function Menu() {
                                 {/* 관리자 메뉴 */}
                                 {isAdmin && (
                                     <li className="nav-item">
-                                        <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}><FaScrewdriverWrench className="fs-5 me-1" />설정</Link>
+                                        <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}><FaScrewdriverWrench className="fs-5 me-1" />관리 메뉴</Link>
                                     </li>
                                 )}
                             </>
