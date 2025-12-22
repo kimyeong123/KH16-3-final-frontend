@@ -39,6 +39,7 @@ import RequireSignupAgree from "../components/guard/RequireSignupAgree";
 import AdminMemberDetail from "./admin/AdminMemberDetail";
 import ProductPurchaseList from "./product/ProductPurchaseList";
 import ProductSalesList from "./product/ProductSalesList";
+import AdminOrderList from "./admin/AdminOrderList";
 
 export default function Content() {
   return (
@@ -93,6 +94,8 @@ export default function Content() {
                 element={<AdminMemberDetail />}
               />
             </Route>
+
+            <Route path="/admin/home/orders" element={<AdminOrderList />} />
 
             {/* 게시글 페이지(공지만) - HEAD 부분 */}
             <Route
