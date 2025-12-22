@@ -16,6 +16,14 @@ export default function AdminSidebar() {
         회원
       </NavLink>
 
+      <NavLink to="/admin/home/withdraw" className="admin-menu">
+        출금 요청
+      </NavLink>
+
+      <NavLink to="/admin/home/deliever" className="admin-menu">
+        배송 상태
+      </NavLink>
+
     </div>
   );
 }

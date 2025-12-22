@@ -2,9 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useDaumPostcodePopup } from "react-daum-postcode";
 import { Link, useParams } from "react-router-dom";
-import { useAtomValue } from "jotai";
 import { FaTrash, FaUserLock, FaEnvelope, FaEraser, FaExclamationTriangle } from "react-icons/fa";
-import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaUserPen } from "react-icons/fa6";
 import {
     loginNoState, loginIdState, loginRoleState, loginNicknameState, loginPostState,
@@ -39,9 +37,6 @@ export default function MemberMypage() {
     const [contact, setLoginContact] = useAtom(loginContactState);
     const [createdTime] = useAtom(loginCreatedTimeState);
     const [withdrawFilter, setWithdrawFilter] = useState("ALL");
-
-
-
     const navigete = useNavigate();
 
     const [accessToken] = useAtom(accessTokenState);
@@ -229,7 +224,6 @@ export default function MemberMypage() {
                 setChargeHistory([]);
             }
         };
-
         if (accessToken && (!isViewAs || viewMember)) loadChargeHistory();
     }, [accessToken, isViewAs, targetNo, viewMember]);
 
@@ -275,9 +269,22 @@ export default function MemberMypage() {
 
         if (accessToken && (!isViewAs || viewMember)) loadWinProduct();
     }, [accessToken, isViewAs, targetNo, viewMember]);
+    //출금 신청시 포인트 최신화
+    const fetchPointBalance = async () => {
+        if (!accessToken) return;
 
+        const { data: me } = await axios.get("/member/mypage", {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        setViewMember(me);
+    };
 
-
+    const fetchWithdrawHistory = async () => {
+        const resp = await axios.get("/member/withdraw/history", {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        setWithdrawList(resp.data);
+    };
     // 주소 검색
     const openPostcode = useDaumPostcodePopup();
     const searchAddress = () => {
@@ -589,7 +596,7 @@ export default function MemberMypage() {
             localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
             delete axios.defaults.headers.common["Authorization"];
-            clearLogin(); // jotai 초기화
+            clearLogin();
             navigete("/member/login")
 
             Swal.fire({
@@ -639,16 +646,16 @@ export default function MemberMypage() {
     const withdrawStatusText = (status) => {
         const s = String(status ?? "").toUpperCase();
         if (s === "REQUEST") return "요청 중";
-        if (s === "APPROVED") return "승인";
-        if (s === "REJECTED") return "거절";
+        if (s === "DONE") return "승인";
+        if (s === "REJECT") return "거절";
         return status ?? "-";
     };
 
     const withdrawStatusClass = (status) => {
         const s = String(status ?? "").toUpperCase();
         if (s === "REQUEST") return "text-warning fw-semibold";
-        if (s === "APPROVED") return "text-success fw-semibold";
-        if (s === "REJECTED") return "text-danger fw-semibold";
+        if (s === "DONE") return "text-success fw-semibold";
+        if (s === "REJECT") return "text-danger fw-semibold";
         return "";
     };
 
@@ -908,16 +915,18 @@ export default function MemberMypage() {
                                     <div className="text-secondary small">낙찰받은 상품 {winProduct.length}개</div>
                                 </div>
                             </div>
-                            <WithdrawModal
-                                accessToken={accessToken}
-                                onSuccess={() => {
-                                    loadWithdrawHistory();
-                                }}
-                            />
-
                         </div>
                     </div>
                     {/*모달 영역 */}
+                      <WithdrawModal
+                                accessToken={accessToken}
+                                onSuccess={async () => {
+                                    await Promise.all([
+                                        fetchPointBalance(),
+                                        loadWithdrawHistory()
+                                    ]);
+                                }}
+                            />
                     <PasswordChangeModal
                         isOpen={isPasswordModalOpen}
                         onClose={() => setIsPasswordModalOpen(false)}
@@ -945,7 +954,6 @@ export default function MemberMypage() {
                         filtered={filtered}
                     />
                     <WinProductModal winProduct={winProduct} />
-
                 </div>
             </div>
         </>

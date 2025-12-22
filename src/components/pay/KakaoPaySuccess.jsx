@@ -16,9 +16,6 @@ export default function KakaoPaySuccess() {
       const { data: me } = await axios.get("/member/mypage", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      console.log(window.location.origin);
-console.log(localStorage.getItem("accessTokenState"));
-console.log(localStorage.getItem("access_token"));
 
        if (!accessToken) {
         alert("로그인이 필요한 서비스입니다.");
