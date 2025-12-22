@@ -112,10 +112,7 @@ export const clearLoginState = atom(
     set(refreshTokenState, "");
     set(loginNicknameState, "");
     set(loginEmailState, "");
-
-    // 💡 [수정] loginPostState 초기화 (값 누락 오류 수정)
     set(loginPostState, "");
-
     set(loginAddress1State, "");
     set(loginAddress2State, "");
     set(loginContactState, "");

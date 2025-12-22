@@ -97,16 +97,25 @@ export default function Header() {
         if (activeTab === 'important') return notif.type === 'SYSTEM_ALERT';
         if (activeTab === 'personal') return notif.type === 'GENERAL' || notif.type === 'SELLER_QNA';
         return false;
+        
     });
 
-    const logout = useCallback((e) => {
-        e.stopPropagation();
-        e.preventDefault();
+const logout = useCallback(async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    try {
+        await axios.delete("/member/logout"); 
+    } catch (e) {
+        console.error("서버 로그아웃 실패", e);
+    } finally {
         clearLogin();
         setLoginComplete(true);
         delete axios.defaults.headers.common["Authorization"];
         navigate("/");
-    }, [clearLogin, navigate, setLoginComplete]);
+    }
+}, [clearLogin, navigate, setLoginComplete]);
+
 
     useEffect(() => {
         if (!isLogin) {
