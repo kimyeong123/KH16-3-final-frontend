@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import Home from "./Home";
 import Private from "./guard/Private";
 import MemberJoin from "./member/MemberJoin";
@@ -38,6 +38,8 @@ import PrivacyPolicy from "./etc/PrivacyPolicy";
 import RequireSignupAgree from "../components/guard/RequireSignupAgree";
 import AdminMemberDetail from "./admin/AdminMemberDetail";
 import AdminWithdrawRequests from "./admin/AdminWithdrawRequests";
+import ProductPurchaseList from "./product/ProductPurchaseList";
+import ProductSalesList from "./product/ProductSalesList";
 
 export default function Content() {
   return (
@@ -188,7 +190,11 @@ export default function Content() {
               element={<ProductDetail />}
             />
             <Route path="/product/edit/:productNo" element={<ProductEdit />} />
-            <Route path="/product/mylist" element={<ProductMyList />} />
+            <Route path="/product/mylist" element={<ProductMyList />}>
+              <Route index element={<Navigate to="purchase" replace />} />
+              <Route path="purchase" element={<ProductPurchaseList />} />
+              <Route path="sales" element={<ProductSalesList />} />
+            </Route>
             <Route
               path="/product/auction/list"
               element={<ProductAuctionList />}

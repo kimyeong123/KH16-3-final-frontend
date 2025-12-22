@@ -141,3 +141,45 @@
 .navbar-nav .nav-item {
   margin-right: 15px;
 }
+
+.point-badge {
+    background-color: #f8f9fa; /* 아주 밝은 회색 */
+    border: 1px solid #e9ecef;
+    padding: 5px 15px;
+    border-radius: 12px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.point-badge:hover {
+    background-color: #ffffff;
+    border-color: #0d6efd; /* 호버 시 강조색 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* 지갑 아이콘 */
+.icon-wallet {
+    font-size: 1.2rem;
+    color: #0d6efd;
+    margin-right: 10px;
+}
+
+/* 텍스트 컨테이너 */
+.point-content {
+    display: flex;
+    flex-direction: column; /* 라벨과 금액을 위아래로 배치 (더 꽉 차 보임) */
+    line-height: 1.2;
+}
+
+.point-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #6c757d;
+    letter-spacing: 0.5px;
+}
+
+.point-amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #212529;
+}
