@@ -48,9 +48,12 @@ export default function Header() {
     const [keyword, setKeyword] = useState("");
 
     const handleSearch = () => {
-        if (!keyword.trim()) return;
-        navigate(`/product/auction/list?q=${encodeURIComponent(keyword)}`);
-    };
+    if (!keyword.trim()) {
+        navigate(`/product/auction/list`);
+        return;
+    }
+    navigate(`/product/auction/list?q=${encodeURIComponent(keyword)}`);
+};
 
     const handleKeyDown = (e) => {
         if (e.key === "Enter") handleSearch();

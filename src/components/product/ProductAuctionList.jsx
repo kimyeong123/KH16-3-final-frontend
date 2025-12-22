@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
 
 export default function ProductAuctionList() {
     const navigate = useNavigate();
-    const [accessToken, setAccessToken] = useAtom(accessTokenState);
+    const location = useLocation();
+    const [accessToken] = useAtom(accessTokenState);
 
     // === 상태 관리 ===
     const [page, setPage] = useState(1);
@@ -31,10 +32,16 @@ export default function ProductAuctionList() {
     }, [accessToken]);
 
     // === 이미지/유틸 로직 ===
-    const ATT_VIEW = (no) => `http://localhost:8080/attachment/${no}`;
     const [thumbNoByProduct, setThumbNoByProduct] = useState({});
     const [thumbMap, setThumbMap] = useState({});
     const revokeRef = useRef([]);
+
+    useEffect(() => {
+        return () => {
+            revokeRef.current.forEach((u) => URL.revokeObjectURL(u));
+            revokeRef.current = [];
+        };
+    }, []);
 
     const money = (v) => (v ? Number(v).toLocaleString() : "0");
     const dt = (dateStr) => {
@@ -59,7 +66,6 @@ export default function ProductAuctionList() {
         return { list, last };
     };
 
-    // === 🔥 귀여운 이모지 매핑 ===
     const getEmoji = (name) => {
         if (name.includes("예술")) return "🎨";
         if (name.includes("도서")) return "📚";
@@ -74,7 +80,7 @@ export default function ProductAuctionList() {
         try {
             const resp = await axios.get("http://localhost:8080/category/top");
             setTopCategories(resp.data || []);
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("대분류 로드 실패", e); }
     };
 
     const toggleParent = async (parentCode) => {
@@ -87,7 +93,7 @@ export default function ProductAuctionList() {
         }
     };
 
-    const fetchList = async (targetPage) => {
+    const fetchList = useCallback(async (targetPage) => {
         setLoading(true);
         try {
             let serverSort = sort;
@@ -95,9 +101,7 @@ export default function ProductAuctionList() {
             else if (sort === "PRICE_LOW") serverSort = "PRICE_ASC";
 
             const params = {
-                // 🔥 [핵심] 20개씩 요청! (백엔드 PageVO가 받아줘야 함)
                 size: 20,
-                
                 q: q || null,
                 sort: serverSort || null,
                 category: selectedChildCode || selectedTopCode || null,
@@ -105,7 +109,6 @@ export default function ProductAuctionList() {
                 maxPrice: maxPrice || null,
             };
 
-            // 🔥 [주소 복구] 화면 잘 나오던 주소 사용
             const resp = await axios.get(`http://localhost:8080/product/auction/page/${targetPage}`, {
                 params,
                 headers: accessToken ? { Authorization: authHeader } : undefined,
@@ -116,22 +119,31 @@ export default function ProductAuctionList() {
         } catch (err) {
             setVo({ list: [], last: true });
         } finally { setLoading(false); }
-    };
+    }, [q, sort, selectedTopCode, selectedChildCode, minPrice, maxPrice, authHeader, accessToken]);
 
     useEffect(() => { loadTopCategories(); }, []);
-    useEffect(() => { fetchList(page); }, [page]);
-    useEffect(() => { setPage(1); fetchList(1); }, [sort, selectedTopCode, selectedChildCode]);
+    useEffect(() => { fetchList(page); }, [page, fetchList]);
+
+    // 검색어 유입 처리
     useEffect(() => {
-        const timer = setTimeout(() => { setPage(1); fetchList(1); }, 500);
-        return () => clearTimeout(timer);
-    }, [q, minPrice, maxPrice]);
+        const queryQ = new URLSearchParams(location.search).get("q") || "";
+        if (queryQ) {
+            setQ(queryQ);
+            setPage(1);
+        }
+    }, [location.search]);
+
+    // 필터 변경 시 1페이지로
+    useEffect(() => {
+        setPage(1);
+    }, [sort, selectedTopCode, selectedChildCode]);
 
     const resetFilter = () => {
         setQ(""); setSort("END_SOON"); setSelectedTopCode(null); setSelectedChildCode(null);
         setMinPrice(""); setMaxPrice(""); setOpenParents({}); setPage(1);
     };
 
-    // === 썸네일 로직 ===
+    // === 썸네일 로직 (기존 로직 유지) ===
     useEffect(() => {
         if (!vo.list.length) return;
         const run = async () => {
@@ -172,7 +184,7 @@ export default function ProductAuctionList() {
                 const chunk = uniq.slice(i, i + 6);
                 const res = await Promise.all(chunk.map(async (attNo) => {
                     try {
-                        const r = await axios.get(ATT_VIEW(attNo), { responseType: "blob" });
+                        const r = await axios.get(`http://localhost:8080/attachment/${attNo}`, { responseType: "blob" });
                         return { attNo, url: URL.createObjectURL(r.data) };
                     } catch { return { attNo, url: null }; }
                 }));
@@ -184,11 +196,8 @@ export default function ProductAuctionList() {
         run();
     }, [vo.list, thumbNoByProduct]);
 
-    // === 스타일 정의 ===
     const styles = {
-        // 🔥 1600px로 넓혀서 4개 들어가게 함
         container: { maxWidth: 1600, margin: "40px auto", padding: "0 20px", fontFamily: "'Pretendard', sans-serif" },
-        
         sidebar: { width: "240px", background: "#fff", border: "1px solid #eee", borderRadius: "12px", padding: "20px", height: "fit-content", position: "sticky", top: "20px" },
         card: { background: "#fff", border: "1px solid #f0f0f0", borderRadius: "12px", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", display: "flex", flexDirection: "column" },
         imgWrapper: { position: "relative", width: "100%", paddingTop: "75%", background: "#f8f9fa", overflow: "hidden" },
@@ -211,7 +220,6 @@ export default function ProductAuctionList() {
 
     return (
         <div style={styles.container}>
-            {/* 상단 카테고리 아이콘 바 */}
             <div style={styles.iconBar}>
                 <div style={styles.iconItem(!selectedTopCode)} onClick={resetFilter}>
                     <div style={styles.iconCircle(!selectedTopCode)}>🏠</div>
@@ -240,20 +248,16 @@ export default function ProductAuctionList() {
             </div>
 
             <div style={{ display: "flex", gap: "30px" }}>
-                {/* 좌측 사이드바 */}
                 <aside style={styles.sidebar}>
                     <div style={{ fontWeight: "800", fontSize: "16px", marginBottom: "20px", display: "flex", justifyContent: "space-between" }}>
                         필터 <span style={{ fontSize: "12px", color: "#e63946", cursor: "pointer" }} onClick={resetFilter}>초기화</span>
                     </div>
-                    
                     <div style={{ marginBottom: "25px" }}>
                         <div style={{ fontSize: "13px", fontWeight: "700", color: "#999", marginBottom: "10px" }}>상품명 검색</div>
                         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="검색어를 입력하세요" style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "14px" }} />
                     </div>
-
                     <div style={{ marginBottom: "25px" }}>
                         <div style={{ fontSize: "13px", fontWeight: "700", color: "#999", marginBottom: "10px" }}>카테고리</div>
-                        <div style={styles.categoryItem(!selectedTopCode)} onClick={() => { setSelectedTopCode(null); setSelectedChildCode(null); }}>전체 보기</div>
                         {topCategories.map((top) => {
                             const topCode = top.categoryCode ?? top.category_code;
                             const isOpen = !!openParents[topCode];
@@ -277,7 +281,6 @@ export default function ProductAuctionList() {
                             );
                         })}
                     </div>
-
                     <div>
                         <div style={{ fontSize: "13px", fontWeight: "700", color: "#999", marginBottom: "10px" }}>가격 범위</div>
                         <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
@@ -288,14 +291,11 @@ export default function ProductAuctionList() {
                     </div>
                 </aside>
 
-                {/* 우측 리스트 영역 */}
                 <main style={{ flex: 1 }}>
-                    {loading && <div style={{ textAlign: "center", padding: "50px", color: "#999" }}>경매 상품을 불러오는 중...</div>}
+                    {loading && <div style={{ textAlign: "center", padding: "50px", color: "#999" }}>불러오는 중...</div>}
                     {!loading && vo.list.length === 0 && (
-                        <div style={{ textAlign: "center", padding: "100px", background: "#f8f9fa", borderRadius: "12px", color: "#666" }}>찾으시는 경매 조건에 맞는 상품이 없습니다.</div>
+                        <div style={{ textAlign: "center", padding: "100px", background: "#f8f9fa", borderRadius: "12px" }}>상품이 없습니다.</div>
                     )}
-
-                    {/* 🔥 [핵심] repeat(4, 1fr)로 4개씩 고정! */}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "25px" }}>
                         {vo.list.map((p, idx) => {
                             const pNo = get(p, ["productNo", "product_no"]);
@@ -305,39 +305,24 @@ export default function ProductAuctionList() {
                             const src = thumbMap[attNo];
 
                             return (
-                                <div key={pNo ?? idx} style={styles.card} onClick={() => pNo && navigate(`/product/auction/detail/${pNo}`)}
-                                     onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-8px)"; e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.1)"; }}
-                                     onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+                                <div key={pNo ?? idx} style={styles.card} onClick={() => pNo && navigate(`/product/auction/detail/${pNo}`)}>
                                     <div style={styles.imgWrapper}>
                                         <div style={styles.badge}>진행중</div>
-                                        {attNo ? (
-                                            <img src={src} alt="thumb" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
-                                                 onError={(e) => { e.target.onerror = null; e.target.src = "/images/no-image.png"; }} />
-                                        ) : (
-                                            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", color: "#ccc", fontSize: "12px" }}>이미지 준비중</div>
-                                        )}
+                                        {src ? <img src={src} alt="thumb" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} /> 
+                                             : <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", color: "#ccc" }}>No Image</div>}
                                     </div>
-                                    <div style={{ padding: "15px", flex: 1, display: "flex", flexDirection: "column" }}>
-                                        <div style={{ fontSize: "15px", fontWeight: "700", marginBottom: "10px", color: "#333", height: "44px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", lineHeight: "1.4" }}>
-                                            {name}
-                                        </div>
-                                        <div style={{ marginTop: "auto" }}>
-                                            <div style={{ fontSize: "12px", color: "#999", marginBottom: "4px" }}>현재 입찰가</div>
-                                            <div style={styles.priceText}>{money(price)} <span style={{ fontSize: "14px", fontWeight: "normal" }}>원</span></div>
-                                            <div style={{ fontSize: "11px", color: "#888", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #f5f5f5", textAlign: "right" }}>
-                                                마감: {dt(get(p, ["endTime", "end_time"]))}
-                                            </div>
-                                        </div>
+                                    <div style={{ padding: "15px", flex: 1 }}>
+                                        <div style={{ fontSize: "15px", fontWeight: "700", marginBottom: "10px", height: "44px", overflow: "hidden" }}>{name}</div>
+                                        <div style={styles.priceText}>{money(price)} 원</div>
+                                        <div style={{ fontSize: "11px", color: "#888", marginTop: "10px" }}>마감: {dt(get(p, ["endTime", "end_time"]))}</div>
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
-
-                    {/* 페이지네이션 */}
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", marginTop: "50px", paddingBottom: "50px" }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "50px" }}>
                         <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} style={styles.paginationBtn(page <= 1)}>이전</button>
-                        <span style={{ fontSize: "15px", fontWeight: "bold" }}>{page}</span>
+                        <span style={{ fontWeight: "bold" }}>{page}</span>
                         <button onClick={() => setPage(p => vo.last ? p : p + 1)} disabled={vo.last} style={styles.paginationBtn(vo.last)}>다음</button>
                     </div>
                 </main>
