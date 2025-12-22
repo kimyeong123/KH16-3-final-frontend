@@ -45,7 +45,7 @@ export default function WinProductModal({ winProduct = [] }) {
                                                         }}
                                                         data-bs-dismiss="modal" // 이동 시 모달 닫기
                                                     >
-                                                        {p.name}
+                                                        {p.productName}
                                                     </Link>
                                                 </div>
 

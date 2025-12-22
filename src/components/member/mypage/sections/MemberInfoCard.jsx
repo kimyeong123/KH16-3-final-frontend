@@ -59,6 +59,7 @@ export default function MemberInfoCard({
   withdrawStatusText,
   withdrawStatusClass,
 
+
 }) {
   return (
     <div className="col-md-7">
@@ -260,7 +261,9 @@ export default function MemberInfoCard({
 
           {/* 기타 정보 */}
           <div className="mb-2 mt-2">
-            <div className="mb-2"><strong>보유 포인트:</strong> {view?.point}p</div>
+            <div className="mb-2">
+              <strong>보유 포인트:</strong> {view?.point ?? 0}p
+            </div>
             <div
               className="d-flex align-items-center justify-content-between px-3 py-3 mb-2 rounded"
               style={{ background: "#f9fafb", border: "1px dashed #dee2e6" }}
@@ -350,8 +353,8 @@ export default function MemberInfoCard({
 
                   <button
                     type="button"
-                    className={`btn btn-sm ${withdrawFilter === "REJECTED" ? "btn-danger" : "btn-outline-danger"}`}
-                    onClick={() => setWithdrawFilter("REJECTED")}
+                    className={`btn btn-sm ${withdrawFilter === "REJECT" ? "btn-danger" : "btn-outline-danger"}`}
+                    onClick={() => setWithdrawFilter("REJECT")}
                   >
                     거절
                   </button>
