@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 
 export default function WinProductModal({ winProduct = [] }) {
+    // PageVO 구조일 경우 list를 추출하고, 아니면 winProduct 자체를 배열로 사용
+    const list = Array.isArray(winProduct) ? winProduct : (winProduct?.list || []);
+
     return (
         <div
             className="modal fade"
@@ -17,45 +20,45 @@ export default function WinProductModal({ winProduct = [] }) {
                     </div>
 
                     <div className="modal-body">
-                        {winProduct.length === 0 ? (
+                        {list.length === 0 ? (
                             <div className="text-center text-muted py-4">낙찰 내역이 없습니다</div>
                         ) : (
                             <div className="d-grid gap-2">
-                                {winProduct.map((p) => (
+                                {list.map((p) => (
                                     <div
                                         key={p.productNo}
                                         className="p-3 rounded"
                                         style={{ background: "#f9fafb", border: "1px solid #e9ecef" }}
                                     >
                                         <div className="d-flex justify-content-between align-items-start">
-                                            <div className="me-2">
+                                            <div className="me-2 text-truncate">
                                                 <div className="mt-2 d-flex align-items-center gap-2">
-                                                    <span className="text-muted small">상품명</span>
+                                                    <span className="text-muted small" style={{ flexShrink: 0 }}>상품명</span>
                                                     <span className="text-muted">:</span>
 
                                                     <Link
                                                         to={`/product/auction/detail/${p.productNo}`}
-                                                        className="text-decoration-none fw-semibold"
+                                                        className="text-decoration-none fw-semibold text-truncate"
                                                         style={{
                                                             color: "#2c3e50",
                                                             letterSpacing: "-0.2px"
                                                         }}
+                                                        data-bs-dismiss="modal" // 이동 시 모달 닫기
                                                     >
                                                         {p.productName}
                                                     </Link>
                                                 </div>
 
                                                 <div className="mt-2 d-flex align-items-center gap-2 small text-muted">
-                                                    <span>종료 시각</span>
+                                                    <span style={{ flexShrink: 0 }}>종료 시각</span>
                                                     <span>:</span>
                                                     <span>
                                                         {p.endTime ? new Date(p.endTime).toLocaleString("ko-KR") : "-"}
                                                     </span>
                                                 </div>
-
                                             </div>
 
-                                            <div className="text-end">
+                                            <div className="text-end" style={{ flexShrink: 0 }}>
                                                 <div className="text-muted small text-secondary">낙찰가</div>
                                                 <div className="fw-bold fs-5">
                                                     {Number(p.finalPrice ?? 0).toLocaleString()}원
