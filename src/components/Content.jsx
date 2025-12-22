@@ -37,6 +37,7 @@ import SignupAgreement from "./etc/SignupAgreement";
 import PrivacyPolicy from "./etc/PrivacyPolicy";
 import RequireSignupAgree from "../components/guard/RequireSignupAgree";
 import AdminMemberDetail from "./admin/AdminMemberDetail";
+import AdminWithdrawRequests from "./admin/AdminWithdrawRequests";
 import ProductPurchaseList from "./product/ProductPurchaseList";
 import ProductSalesList from "./product/ProductSalesList";
 import AdminOrderList from "./admin/AdminOrderList";
@@ -78,21 +79,15 @@ export default function Content() {
             ></Route>
             <Route path="/member/mypage/:memberNo" element={<MemberMypage />} />
 
-            {/* 관리자 홈 */}
-            <Route
-              path="/admin/home"
-              element={
-                <Admin>
-                  <AdminHome />
-                </Admin>
-              }
-            >
+            <Route path="/admin/home" element={<Admin><AdminHome /></Admin>}>
               <Route index element={<div>관리자 대시보드</div>} />
+
+              {/* 회원 관리 */}
               <Route path="member" element={<MemberManage />} />
-              <Route
-                path="member/detail/:memberNo"
-                element={<AdminMemberDetail />}
-              />
+              <Route path="member/detail/:memberNo" element={<AdminMemberDetail />} />
+
+              {/* 출금 관리 */}
+              <Route path="withdraw" element={<AdminWithdrawRequests />} />
             </Route>
 
             <Route path="/admin/home/orders" element={<AdminOrderList />} />

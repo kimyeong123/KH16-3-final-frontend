@@ -30,7 +30,7 @@ export default function Footer() {
                     <div className="col-md-5 mb-3 text-start">
                         <h5 className="footer-title">고객센터 & 운영 방침</h5>
                         <ul className="list-unstyled">
-                            <li><a href="/qna/list" className="footer-text text-decoration-none d-block py-1"><i className="fa-regular fa-circle-question me-3"></i>문의하기</a></li>
+                            <li><a href="/qna/main" className="footer-text text-decoration-none d-block py-1"><i className="fa-regular fa-circle-question me-3"></i>문의하기</a></li>
                             <li><a href="https://open.kakao.com/o/siq6ZY6h" target="_blank" rel="noopener noreferrer" className="footer-text text-decoration-none d-block py-1"><i className="fa-brands fa-kakao-talk me-3"></i>카카오톡 상담</a></li>
                             <li>
                                 <Link
