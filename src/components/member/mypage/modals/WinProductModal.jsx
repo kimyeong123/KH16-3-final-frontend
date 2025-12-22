@@ -41,7 +41,7 @@ export default function WinProductModal({ winProduct = [] }) {
                                                             letterSpacing: "-0.2px"
                                                         }}
                                                     >
-                                                        {p.name}
+                                                        {p.productName}
                                                     </Link>
                                                 </div>
 

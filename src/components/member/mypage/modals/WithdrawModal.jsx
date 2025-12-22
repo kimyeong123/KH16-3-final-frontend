@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Modal } from "bootstrap"; // ✅ 추가: 이거 없으면 Modal.hide()에서 터짐
+import { Modal } from "bootstrap";
 
 const MIN = 1000;
 
@@ -33,12 +33,10 @@ export default function WithdrawModal({ accessToken, onSuccess }) {
     setTouched({ amount: false, bankName: false, accountNumber: false, accountHolder: false });
   };
 
-  // ✅ 성공 시 모달 닫기(백드랍까지 정상 제거)
   const closeModal = () => {
     const el = document.getElementById("withdrawModal");
     if (!el) return;
 
-    // 이미 열린 인스턴스가 있으면 가져오고, 없으면 생성
     const modal = Modal.getInstance(el) ?? new Modal(el);
     modal.hide();
   };
@@ -122,19 +120,12 @@ export default function WithdrawModal({ accessToken, onSuccess }) {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
-
-      // ✅ 1) 모달 먼저 닫기
       closeModal();
-
-      // ✅ 2) 닫힌 뒤 상태 정리(숨김 이벤트에서도 reset 하니까 중복이어도 문제 없음)
       reset();
       onSuccess?.();
-
-      // ✅ 3) alert는 다음 tick에서 (모달 닫힘이 먼저 보이게)
       setTimeout(() => {
         alert("환전 신청이 접수되었습니다");
       }, 0);
-
     } catch (e) {
       console.error(e);
       alert("환전 신청 중 오류가 발생했습니다");
@@ -143,7 +134,6 @@ export default function WithdrawModal({ accessToken, onSuccess }) {
     }
   };
 
-  // ✅ 모달이 완전히 닫힐 때 입력값 초기화
   useEffect(() => {
     const el = document.getElementById("withdrawModal");
     if (!el) return;
