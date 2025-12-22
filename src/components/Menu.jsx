@@ -5,11 +5,11 @@ import './menu.css';
 import logo2 from '../assets/logo2.png';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaClipboardList, FaPlusSquare, FaListUl, FaWallet, FaEnvelope } from "react-icons/fa";
-import { RiAuctionLine } from "react-icons/ri";
 import { useAtom, useSetAtom } from "jotai";
 import axios from "axios";
 import { FaCashRegister, FaScrewdriverWrench } from "react-icons/fa6";
 import { loginIdState, loginRoleState, loginNicknameState, accessTokenState, loginCompleteState, loginState, adminState, clearLoginState, loginNoState, loginPointState } from "../utils/jotai";
+import { RiAuctionLine } from "react-icons/ri";
 
 export default function Menu() {
     const navigate = useNavigate();
@@ -25,7 +25,9 @@ export default function Menu() {
     const clearLogin = useSetAtom(clearLoginState);
     const [loginPoint, setLoginPoint] = useAtom(loginPointState);
 
-    // [Access Token 설정 및 헤더 동기화]
+    // 정지 회원 여부 체크
+    const isSuspended = loginRole === "SUSPENDED";
+
     useEffect(() => {
         if (accessToken?.length > 0) {
             axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
@@ -34,32 +36,24 @@ export default function Menu() {
         }
     }, [accessToken]);
 
-    // [포인트 로드]
     const loadPoint = useCallback(async () => {
-    if (!isLogin || !accessToken) return;
-    try {
-        const response = await axios.get("/member/point/balance", {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        });
+        if (!isLogin || !accessToken) return;
+        try {
+            const response = await axios.get("/member/point/balance", {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const pointValue = (response.data && typeof response.data === 'object') 
+                                ? response.data.point 
+                                : response.data;
+            setLoginPoint(Number(pointValue ?? 0)); 
+        } catch (error) {}
+    }, [isLogin, accessToken, setLoginPoint]);
 
-        // 1. response.data가 객체 { point: 100 } 인 경우
-        // 2. response.data가 숫자 100 인 경우
-        // 두 상황을 모두 체크해서 숫자만 뽑아냅니다.
-        const pointValue = (response.data && typeof response.data === 'object') 
-                            ? response.data.point 
-                            : response.data;
-
-        setLoginPoint(Number(pointValue ?? 0)); 
-    } catch (error) {
-    }
-}, [isLogin, accessToken, setLoginPoint]);
-
-    // 토큰이 변경될 때마다(로그인 성공 포함) 포인트 정보를 다시 가져옴
     useEffect(() => {
-    if (isLogin && accessToken) {
-        loadPoint();
-    }
-}, [isLogin, accessToken, loadPoint]);
+        if (isLogin && accessToken) {
+            loadPoint();
+        }
+    }, [isLogin, accessToken, loadPoint]);
 
     const logout = useCallback((e) => {
         e.stopPropagation();
@@ -110,16 +104,28 @@ export default function Menu() {
 
                         {isLogin && (
                             <>
-                                <li className="nav-item">
-                                    <Link className="nav-link fs-6 me-2" to="/product/productadd" onClick={closeMenu}>
-                                        <FaPlusSquare className="fs-5 me-1" />물품 등록
-                                    </Link>
-                                </li>
+                                {/* 정지 회원이 아닐 때만 물품 등록 및 포인트 충전 노출 */}
+                                {!isSuspended && (
+                                    <>
+                                        <li className="nav-item">
+                                            <Link className="nav-link fs-6 me-2" to="/product/productadd" onClick={closeMenu}>
+                                                <FaPlusSquare className="fs-5 me-1" />물품 등록
+                                            </Link>
+                                        </li>
+                                        <li className="nav-item">
+                                            <Link className="nav-link fs-6 me-2" to="/pay/kakaopay" onClick={closeMenu}>
+                                                <FaCashRegister className="fs-5 me-1" />포인트 충전
+                                            </Link>
+                                        </li>
+                                    </>
+                                )}
+                                
                                 <li className="nav-item">
                                     <Link className="nav-link fs-6 me-2" to="/product/mylist" onClick={closeMenu}>
                                         <FaListUl className="fs-5 me-1" />거래내역
                                     </Link>
                                 </li>
+
                                 {isAdmin && (
                                     <li className="nav-item">
                                         <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}>
@@ -127,11 +133,7 @@ export default function Menu() {
                                         </Link>
                                     </li>
                                 )}
-                                <li className="nav-item">
-                                    <Link className="nav-link fs-6 me-2" to="/pay/kakaopay" onClick={closeMenu}>
-                                        <FaCashRegister className="fs-5 me-1" />포인트 충전
-                                    </Link>
-                                </li>
+
                                 <li className="nav-item me-3">
                                     <div className="point-badge d-flex align-items-center"
                                         onClick={() => { navigate("/pay/kakaopay"); closeMenu(); }}
@@ -139,7 +141,6 @@ export default function Menu() {
                                         <FaWallet className="icon-wallet" />
                                         <div className="point-content">
                                             <span className="point-label">MY POINT</span>
-                                            {/* DB에서 온 데이터가 숫자이므로 toLocaleString() 적용 */}
                                             <span className="point-amount">{Number(loginPoint ?? 0).toLocaleString()} P</span>
                                         </div>
                                     </div>
