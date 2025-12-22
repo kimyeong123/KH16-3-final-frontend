@@ -11,7 +11,6 @@ export default function AdminWithdrawRequests() {
   const [loading, setLoading] = useState(false);
   const [actingId, setActingId] = useState(null);
 
-  // ✅ 기본은 처리해야 하는 것(요청중)
   const [filter, setFilter] = useState("REQUEST");
   const [page, setPage] = useState(1);
   const size = 10;
@@ -113,7 +112,7 @@ export default function AdminWithdrawRequests() {
   };
 
   return (
-    <div className="container-fluid py-4 px-4 w-1200">
+    <div className="container-fluid py-1 px-1">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h4 className="mb-1 fw-bold">출금 요청 관리</h4>
@@ -175,7 +174,7 @@ export default function AdminWithdrawRequests() {
                 <th>계좌번호</th>
                 <th>예금주</th>
                 <th>상태</th>
-                <th className="text-end">처리</th>
+                <th>처리</th>
               </tr>
             </thead>
 
