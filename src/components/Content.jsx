@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import Home from "./Home";
 import Private from "./guard/Private";
 import MemberJoin from "./member/MemberJoin";
@@ -37,6 +37,8 @@ import SignupAgreement from "./etc/SignupAgreement";
 import PrivacyPolicy from "./etc/PrivacyPolicy";
 import RequireSignupAgree from "../components/guard/RequireSignupAgree";
 import AdminMemberDetail from "./admin/AdminMemberDetail";
+import ProductPurchaseList from "./product/ProductPurchaseList";
+import ProductSalesList from "./product/ProductSalesList";
 
 export default function Content() {
   return (
@@ -76,10 +78,20 @@ export default function Content() {
             <Route path="/member/mypage/:memberNo" element={<MemberMypage />} />
 
             {/* 관리자 홈 */}
-            <Route path="/admin/home" element={<Admin><AdminHome /></Admin>}>
+            <Route
+              path="/admin/home"
+              element={
+                <Admin>
+                  <AdminHome />
+                </Admin>
+              }
+            >
               <Route index element={<div>관리자 대시보드</div>} />
               <Route path="member" element={<MemberManage />} />
-              <Route path="member/detail/:memberNo" element={<AdminMemberDetail />} />
+              <Route
+                path="member/detail/:memberNo"
+                element={<AdminMemberDetail />}
+              />
             </Route>
 
             {/* 게시글 페이지(공지만) - HEAD 부분 */}
@@ -182,7 +194,11 @@ export default function Content() {
               element={<ProductDetail />}
             />
             <Route path="/product/edit/:productNo" element={<ProductEdit />} />
-            <Route path="/product/mylist" element={<ProductMyList />} />
+            <Route path="/product/mylist" element={<ProductMyList />}>
+              <Route index element={<Navigate to="purchase" replace />} />
+              <Route path="purchase" element={<ProductPurchaseList />} />
+              <Route path="sales" element={<ProductSalesList />} />
+            </Route>
             <Route
               path="/product/auction/list"
               element={<ProductAuctionList />}
