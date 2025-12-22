@@ -97,6 +97,7 @@ export default function Header() {
         if (activeTab === 'important') return notif.type === 'SYSTEM_ALERT';
         if (activeTab === 'personal') return notif.type === 'GENERAL' || notif.type === 'SELLER_QNA';
         return false;
+        
     });
 
 const logout = useCallback(async (e) => {
