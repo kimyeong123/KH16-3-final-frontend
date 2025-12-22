@@ -136,7 +136,7 @@ export default function Menu() {
                                                 <FaWallet className="icon-wallet" />
                                                 <div className="point-content">
                                                     <span className="point-label">MY POINT</span>
-                                                    <span className="point-amount">{(loginPoint < 0 ? 0 : memberPoint).toLocaleString()} P</span>
+                                                    <span className="point-amount">{(loginPoint < 0 ? 0 : loginPoint).toLocaleString()} P</span>
                                                 </div>
                                             </div>
                                         </li>
