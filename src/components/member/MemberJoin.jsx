@@ -219,28 +219,34 @@ export default function MemberJoin() {
   }, [emailId, emailDomain, isEmailCertified]);
 
   // 이메일 전송
-  const sendCertEmail = useCallback(async () => {
-    checkMemberEmail();
+const sendCertEmail = useCallback(async () => {
+  checkMemberEmail();
 
-    const fullEmail = `${emailId.trim()}@${emailDomain.trim()}`;
-    const regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
-    const valid = regex.test(fullEmail);
-    if (!valid) return;
+  const fullEmail = `${emailId.trim()}@${emailDomain.trim()}`;
+  const regex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
+  const valid = regex.test(fullEmail);
+  if (!valid) return;
 
-    // 이메일 관련 초기화 (인증번호 관련 상태는 초기화하지 않음)
-    setCertNumber("");
-    setCertNumberClass("");
-    setCertNumberFeedback("");
+  // ✅ [추가] 다시 보내기 = 인증 다시 받아야 하므로 상태 초기화
+  setIsEmailCertified(false);
+  setCertNumberClass("");
+  setCertNumberFeedback("");
 
-    setSending(true);
-    try {
-      await axios.post("/cert/send", { certEmail: fullEmail });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSending(false);
-    }
-  }, [emailId, emailDomain]);
+  // 기존 초기화
+  setCertNumber("");
+  // setCertNumberClass("");        // (위에서 이미 함)
+  // setCertNumberFeedback("");     // (위에서 이미 함)
+
+  setSending(true);
+  try {
+    await axios.post("/cert/send", { certEmail: fullEmail });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setSending(false);
+  }
+}, [emailId, emailDomain, checkMemberEmail]);
+
 
   // 인증번호 확인
   const sendCertCheck = useCallback(async () => {
