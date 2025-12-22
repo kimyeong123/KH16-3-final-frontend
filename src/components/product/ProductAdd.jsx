@@ -12,7 +12,9 @@ export default function ProductAdd() {
 
   const authHeader = useMemo(() => {
     if (!accessToken) return "";
-    return accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+    return accessToken.startsWith("Bearer ")
+      ? accessToken
+      : "Bearer " + accessToken;
   }, [accessToken]);
 
   // --- [수정] 현재 시간 기반 초기값 설정 (최초 1회만 계산) ---
@@ -84,7 +86,10 @@ export default function ProductAdd() {
   }, [parentCode]);
 
   useEffect(() => {
-    setForm((prev) => ({ ...prev, categoryCode: childCode ? String(childCode) : "" }));
+    setForm((prev) => ({
+      ...prev,
+      categoryCode: childCode ? String(childCode) : "",
+    }));
   }, [childCode]);
 
   const changeFiles = (e) => {

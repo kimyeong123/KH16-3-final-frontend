@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import axios from "axios";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
 import { useNavigate } from "react-router-dom";
+import OrderShippingModal from "../order/OrderShippingModal";
 
 export default function ProductPurchaseList() {
     const navigate = useNavigate();
@@ -143,6 +144,49 @@ export default function ProductPurchaseList() {
                                 </td>
                             </tr>
                         )}
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ✅ 페이징 바 (PageVO 기반) */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: 14,
+            borderTop: "1px solid #eef1f4",
+            background: "white",
+          }}
+        >
+          <div style={{ color: "#6c757d", fontSize: 13 }}>
+            {pageInfo ? (
+              <>
+                페이지 <b>{page}</b>
+                {totalPage ? (
+                  <>
+                    {" "}
+                    / <b>{totalPage}</b>
+                  </>
+                ) : null}
+                {pageInfo?.dataCount !== null &&
+                pageInfo?.dataCount !== undefined ? (
+                  <>
+                    {" "}
+                    · 총 <b>{pageInfo.dataCount}</b>건
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <>
+                페이지 <b>{page}</b>
+              </>
+            )}
+          </div>
 
                         {/* === [수정] list 대신 페이지네이션이 적용된 currentItems를 매핑 === */}
                         {currentItems.map((item) => {
@@ -212,5 +256,27 @@ export default function ProductPurchaseList() {
                 </div>
             )}
         </div>
-    );
+      </div>
+
+      {/* ✅ 배송지 모달 */}
+      <OrderShippingModal
+        show={showShip}
+        onHide={closeShippingModal}
+        authHeader={authHeader}
+        orderNo={selected?.orderNo}
+        defaultValue={{
+          orderNo: selected?.orderNo ?? null,
+          receiverName: "",
+          receiverPhone: "",
+          post: "",
+          address1: "",
+          address2: "",
+        }}
+        onSaved={() => {
+          closeShippingModal();
+          fetchList(); // ✅ 저장 후 현재 페이지 새로고침
+        }}
+      />
+    </>
+  );
 }
