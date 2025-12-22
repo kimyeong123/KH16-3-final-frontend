@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useAtom, useAtomValue } from "jotai";
-import { accessTokenState, loginNoState } from "../../utils/jotai";
+import { accessTokenState, loginNoState, loginRoleState } from "../../utils/jotai";
 import { useNavigate, useParams } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -58,6 +58,7 @@ export default function AuctionDetail() {
   const navigate = useNavigate();
 
   const [accessToken] = useAtom(accessTokenState);
+  const [loginRole] = useAtom(loginRoleState);
   const myMemberNo = Number(useAtomValue(loginNoState) || 0);
 
   // ===== 기존 UI에서 쓰는 상태들 (이름 유지) =====
@@ -209,6 +210,12 @@ export default function AuctionDetail() {
       return;
     }
 
+    // // 2. 정지 회원 체크 (추가된 로직)
+    if (loginRole === 'SUSPENDED') {
+      await swalError("활동 제한", "현재 정지 상태이므로 입찰에 참여할 수 없습니다.");
+      return;
+    }
+
     const amount = normalizeBidAmount(
       bidAmount,
       currentPrice,
@@ -230,8 +237,12 @@ export default function AuctionDetail() {
         { headers: { Authorization: authHeader } }
       );
       toast.success("입찰에 성공하였습니다", { autoClose: 1200 });
-    } catch {
-      await swalError("입찰 실패", "잠시 후 다시 시도해주세요");
+    } catch (e) {
+      if (e.response && e.response.status === 403) {
+        await swalError("권한 없음", "정지된 회원은 이용할 수 없는 기능입니다.");
+      } else {
+        await swalError("입찰 실패", "잠시 후 다시 시도해주세요");
+      }
     }
   };
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
 
@@ -26,10 +26,14 @@ export default function ProductAuctionList() {
   const [openParents, setOpenParents] = useState({});
   const [selectedTopCode, setSelectedTopCode] = useState(null);
   const [selectedChildCode, setSelectedChildCode] = useState(null);
-
+  
   // 가격
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const queryQ = queryParams.get("q") || "";
 
   // [핵심] 인증 헤더 생성
   const authHeader = useMemo(() => {
@@ -51,7 +55,13 @@ export default function ProductAuctionList() {
       revokeRef.current.forEach((u) => URL.revokeObjectURL(u));
       revokeRef.current = [];
     };
+    
   }, []);
+
+  useEffect(() => {
+    setQ(queryQ);
+    setPage(1); // // 검색어가 바뀌면 1페이지로
+  }, [queryQ]);
 
   // === 유틸 ===
   const money = (v) => (v ? Number(v).toLocaleString() : "-");
