@@ -192,6 +192,7 @@ export default function ProductPurchaseList() {
 
   const priceValueStyle = (isBidding) => ({
     fontWeight: 900,
+    fontSize: 16,
     color: isBidding ? "#1c7ed6" : "#212529",
   });
 
@@ -354,18 +355,17 @@ export default function ProductPurchaseList() {
                       </td>
 
                       <td style={{ padding: 12, textAlign: "right" }}>
-                        <span style={priceLabelStyle(isBidding)}>
-                          {isBidding ? "현재가" : "낙찰가"}
-                        </span>
-                        <span style={priceValueStyle(isBidding)}>
-                          {money(item.finalPrice)}원
-                        </span>
-                      </td>
+                        {/* 가격 라벨 */}
+                        <div style={{ marginBottom: 4 }}>
+                          <span style={priceLabelStyle(isBidding)}>
+                            {isBidding ? "현재가" : "낙찰가"}
+                          </span>
+                        </div>
 
-                      <td style={{ padding: 12, textAlign: "center" }}>
-                        <span style={auctionStatusBadge(isBidding)}>
-                          {isBidding ? "진행중" : "종료"}
-                        </span>
+                        {/* 가격 값 */}
+                        <div style={priceValueStyle(isBidding)}>
+                          {money(item.finalPrice)}원
+                        </div>
                       </td>
 
                       <td style={{ padding: 12, textAlign: "center" }}>

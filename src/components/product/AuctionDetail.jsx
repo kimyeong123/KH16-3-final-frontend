@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useAtom, useAtomValue } from "jotai";
-import {
-  accessTokenState,
-  loginNoState,
-  loginRoleState,
-} from "../../utils/jotai";
+import { accessTokenState, loginNoState } from "../../utils/jotai";
 import { useNavigate, useParams } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -26,6 +22,19 @@ import {
 import { FaGavel, FaBolt, FaArrowLeft } from "react-icons/fa";
 
 /* ================= utils ================= */
+const formatEndDateTime = (endTime) => {
+  if (!endTime) return "";
+
+  const d = new Date(endTime);
+
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+
+  return `${yyyy}.${mm}.${dd} ${hh}:${mi}`;
+};
 
 const normalizeBidAmount = (value, currentPrice, instantPrice) => {
   let v = Number(value);
@@ -62,7 +71,6 @@ export default function AuctionDetail() {
   const navigate = useNavigate();
 
   const [accessToken] = useAtom(accessTokenState);
-  const [loginRole] = useAtom(loginRoleState);
   const myMemberNo = Number(useAtomValue(loginNoState) || 0);
 
   // ===== 기존 UI에서 쓰는 상태들 (이름 유지) =====
@@ -85,7 +93,10 @@ export default function AuctionDetail() {
     ? "즉시구매 반영중"
     : "즉시구매하기";
 
-  const instantDisabled = expired || processingInstantBuy;
+  const instantDisabled =
+    expired ||
+    processingInstantBuy ||
+    (hasInstantBuy && currentPrice >= Number(product?.instantPrice));
 
   const authHeader = useMemo(() => {
     if (!accessToken) return null;
@@ -193,31 +204,9 @@ export default function AuctionDetail() {
         }
       });
 
-      client.subscribe(`/topic/products/${productNo}/end`, async (msg) => {
-        if (!msg?.body) return;
-
-        const body = JSON.parse(msg.body);
-        const { buyerNo, finalPrice } = body;
-
-        // 서버 상태 재동기화
-        await loadProduct();
-
-        // 낙찰자 여부 판단
-        if (Number(buyerNo) === myMemberNo) {
-          toast.success(
-            <div>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>
-                낙찰에 성공하였습니다!
-              </div>
-              <div style={{ fontSize: 14 }}>
-                낙찰가: {Number(finalPrice).toLocaleString()} Point
-              </div>
-            </div>,
-            { autoClose: false }
-          );
-        } else {
-          toast.info("경매가 종료되었습니다", { autoClose: false });
-        }
+      client.subscribe(`/topic/products/${productNo}/end`, async () => {
+        await loadProduct(); // 🔑 서버 상태 재동기화
+        toast.info("경매가 종료되었습니다", { autoClose: false });
       });
     };
 
@@ -230,15 +219,6 @@ export default function AuctionDetail() {
   const placeBid = async () => {
     if (!accessToken) {
       await swalInfo("로그인이 필요합니다");
-      return;
-    }
-
-    // // 2. 정지 회원 체크 (추가된 로직)
-    if (loginRole === "SUSPENDED") {
-      await swalError(
-        "활동 제한",
-        "현재 정지 상태이므로 입찰에 참여할 수 없습니다."
-      );
       return;
     }
 
@@ -263,15 +243,8 @@ export default function AuctionDetail() {
         { headers: { Authorization: authHeader } }
       );
       toast.success("입찰에 성공하였습니다", { autoClose: 1200 });
-    } catch (e) {
-      if (e.response && e.response.status === 403) {
-        await swalError(
-          "권한 없음",
-          "정지된 회원은 이용할 수 없는 기능입니다."
-        );
-      } else {
-        await swalError("입찰 실패", "잠시 후 다시 시도해주세요");
-      }
+    } catch {
+      await swalError("입찰 실패", "잠시 후 다시 시도해주세요");
     }
   };
 
@@ -290,10 +263,9 @@ export default function AuctionDetail() {
     setProcessingInstantBuy(true);
 
     try {
-      // ✅ 즉시구매가는 무조건 instantPrice
       await axios.post(
         `http://localhost:8080/products/${productNo}/bid/`,
-        { amount: product.instantPrice },
+        { amount: product.instantPrice }, // ✅ 핵심
         { headers: { Authorization: authHeader } }
       );
     } catch {
@@ -357,8 +329,16 @@ export default function AuctionDetail() {
         <Col md={5}>
           <Card className="shadow-sm">
             <Card.Body className="p-4">
-              {/* 남은시간 */}
-              <div className="mb-4">
+              {/* 종료시간 + 남은시간 */}
+              <div className="fw-bold fs-6 mb-4">
+                {/* 종료 시각 */}
+                {product?.endTime && (
+                  <div className="mb-1 text-red">
+                    종료시간 : {formatEndDateTime(product.endTime)}
+                  </div>
+                )}
+
+                {/* 남은시간 */}
                 {!expired && (
                   <div className="text-muted small mb-1">남은시간</div>
                 )}
@@ -415,10 +395,10 @@ export default function AuctionDetail() {
                 <InputGroup size="lg">
                   <Form.Control
                     value={bidAmount}
-                    disabled={instantDisabled}
+                    disabled={expired || instantDisabled}
                     placeholder={
                       expired
-                        ? ""
+                        ? "경매가 종료되었습니다"
                         : `현재가(${currentPrice.toLocaleString()} Point)보다 높은 금액`
                     }
                     onChange={(e) =>

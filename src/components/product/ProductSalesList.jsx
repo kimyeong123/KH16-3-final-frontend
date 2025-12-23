@@ -326,9 +326,9 @@ export default function ProductSalesList() {
                         </div>
                       </td>
 
-                      {/* 가격 */}
                       <td style={cellRight}>
-                        <div style={inlineRow}>
+                        {/* 가격 라벨 */}
+                        <div style={{ marginBottom: 4 }}>
                           <span
                             style={{
                               padding: "2px 8px",
@@ -350,10 +350,11 @@ export default function ProductSalesList() {
                               ? "현재가"
                               : "낙찰가"}
                           </span>
+                        </div>
 
-                          <span style={{ fontWeight: 900 }}>
-                            {money(item.finalPrice)}원
-                          </span>
+                        {/* 가격 값 */}
+                        <div style={{ fontWeight: 900, fontSize: 15 }}>
+                          {money(item.finalPrice)}원
                         </div>
                       </td>
 
