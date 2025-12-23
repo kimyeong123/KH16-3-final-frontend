@@ -88,21 +88,119 @@ export default function ProductSalesList() {
               </tr>
             </thead>
             <tbody>
-              {!loading && list.map((item) => {
-                const isBidding = item.productStatus === "BIDDING";
-                const orderState = STATUS_MAP[item.orderStatus];
-                const needsInvoice = item.orderStatus === "SHIPPING_READY" && !item.invoiceRegistered;
+              {loading && (
+                <tr>
+                  <td colSpan={6} style={{ padding: 40, textAlign: "center" }}>
+                    불러오는 중...
+                  </td>
+                </tr>
+              )}
 
-                return (
-                  <tr key={item.productNo}>
-                    <td style={st.td}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <img src={item.attachmentNo > 0 ? `http://localhost:8080/attachment/${item.attachmentNo}` : ""} 
-                             style={{ width: 50, height: 50, borderRadius: 8, objectFit: "cover", background: "#f8f9fa" }} alt="" />
-                        <div style={{ overflow: "hidden" }}>
-                          <div onClick={() => navigate(`/product/detail/${item.productNo}`)} 
-                               style={{ fontWeight: 700, cursor: "pointer", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{item.productName}</div>
-                          <div style={{ fontSize: 12, color: "#868e96" }}>구매자: {item.buyerNickname || "-"}</div>
+              {!loading && list.length === 0 && (
+                <tr>
+                  <td colSpan={6} style={{ padding: 60, textAlign: "center" }}>
+                    판매 내역이 없습니다.
+                  </td>
+                </tr>
+              )}
+
+              {!loading &&
+                list.map((item) => {
+                  const actionState = (() => {
+                    if (item.productStatus === "BIDDING")
+                      return { label: "경매중", disabled: true };
+
+                    if (item.orderStatus === "CREATED")
+                      return { label: "배송지 입력 대기", disabled: true };
+
+                    if (
+                      item.orderStatus === "SHIPPING_READY" &&
+                      !item.invoiceRegistered
+                    )
+                      return { label: "송장 입력", disabled: false };
+
+                    if (
+                      item.invoiceRegistered ||
+                      ["SHIPPED", "DELIVERED", "COMPLETED"].includes(
+                        item.orderStatus
+                      )
+                    )
+                      return { label: "입력 완료", disabled: true };
+
+                    return { label: "-", disabled: true };
+                  })();
+
+                  return (
+                    <tr
+                      key={item.productNo}
+                      style={{ borderBottom: "1px solid #f1f3f5" }}
+                    >
+                      {/* 상품 */}
+                      <td style={{ padding: 12 }}>
+                        <div style={{ display: "flex", gap: 14 }}>
+                          <img
+                            src={
+                              item.attachmentNo
+                                ? `http://localhost:8080/attachment/${item.attachmentNo}`
+                                : ""
+                            }
+                            alt="상품이미지"
+                            style={{
+                              width: 64,
+                              height: 64,
+                              objectFit: "cover",
+                              borderRadius: 10,
+                              border: "1px solid #e9ecef",
+                            }}
+                            onError={(e) =>
+                              (e.currentTarget.style.display = "none")
+                            }
+                          />
+                          <div>
+                            <div
+                              style={{ fontWeight: 900, cursor: "pointer" }}
+                              onClick={() =>
+                                navigate(`/product/detail/${item.productNo}`)
+                              }
+                            >
+                              {item.productName}
+                            </div>
+                            <div style={{ fontSize: 12, color: "#6c757d" }}>
+                              구매자: {item.buyerNickname}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td style={cellRight}>
+                        {/* 가격 라벨 */}
+                        <div style={{ marginBottom: 4 }}>
+                          <span
+                            style={{
+                              padding: "2px 8px",
+                              borderRadius: 999,
+                              fontSize: 12,
+                              fontWeight: 900,
+                              background:
+                                item.productStatus === "BIDDING"
+                                  ? "#e7f5ff"
+                                  : "#f1f3f5",
+                              color:
+                                item.productStatus === "BIDDING"
+                                  ? "#1c7ed6"
+                                  : "#495057",
+                              border: "1px solid #e9ecef",
+                            }}
+                          >
+                            {item.productStatus === "BIDDING"
+                              ? "현재가"
+                              : "낙찰가"}
+                          </span>
+                        </div>
+
+                        {/* 가격 값 */}
+                        <div style={{ fontWeight: 900, fontSize: 15 }}>
+                          {money(item.finalPrice)}원
                         </div>
                       </div>
                     </td>

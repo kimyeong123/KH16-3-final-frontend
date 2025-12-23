@@ -3,8 +3,10 @@ import axios from "axios";
 import { useAtom } from "jotai";
 import { accessTokenState } from "../../utils/jotai";
 import { Table, Button, Spinner, Badge } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminOrderList() {
+  const navigate = useNavigate();
   const [accessToken] = useAtom(accessTokenState);
 
   const [list, setList] = useState([]);
@@ -203,13 +205,16 @@ export default function AdminOrderList() {
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
+                      cursor: "pointer",
                     }}
                     title={o.productName}
+                    onClick={() => navigate(`/product/detail/${o.productNo}`)}
                   >
                     <span
                       style={{
                         color: "#1b6ec2",
                         fontWeight: 600,
+                        textDecoration: "underline",
                       }}
                     >
                       {o.productName}
@@ -233,7 +238,7 @@ export default function AdminOrderList() {
                   <td className="text-center">{statusBadge(o.orderStatus)}</td>
 
                   <td className="text-center">
-                    {o.orderStatus === "SHIPPED" ? (
+                    {o.orderStatus === "SHIPPED" && (
                       <Button
                         variant="primary"
                         size="sm"
@@ -242,14 +247,29 @@ export default function AdminOrderList() {
                       >
                         배송 완료
                       </Button>
-                    ) : (
+                    )}
+
+                    {(o.orderStatus === "DELIVERED" ||
+                      o.orderStatus === "COMPLETED") && (
                       <Button
                         variant="secondary"
                         size="sm"
                         disabled
+                        className="fw-semibold opacity-75"
+                      >
+                        처리 완료
+                      </Button>
+                    )}
+
+                    {(o.orderStatus === "CREATED" ||
+                      o.orderStatus === "SHIPPING_READY") && (
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        disabled
                         className="fw-semibold opacity-50"
                       >
-                        처리됨
+                        대기중
                       </Button>
                     )}
                   </td>
