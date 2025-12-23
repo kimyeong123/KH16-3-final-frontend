@@ -81,7 +81,7 @@ export default function Menu() {
     }, [open, closeMenu]);
 
     return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style={{zIndex: 10}}>
         <div className="container-fluid">
             {/* 1. 메뉴 버튼: 항상 왼쪽 정렬 */}
             <button className="navbar-toggler" type="button"
