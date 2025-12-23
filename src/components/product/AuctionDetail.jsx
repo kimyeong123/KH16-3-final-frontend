@@ -472,7 +472,7 @@ export default function AuctionDetail() {
           onMouseLeave={(e) => (e.currentTarget.style.color = "#495057")}
         >
           <FaArrowLeft />
-          <span>목록으로</span>
+          <span>이전으로</span>
         </Button>
       </div>
     </Container>
