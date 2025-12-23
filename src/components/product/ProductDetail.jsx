@@ -12,7 +12,7 @@ export default function ProductDetail() {
   // 토큰 복구(Hydration)
   const TOKEN_KEY = "ACCESS_TOKEN";
   const [hydrated, setHydrated] = useState(false);
-  const [mainImage, setMainImage] = useState(null); // 메인 이미지 상태
+  const [mainImage, setMainImage] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(TOKEN_KEY);
@@ -62,7 +62,6 @@ export default function ProductDetail() {
     }
   };
 
-  // 이미지 미리보기 로드 및 메인 이미지 설정
   useEffect(() => {
     let alive = true;
     const revokeList = [];
@@ -79,7 +78,6 @@ export default function ProductDetail() {
           const url = URL.createObjectURL(r.data);
           revokeList.push(url);
           next[no] = url;
-          // 첫 번째 이미지를 메인 이미지로 설정
           if (!mainImage && alive) setMainImage(url);
         } catch (e) { console.error(e); }
       }
@@ -96,8 +94,23 @@ export default function ProductDetail() {
     if (hydrated && productNo) load();
   }, [hydrated, productNo]);
 
+  const onEditClick = () => {
+    if (product?.status === "BIDDING") {
+      alert("입찰이 진행 중인 상품은 수정할 수 없습니다.");
+      return;
+    }
+    navigate(`/product/edit/${productNo}`);
+  };
+
+
   const remove = async () => {
     if (!accessToken) return alert("로그인이 필요합니다");
+    
+    if (product?.status === "BIDDING") {
+      alert("입찰이 진행 중인 상품은 삭제할 수 없습니다.");
+      return;
+    }
+
     if (!confirm("이 상품을 삭제하시겠습니까?")) return;
     try {
       await axios.delete(`http://localhost:8080/product/${productNo}`, {
@@ -112,11 +125,11 @@ export default function ProductDetail() {
   if (!product) return <div style={{ textAlign: "center", padding: 100 }}>상품이 존재하지 않습니다.</div>;
 
   const p = product;
-  const statusColor = p.status === "BIDDING" ? "#e63946" : "#666";
+  const isBidding = p.status === "BIDDING";
+  const statusColor = isBidding ? "#e63946" : "#666";
 
   return (
     <div style={{ maxWidth: 1100, margin: "40px auto", padding: "0 20px", fontFamily: "sans-serif" }}>
-      {/* 상단 경로/카테고리 */}
       <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>
         홈 &gt; 상품상세 &gt; #{productNo}
       </div>
@@ -126,9 +139,9 @@ export default function ProductDetail() {
         <div style={{ width: 450 }}>
           <div style={{ width: "100%", height: 450, borderRadius: 12, overflow: "hidden", border: "1px solid #eee", marginBottom: 15 }}>
             <img 
-                src={mainImage || "https://via.placeholder.com/450"} 
-                alt="Main" 
-                style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in" }} 
+              src={mainImage || "https://via.placeholder.com/450"} 
+              alt="Main" 
+              style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in" }} 
             />
           </div>
           <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 10 }}>
@@ -172,19 +185,37 @@ export default function ProductDetail() {
 
           <div style={{ display: "flex", gap: 10 }}>
             <button 
-              onClick={() => navigate(`/product/edit/${productNo}`)}
-              style={{ flex: 1, padding: "16px", background: "#333", color: "white", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer" }}
+              onClick={onEditClick}
+              style={{ 
+                flex: 1, padding: "16px", 
+                background: isBidding ? "#ccc" : "#333", 
+                color: "white", border: "none", borderRadius: 8, fontWeight: "bold", 
+                cursor: isBidding ? "not-allowed" : "pointer" 
+              }}
             >
               물품 수정하기
             </button>
             <button 
               onClick={remove}
-              style={{ width: 100, padding: "16px", background: "#fff", color: "#e63946", border: "1px solid #e63946", borderRadius: 8, fontWeight: "bold", cursor: "pointer" }}
+              style={{ 
+                width: 100, padding: "16px", 
+                background: "#fff", 
+                color: isBidding ? "#ccc" : "#e63946", 
+                border: isBidding ? "1px solid #ccc" : "1px solid #e63946", 
+                borderRadius: 8, fontWeight: "bold", 
+                cursor: isBidding ? "not-allowed" : "pointer" 
+              }}
             >
               삭제
             </button>
           </div>
-          {/* 🔥 수정된 부분: navigate(-1) 대신 직접 경로("/product/mylist") 입력 */}
+          
+          {isBidding && (
+            <div style={{ color: "#e63946", fontSize: 13, marginTop: 10, textAlign: "center", fontWeight: "bold" }}>
+              ⚠️ 입찰이 진행 중인 상품은 수정/삭제가 불가능합니다.
+            </div>
+          )}
+
           <button 
             onClick={() => navigate("/product/mylist")}
             style={{ width: "100%", marginTop: 10, padding: "12px", background: "none", border: "1px solid #ddd", borderRadius: 8, color: "#666", cursor: "pointer" }}
@@ -194,7 +225,6 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* 하단: 상세 설명 섹션 */}
       <div style={{ borderTop: "2px solid #333", paddingTop: 40 }}>
         <h3 style={{ fontSize: 20, marginBottom: 20 }}>물품 상세 설명</h3>
         <div style={{ 
