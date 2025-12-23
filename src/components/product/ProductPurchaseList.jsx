@@ -9,46 +9,30 @@ export default function ProductPurchaseList() {
   const navigate = useNavigate();
   const [accessToken] = useAtom(accessTokenState);
 
-  // ✅ 배송지 모달 상태
   const [showShip, setShowShip] = useState(false);
   const [selected, setSelected] = useState(null);
-
-  // ✅ 목록/로딩
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // ✅ 페이징
   const [page, setPage] = useState(1);
-  const [pageInfo, setPageInfo] = useState(null); // PageVO 전체 보관
+  const [pageInfo, setPageInfo] = useState(null);
 
-  // ✅ 인증 헤더
   const authHeader = useMemo(() => {
     return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
   }, [accessToken]);
 
-  // ✅ 목록 로딩 (page 바뀌면 다시 호출)
   const fetchList = useCallback(async () => {
     if (!accessToken) return;
-
     setLoading(true);
     try {
       const res = await axios.get("http://localhost:8080/product/purchase", {
         headers: authHeader,
-        params: { page }, // ✅ 페이징 핵심
+        params: { page },
       });
-
       const data = res.data;
-
-      // ✅ 방어: list.map 에러 방지
-      const rows = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.list)
-        ? data.list
-        : [];
+      const rows = Array.isArray(data) ? data : (Array.isArray(data?.list) ? data.list : []);
       setList(rows);
-      setPageInfo(Array.isArray(data) ? null : data); // PageVO면 저장
+      setPageInfo(Array.isArray(data) ? null : data);
     } catch (err) {
-      console.error("구매 내역 로드 실패:", err);
       setList([]);
       setPageInfo(null);
     } finally {
@@ -56,21 +40,24 @@ export default function ProductPurchaseList() {
     }
   }, [accessToken, authHeader, page]);
 
-  useEffect(() => {
-    fetchList();
-  }, [fetchList]);
+  useEffect(() => { fetchList(); }, [fetchList]);
 
-  // ✅ 유틸
-  const money = (val) => {
-    if (val === null || val === undefined) return "-";
-    const n = Number(val);
-    if (Number.isNaN(n)) return "-";
-    return n.toLocaleString();
+  // ===== 통합 디자인 시스템 스타일 =====
+  const st = {
+    card: { border: "1px solid #e9ecef", borderRadius: 12, background: "white", overflow: "hidden", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" },
+    header: { padding: "20px 24px", borderBottom: "1px solid #f1f3f5" },
+    table: { width: "100%", borderCollapse: "collapse" },
+    th: { background: "#f8f9fa", padding: "14px 12px", fontSize: 13, color: "#495057", fontWeight: 700, borderBottom: "1px solid #eef1f4" },
+    td: { padding: "16px 12px", borderBottom: "1px solid #f1f3f5", verticalAlign: "middle" },
+    badge: (bg, color) => ({ display: "inline-block", padding: "4px 10px", borderRadius: 6, fontSize: 12, fontWeight: 700, background: bg, color, border: "1px solid rgba(0,0,0,0.03)" }),
+    btnSolid: (bg) => ({ padding: "8px 14px", borderRadius: 8, border: "none", background: bg, color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }),
+    btnOutline: (color) => ({ padding: "8px 14px", borderRadius: 8, border: `1px solid ${color}`, background: "white", color, fontWeight: 700, cursor: "pointer", fontSize: 13 }),
+    btnDisabled: { padding: "8px 14px", borderRadius: 8, border: "1px solid #e9ecef", background: "#f8f9fa", color: "#adb5bd", fontWeight: 700, cursor: "not-allowed", fontSize: 13 }
   };
 
-  const dt = (dateStr) => {
-    if (!dateStr) return "-";
-    const s = String(dateStr).trim().replace("T", " ");
+  const money = (val) => (val?.toLocaleString() ?? "-");
+  const dt = (s) => s ? s.replace("T", " ").slice(0, 16).replaceAll("-", ".") : "-";
+  const isLeadingByRow = (item) => Number(item?.myBidPrice) >= Number(item?.finalPrice);
 
     // "YYYY-MM-DD HH:mm:ss"
     if (s.length >= 19) {
@@ -208,142 +195,41 @@ export default function ProductPurchaseList() {
 
   return (
     <>
-      <div style={cardStyle}>
-        {/* 헤더 */}
-        <div style={{ padding: 18, borderBottom: "1px solid #eef1f4" }}>
-          <div style={{ fontSize: 18, fontWeight: 900 }}>내 입찰/낙찰 내역</div>
-          <div style={{ color: "#6c757d", fontSize: 13 }}>
-            경매 상태와 낙찰 결과를 분리해서 보여줍니다. (배송지 입력은 낙찰 시
-            활성화)
-          </div>
+      <div style={st.card}>
+        <div style={st.header}>
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#212529" }}>내 입찰/낙찰 내역</h3>
+          <p style={{ margin: "4px 0 0", color: "#868e96", fontSize: 13 }}>경매 참여 현황과 낙찰된 상품의 배송을 관리합니다.</p>
         </div>
 
-        {/* 테이블 */}
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table style={st.table}>
             <thead>
-              <tr
-                style={{
-                  background: "#f8f9fa",
-                  borderBottom: "2px solid #eef1f4",
-                }}
-              >
-                <th style={{ padding: 12, textAlign: "left", width: 420 }}>
-                  상품
-                </th>
-                <th style={{ padding: 12, textAlign: "right", width: 140 }}>
-                  내 입찰가
-                </th>
-                <th style={{ padding: 12, textAlign: "right", width: 190 }}>
-                  현재가/낙찰가
-                </th>
-                <th style={{ padding: 12, textAlign: "center", width: 120 }}>
-                  경매상태
-                </th>
-                <th style={{ padding: 12, textAlign: "center", width: 120 }}>
-                  낙찰결과
-                </th>
-                <th style={{ padding: 12, textAlign: "center", width: 190 }}>
-                  마감일시
-                </th>
-                <th style={{ padding: 12, textAlign: "center", width: 220 }}>
-                  액션
-                </th>
+              <tr>
+                <th style={{ ...st.th, textAlign: "left", width: "35%" }}>상품 정보</th>
+                <th style={{ ...st.th, textAlign: "right" }}>내 입찰가</th>
+                <th style={{ ...st.th, textAlign: "right" }}>현재/낙찰가</th>
+                <th style={{ ...st.th, textAlign: "center" }}>경매상태</th>
+                <th style={{ ...st.th, textAlign: "center" }}>결과</th>
+                <th style={{ ...st.th, textAlign: "center" }}>마감일시</th>
+                <th style={{ ...st.th, textAlign: "center", width: "120px" }}>액션</th>
               </tr>
             </thead>
-
             <tbody>
-              {loading && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      padding: 40,
-                      textAlign: "center",
-                      color: "#6c757d",
-                    }}
-                  >
-                    불러오는 중...
-                  </td>
-                </tr>
-              )}
+              {!loading && list.map((item) => {
+                const isBidding = item.status === "BIDDING";
+                const isLeading = isLeadingByRow(item);
+                const shippingDone = Boolean(item.shippingCompleted);
 
-              {!loading && list.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      padding: 60,
-                      textAlign: "center",
-                      color: "#868e96",
-                    }}
-                  >
-                    참여한 입찰 내역이 없습니다.
-                  </td>
-                </tr>
-              )}
-
-              {!loading &&
-                list.map((item) => {
-                  const isBidding = item.status === "BIDDING";
-                  const isEnded = !isBidding;
-                  const isLeading = isLeadingByRow(item);
-                  const shippingDone = Boolean(item.shippingCompleted);
-
-                  return (
-                    <tr
-                      key={item.productNo}
-                      style={{ borderBottom: "1px solid #f1f3f5" }}
-                    >
-                      {/* 상품정보 */}
-                      <td style={{ padding: 12 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 14,
-                            alignItems: "center",
-                          }}
-                        >
-                          <img
-                            src={
-                              item.attachmentNo > 0
-                                ? `http://localhost:8080/attachment/${item.attachmentNo}`
-                                : ""
-                            }
-                            alt="상품이미지"
-                            style={{
-                              width: 64,
-                              height: 64,
-                              objectFit: "cover",
-                              borderRadius: 10,
-                              border: "1px solid #e9ecef",
-                              background: "#f1f3f5",
-                            }}
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-
-                          <div style={{ minWidth: 0 }}>
-                            <div
-                              onClick={() =>
-                                navigate(`/product/detail/${item.productNo}`)
-                              }
-                              style={{
-                                fontWeight: 900,
-                                cursor: "pointer",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                maxWidth: 320,
-                              }}
-                            >
-                              {item.productName}
-                            </div>
-                            <div style={{ fontSize: 12, color: "#6c757d" }}>
-                              판매자: {item.sellerNickname}
-                            </div>
-                          </div>
+                return (
+                  <tr key={item.productNo}>
+                    <td style={st.td}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <img src={item.attachmentNo > 0 ? `http://localhost:8080/attachment/${item.attachmentNo}` : ""} 
+                             style={{ width: 50, height: 50, borderRadius: 8, objectFit: "cover", background: "#f8f9fa" }} alt="" />
+                        <div style={{ overflow: "hidden" }}>
+                          <div onClick={() => navigate(`/product/detail/${item.productNo}`)} 
+                               style={{ fontWeight: 700, cursor: "pointer", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{item.productName}</div>
+                          <div style={{ fontSize: 12, color: "#868e96" }}>판매자: {item.sellerNickname}</div>
                         </div>
                       </td>
 
@@ -438,80 +324,18 @@ export default function ProductPurchaseList() {
           </table>
         </div>
 
-        {/* ✅ 페이징 바 */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: 14,
-            borderTop: "1px solid #eef1f4",
-            background: "white",
-          }}
-        >
-          <div style={{ color: "#6c757d", fontSize: 13 }}>
-            {pageInfo ? (
-              <>
-                페이지 <b>{page}</b>
-                {totalPage ? (
-                  <>
-                    {" "}
-                    / <b>{totalPage}</b>
-                  </>
-                ) : null}
-                {pageInfo?.dataCount !== null &&
-                pageInfo?.dataCount !== undefined ? (
-                  <>
-                    {" "}
-                    · 총 <b>{pageInfo.dataCount}</b>건
-                  </>
-                ) : null}
-              </>
-            ) : (
-              <>
-                페이지 <b>{page}</b>
-              </>
-            )}
-          </div>
-
+        <div style={{ display: "flex", justifyContent: "space-between", padding: 20, alignItems: "center", background: "#fcfcfc" }}>
+          <div style={{ fontSize: 13, color: "#868e96" }}>페이지 <b>{page}</b> / {totalPage}</div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button
-              style={canPrev ? btnOutline("#495057", "#495057") : btnDisabled}
-              disabled={!canPrev}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              ← 이전
-            </button>
-
-            <button
-              style={canNext ? btnOutline("#495057", "#495057") : btnDisabled}
-              disabled={!canNext}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              다음 →
-            </button>
+            <button style={page > 1 ? st.btnOutline("#495057") : st.btnDisabled} onClick={() => setPage(p => p - 1)} disabled={page <= 1}>이전</button>
+            <button style={page < totalPage ? st.btnOutline("#495057") : st.btnDisabled} onClick={() => setPage(p => p + 1)} disabled={page >= totalPage}>다음</button>
           </div>
         </div>
       </div>
 
-      {/* ✅ 배송지 모달 */}
-      <OrderShippingModal
-        show={showShip}
-        onHide={closeShippingModal}
-        authHeader={authHeader}
-        orderNo={selected?.orderNo}
-        defaultValue={{
-          orderNo: selected?.orderNo ?? null,
-          receiverName: "",
-          receiverPhone: "",
-          post: "",
-          address1: "",
-          address2: "",
-        }}
-        onSaved={() => {
-          closeShippingModal();
-          fetchList(); // ✅ 저장 후 현재 페이지 새로고침
-        }}
+      <OrderShippingModal 
+        show={showShip} onHide={() => setShowShip(false)} authHeader={authHeader} 
+        orderNo={selected?.orderNo} onSaved={() => { setShowShip(false); fetchList(); }}
       />
     </>
   );

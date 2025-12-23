@@ -88,118 +88,64 @@ export default function Home() {
     }, [auctionItems, thumbNoByProduct]);
 
     return (
-        <>
-            <Jumbotron
-                subject="BIDHOUSE"
-                detail="최신 경매 정보와 인기 아이템을 만나보세요!"
-            />
+    <>
+        <img src="santa.png" alt="배너이미지" className="img-fluid w-100" style={{ maxHeight: "400px", objectFit: "cover" }} />
 
-            <div className="container mt-5">
+        <div className="container mt-4 mt-md-5">
 
-                {/* 추천 경매 아이템 (실제 데이터 연동) */}
-                <section className="mb-5">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h3>마감 임박 아이템</h3>
-                        <Link to="/product/auction/list" className="text-secondary text-decoration-none">
-                            더보기 <i className="fa-solid fa-arrow-right"></i>
-                        </Link>
-                    </div>
-                    <div className="row">
-                        {auctionItems.length > 0 ? (
-                            auctionItems.map((item) => {
-                                const attNo = thumbNoByProduct[item.productNo];
-                                const src = thumbMap[attNo];
-                                return (
-                                    <div className="col-md-3 mb-3" key={item.productNo}>
-                                        <div className="card h-100 shadow-sm">
-                                            {/* AuctionList 스타일의 이미지 렌더링 */}
-                                            <div style={{ height: "200px", background: "#f8f9fa", position: "relative", overflow: "hidden" }}>
-                                                {src ? (
-                                                    <img src={src} className="card-img-top" alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                ) : (
-                                                    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:"#ccc" }}>No Image</div>
-                                                )}
-                                            </div>
-                                            <div className="card-body d-flex flex-column">
-                                                <h5 className="card-title text-truncate">{item.name}</h5>
-                                                <p className="card-text text-danger fw-bold">
-                                                    현재가: {Number(item.currentPrice || item.startPrice).toLocaleString()} 원
-                                                </p>
-                                                <Link to={`/product/auction/detail/${item.productNo}`} className="btn btn-outline-primary mt-auto">입찰하기</Link>
-                                            </div>
+            <section className="mb-5">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h3 className="fs-4 fs-md-2">마감 임박 아이템</h3>
+                    <Link to="/product/auction/list" className="text-secondary text-decoration-none small">
+                        더보기 <i className="fa-solid fa-arrow-right"></i>
+                    </Link>
+                </div>
+
+                {/* g-2(간격 좁게) 또는 g-3(보통)로 모바일에서의 간격을 조절하세요 */}
+                <div className="row g-2 g-md-4">
+                    {auctionItems.length > 0 ? (
+                        auctionItems.map((item) => {
+                            const attNo = thumbNoByProduct[item.productNo];
+                            const src = thumbMap[attNo];
+                            return (
+                                /* 반응형 핵심: 모바일 2개, 태블릿 3개, PC 4개 */
+                                <div className="col-6 col-md-4 col-lg-3 mb-3" key={item.productNo}>
+                                    <div className="card h-100 shadow-sm border-0">
+                                        {/* 이미지 높이 모바일에서 조금 더 낮게 조정 가능 */}
+                                        <div style={{ height: "160px", background: "#f8f9fa", position: "relative", overflow: "hidden" }} className="card-img-height">
+                                            {src ? (
+                                                <img src={src} className="card-img-top" alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            ) : (
+                                                <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:"#ccc" }}>No Image</div>
+                                            )}
+                                        </div>
+                                        <div className="card-body d-flex flex-column p-2 p-md-3">
+                                            {/* 모바일 가독성을 위해 제목 크기 조절 */}
+                                            <h6 className="card-title text-truncate mb-1" title={item.name}>{item.name}</h6>
+                                            <p className="card-text text-danger fw-bold mb-2 small-on-mobile" style={{ fontSize: "0.9rem" }}>
+                                                {Number(item.currentPrice || item.startPrice).toLocaleString()}원
+                                            </p>
+                                            <Link to={`/product/auction/detail/${item.productNo}`} className="btn btn-sm btn-outline-primary mt-auto">입찰하기</Link>
                                         </div>
                                     </div>
-                                );
-                            })
-                        ) : (
-                            <div className="col-12 text-center py-5 text-muted">현재 진행 중인 경매 아이템이 없습니다.</div>
-                        )}
-                    </div>
-                </section>
-
-                {/* 최근 게시글 (기존 코드 보존) */}
-                <section className="mb-5">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h3>최근 게시글</h3>
-                        <Link to="/posts" className="text-secondary text-decoration-none">
-                            더보기 <i className="fa-solid fa-arrow-right"></i>
-                        </Link>
-                    </div>
-                    <div className="row">
-                        {[1, 2, 3, 4].map((post) => (
-                            <div className="col-md-3 mb-3" key={post}>
-                                <div className="card h-100 shadow-sm">
-                                    <img src={`https://picsum.photos/300/200?random=${post}`} className="card-img-top" alt="게시글 이미지" />
-                                    <div className="card-body">
-                                        <h5 className="card-title text-truncate">게시글 제목 {post}</h5>
-                                        <p className="card-text text-truncate">간단한 내용 요약이 들어갑니다. Lorem ipsum dolor sit amet...</p>
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                            );
+                        })
+                    ) : (
+                        <div className="col-12 text-center py-5 text-muted">현재 진행 중인 경매 아이템이 없습니다.</div>
+                    )}
+                </div>
+            </section>
 
-                {/* 인기 게시글 (기존 코드 보존) */}
-                <section className="mb-5">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h3>인기 게시글</h3>
-                        <Link to="/popular" className="text-secondary text-decoration-none">
-                            더보기 <i className="fa-solid fa-arrow-right"></i>
-                        </Link>
-                    </div>
-                    <ul className="list-group">
-                        {["NFT 경매 안내", "이번주 추천 아이템", "신규 입찰 방법", "공지사항 업데이트"].map((item, idx) => (
-                            <li className="list-group-item d-flex justify-content-between align-items-center" key={idx}>
-                                {item}
-                                <span className="badge bg-primary rounded-pill">{Math.floor(Math.random() * 1000)}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-
-                {/* 명예의 전당 (기존 코드 보존) */}
-                <section className="mb-5">
-                    <h3 className="mb-3">명예의 전당</h3>
-                    <ul className="list-group">
-                        {[
-                            { rank: 1, name: "BlazeMaster", point: 15000 },
-                            { rank: 2, name: "ShadowFox", point: 12000 },
-                            { rank: 3, name: "NeoHunter", point: 11000 },
-                            { rank: 4, name: "StarGazer", point: 8500 },
-                            { rank: 5, name: "PixelKing", point: 5200 },
-                        ].map(user => (
-                            <li className="list-group-item d-flex justify-content-between" key={user.rank}>
-                                <span>
-                                    <span className="badge bg-primary">{user.rank}</span> {user.name}
-                                </span>
-                                <span>{user.point.toLocaleString()} point</span>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-
-            </div>
-        </>
-    );
+        </div>
+        
+        {/* 모바일 커스텀 스타일 예시 */}
+        <style>{`
+            @media (max-width: 576px) {
+                .card-img-height { height: 140px !important; }
+                .small-on-mobile { font-size: 0.8rem !important; }
+            }
+        `}</style>
+    </>
+);
 }
