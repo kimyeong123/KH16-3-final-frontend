@@ -48,12 +48,12 @@ export default function Header() {
     const [keyword, setKeyword] = useState("");
 
     const handleSearch = () => {
-    if (!keyword.trim()) {
-        navigate(`/product/auction/list`);
-        return;
-    }
-    navigate(`/product/auction/list?q=${encodeURIComponent(keyword)}`);
-};
+        if (!keyword.trim()) {
+            navigate(`/product/auction/list`);
+            return;
+        }
+        navigate(`/product/auction/list?q=${encodeURIComponent(keyword)}`);
+    };
 
     const handleKeyDown = (e) => {
         if (e.key === "Enter") handleSearch();
@@ -97,26 +97,23 @@ export default function Header() {
         if (activeTab === 'important') return notif.type === 'SYSTEM_ALERT';
         if (activeTab === 'personal') return notif.type === 'GENERAL' || notif.type === 'SELLER_QNA';
         return false;
-        
     });
 
-const logout = useCallback(async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
+    const logout = useCallback(async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
 
-    try {
-        await axios.delete("/member/logout"); 
-    } catch (e) {
-        console.error("서버 로그아웃 실패", e);
-    } finally {
-        clearLogin();
-        setLoginComplete(true);
-        delete axios.defaults.headers.common["Authorization"];
-        navigate("/");
-    }
-}, [clearLogin, navigate, setLoginComplete]);
-
-
+        try {
+            await axios.delete("/member/logout");
+        } catch (e) {
+            console.error("서버 로그아웃 실패", e);
+        } finally {
+            clearLogin();
+            setLoginComplete(true);
+            delete axios.defaults.headers.common["Authorization"];
+            navigate("/");
+        }
+    }, [clearLogin, navigate, setLoginComplete]);
     useEffect(() => {
         if (!isLogin) {
             setUnreadCount(0);
@@ -168,7 +165,7 @@ const logout = useCallback(async (e) => {
     return (
         <header className="fixed-top bg-white border-bottom" style={{ zIndex: 1040 }}>
             <div className="container-fluid py-1 d-flex justify-content-between align-items-center">
-                
+
                 {/* 1. 로고 영역 */}
                 <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center ms-2" to="/">
                     <img src={logo2} style={{ width: '40px', height: '40px', marginRight: '10px' }} alt="bidHouse Logo" />
@@ -202,18 +199,18 @@ const logout = useCallback(async (e) => {
                             isDropdownOpen={isDropdownOpen}
                             unreadCount={unreadCount}
                         />
-                        
+
                         {/* 알림 드롭다운 메뉴 본체 */}
-                        <div className={`dropdown-menu dropdown-menu-end p-0 shadow ${isDropdownOpen ? 'show' : ''}`} 
-                             style={{ width: '300px', position: 'absolute', right: 0, left: 'auto' }}>
-                            
+                        <div className={`dropdown-menu dropdown-menu-end p-0 shadow ${isDropdownOpen ? 'show' : ''}`}
+                            style={{ width: '300px', position: 'absolute', right: 0, left: 'auto' }}>
+
                             <div className="d-flex border-bottom text-center">
-                                <div className={`py-2 flex-fill ${activeTab === 'all' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`} 
-                                     onClick={() => changeTab('all')} style={{ cursor: 'pointer', fontSize: '13px' }}>전체 ({notifications.length})</div>
-                                <div className={`py-2 flex-fill ${activeTab === 'important' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`} 
-                                     onClick={() => changeTab('important')} style={{ cursor: 'pointer', fontSize: '13px' }}>중요 ({notifications.filter(n => n.type === 'SYSTEM_ALERT').length})</div>
-                                <div className={`py-2 flex-fill ${activeTab === 'personal' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`} 
-                                     onClick={() => changeTab('personal')} style={{ cursor: 'pointer', fontSize: '13px' }}>개인 ({notifications.filter(n => n.type === 'GENERAL' || n.type === 'SELLER_QNA').length})</div>
+                                <div className={`py-2 flex-fill ${activeTab === 'all' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`}
+                                    onClick={() => changeTab('all')} style={{ cursor: 'pointer', fontSize: '13px' }}>전체 ({notifications.length})</div>
+                                <div className={`py-2 flex-fill ${activeTab === 'important' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`}
+                                    onClick={() => changeTab('important')} style={{ cursor: 'pointer', fontSize: '13px' }}>중요 ({notifications.filter(n => n.type === 'SYSTEM_ALERT').length})</div>
+                                <div className={`py-2 flex-fill ${activeTab === 'personal' ? 'text-primary border-bottom border-primary border-2 fw-bold' : 'text-dark'}`}
+                                    onClick={() => changeTab('personal')} style={{ cursor: 'pointer', fontSize: '13px' }}>개인 ({notifications.filter(n => n.type === 'GENERAL' || n.type === 'SELLER_QNA').length})</div>
                             </div>
 
                             <div className="list-group list-group-flush" style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -222,10 +219,10 @@ const logout = useCallback(async (e) => {
                                 ) : (
                                     filteredNotifications.length > 0 ? (
                                         filteredNotifications.map(notif => (
-                                            <div key={notif.messageNo} 
-                                                 className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2" 
-                                                 onClick={() => handleNotifClick(notif)} 
-                                                 style={{ cursor: 'pointer' }}>
+                                            <div key={notif.messageNo}
+                                                className="list-group-item list-group-item-action d-flex flex-column align-items-start py-2"
+                                                onClick={() => handleNotifClick(notif)}
+                                                style={{ cursor: 'pointer' }}>
                                                 <div className="d-flex align-items-center">
                                                     {getNotificationIcon(notif.type)}
                                                     <small className="mb-0 text-black fw-bold" style={{ fontSize: '12px' }}>
@@ -248,8 +245,8 @@ const logout = useCallback(async (e) => {
                                     <Link to="/message/list" className="btn btn-link btn-sm text-decoration-none text-primary p-0" style={{ fontSize: '12px' }}>
                                         전체 쪽지함
                                     </Link>
-                                    <button type="button" className="btn btn-link btn-sm text-decoration-none text-secondary p-0" 
-                                            style={{ fontSize: '12px' }} onClick={(e) => { e.stopPropagation(); handleReadAll(); }}>
+                                    <button type="button" className="btn btn-link btn-sm text-decoration-none text-secondary p-0"
+                                        style={{ fontSize: '12px' }} onClick={(e) => { e.stopPropagation(); handleReadAll(); }}>
                                         모두 읽음
                                     </button>
                                 </div>
@@ -262,9 +259,9 @@ const logout = useCallback(async (e) => {
                         {isLogin ? (
                             <>
                                 {/* 화면 작아져도 알림 옆에 로그아웃 표시 */}
-                                <button 
-                                    className="btn btn-link text-dark text-decoration-none p-0 border-0 fw-bold" 
-                                    onClick={logout} 
+                                <button
+                                    className="btn btn-link text-dark text-decoration-none p-0 border-0 fw-bold"
+                                    onClick={logout}
                                     style={{ cursor: 'pointer', fontSize: '14px' }}
                                 >
                                     로그아웃
