@@ -97,7 +97,7 @@ export default function Menu() {
                         {/* justify-content-center를 추가하여 모바일에서도 아이콘-글자가 묶여서 중앙으로 오게 함 */}
                         <Link className="nav-link d-flex align-items-center justify-content-center py-2 py-lg-0" to="/product/auction/list" onClick={closeMenu}>
                             {/* 아이콘의 미세한 위치 조정을 위해 mb-1 또는 vertical-align 사용 */}
-                            <RiAuctionLine className="fs-3 me-2 text-primary" style={{ verticalAlign: 'middle' }} />
+                            <RiAuctionLine className="fs-3 me-2 text-white" style={{ verticalAlign: 'middle' }} />
                             <span style={{ lineHeight: '1' }}>전체 경매</span>
                         </Link>
                     </li>
