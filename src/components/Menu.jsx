@@ -36,18 +36,18 @@ export default function Menu() {
         }
     }, [accessToken]);
 
-    const loadPoint = useCallback(async () => {
-        if (!isLogin || !accessToken) return;
-        try {
-            const response = await axios.get("/member/point/balance", {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            const pointValue = (response.data && typeof response.data === 'object') 
-                                ? response.data.point 
-                                : response.data;
-            setLoginPoint(Number(pointValue ?? 0)); 
-        } catch (error) {}
-    }, [isLogin, accessToken, setLoginPoint]);
+const loadPoint = useCallback(async () => {
+  if (!isLogin || !accessToken) return;
+  try {
+    const res = await axios.get("/member/mypage", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    setLoginPoint(Number(res.data?.point ?? 0));
+  } catch (e) {
+
+  }
+}, [isLogin, accessToken, setLoginPoint]);
+
 
     useEffect(() => {
         if (isLogin && accessToken) {
