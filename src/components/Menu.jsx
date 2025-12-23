@@ -81,75 +81,89 @@ export default function Menu() {
     }, [open, closeMenu]);
 
     return (
-        <nav className="navbar navbar-expand-lg" data-bs-type="light">
-            <div className="container-fluid">
-                <button className="navbar-toggler" type="button"
-                    aria-controls="menu-body" aria-expanded={open} aria-label="Toggle navigation" onClick={toggleMenu}>
-                    <span className="navbar-toggler-icon"></span>
-                </button>
-                <div className={`collapse navbar-collapse ${open && 'show'}`} id="menu-body" ref={menuRef}>
+    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style={{zIndex: 10}}>
+        <div className="container-fluid">
+            {/* 1. 메뉴 버튼: 항상 왼쪽 정렬 */}
+            <button className="navbar-toggler" type="button"
+                onClick={toggleMenu} aria-expanded={open}>
+                <span className="navbar-toggler-icon"></span>
+            </button>
 
-                    <ul className="navbar-nav me-auto ms-3">
-                        <Link className="nav-link fs-6" to="/product/auction/list" onClick={closeMenu}>
-                            <RiAuctionLine className="fs-3 me-1" />전체 경매
+            <div className={`collapse navbar-collapse ${open ? 'show' : ''}`} id="menu-body" ref={menuRef}>
+                
+                {/* 2. 왼쪽 메뉴 영역 (전체 경매) */}
+                <ul className="navbar-nav me-auto mb-lg-0 align-items-center">
+                    <li className="nav-item">
+                        {/* justify-content-center를 추가하여 모바일에서도 아이콘-글자가 묶여서 중앙으로 오게 함 */}
+                        <Link className="nav-link d-flex align-items-center justify-content-center py-2 py-lg-0" to="/product/auction/list" onClick={closeMenu}>
+                            {/* 아이콘의 미세한 위치 조정을 위해 mb-1 또는 vertical-align 사용 */}
+                            <RiAuctionLine className="fs-3 me-2 text-white" style={{ verticalAlign: 'middle' }} />
+                            <span style={{ lineHeight: '1' }}>전체 경매</span>
                         </Link>
-                    </ul>
+                    </li>
+                </ul>
 
-                    <ul className="navbar-nav ms-auto ms-3 align-items-center">
-                        <li className="nav-item">
-                            <Link className="nav-link fs-6 me-2" to="/board/list" onClick={closeMenu}>
-                                <FaClipboardList className="fs-5 me-1" />공지사항
-                            </Link>
-                        </li>
+                {/* 3. 오른쪽 메뉴 영역 */}
+                <ul className="navbar-nav ms-auto align-items-center gap-lg-1">
+                    <li className="nav-item">
+                        <Link className="nav-link d-flex align-items-center justify-content-center py-2 py-lg-0" to="/board/list" onClick={closeMenu}>
+                            <FaClipboardList className="me-2" />
+                            <span style={{ lineHeight: '1' }}>공지사항</span>
+                        </Link>
+                    </li>
 
-                        {isLogin && (
-                            <>
-                                {/* 정지 회원이 아닐 때만 물품 등록 및 포인트 충전 노출 */}
-                                {!isSuspended && (
-                                    <>
-                                        <li className="nav-item">
-                                            <Link className="nav-link fs-6 me-2" to="/product/productadd" onClick={closeMenu}>
-                                                <FaPlusSquare className="fs-5 me-1" />물품 등록
-                                            </Link>
-                                        </li>
-                                        <li className="nav-item">
-                                            <Link className="nav-link fs-6 me-2" to="/pay/kakaopay" onClick={closeMenu}>
-                                                <FaCashRegister className="fs-5 me-1" />포인트 충전
-                                            </Link>
-                                        </li>
-                                    </>
-                                )}
-                                
-                                <li className="nav-item">
-                                    <Link className="nav-link fs-6 me-2" to="/product/mylist" onClick={closeMenu}>
-                                        <FaListUl className="fs-5 me-1" />거래내역
-                                    </Link>
-                                </li>
-
-                                {isAdmin && (
+                    {isLogin && (
+                        <>
+                            {!isSuspended && (
+                                <>
                                     <li className="nav-item">
-                                        <Link className="nav-link fs-6" to="/admin/home" onClick={closeMenu}>
-                                            <FaScrewdriverWrench className="fs-5 me-1" />관리 메뉴
+                                        <Link className="nav-link d-flex align-items-center justify-content-center py-2 py-lg-0" to="/product/productadd" onClick={closeMenu}>
+                                            <FaPlusSquare className="me-2" />
+                                            <span style={{ lineHeight: '1' }}>물품 등록</span>
                                         </Link>
                                     </li>
-                                )}
+                                    <li className="nav-item">
+                                        <Link className="nav-link d-flex align-items-center justify-content-center py-2 py-lg-0" to="/pay/kakaopay" onClick={closeMenu}>
+                                            <FaCashRegister className="me-2" />
+                                            <span style={{ lineHeight: '1' }}>포인트 충전</span>
+                                        </Link>
+                                    </li>
+                                </>
+                            )}
+                            
+                            <li className="nav-item">
+                                <Link className="nav-link d-flex align-items-center justify-content-center py-2 py-lg-0" to="/product/mylist" onClick={closeMenu}>
+                                    <FaListUl className="me-2" />
+                                    <span style={{ lineHeight: '1' }}>거래내역</span>
+                                </Link>
+                            </li>
 
-                                <li className="nav-item me-3">
-                                    <div className="point-badge d-flex align-items-center"
-                                        onClick={() => { navigate("/pay/kakaopay"); closeMenu(); }}
-                                        style={{ cursor: 'pointer' }}>
-                                        <FaWallet className="icon-wallet" />
-                                        <div className="point-content">
-                                            <span className="point-label">MY POINT</span>
-                                            <span className="point-amount">{Number(loginPoint ?? 0).toLocaleString()} P</span>
-                                        </div>
-                                    </div>
+                            {isAdmin && (
+                                <li className="nav-item">
+                                    <Link className="nav-link d-flex align-items-center justify-content-center py-2 py-lg-0 text-danger" to="/admin/home" onClick={closeMenu}>
+                                        <FaScrewdriverWrench className="me-2" />
+                                        <span style={{ lineHeight: '1' }}>관리 메뉴</span>
+                                    </Link>
                                 </li>
-                            </>
-                        )}
-                    </ul>
-                </div>
+                            )}
+
+                            {/* 포인트 배지: 디자인 통일 */}
+                            <li className="nav-item ms-lg-2 my-2 my-lg-0">
+                                <div className="point-badge d-inline-flex align-items-center"
+                                     onClick={() => { navigate("/pay/kakaopay"); closeMenu(); }}
+                                     style={{ cursor: 'pointer', background: '#f8f9fa', borderRadius: '25px', padding: '5px 15px', border: '1px solid #eee' }}>
+                                    <FaWallet className="text-warning me-2" />
+                                    <div className="d-flex flex-column text-start" style={{ lineHeight: '1.1' }}>
+                                        <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#888' }}>MY POINT</span>
+                                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{Number(loginPoint ?? 0).toLocaleString()}P</span>
+                                    </div>
+                                </div>
+                            </li>
+                        </>
+                    )}
+                </ul>
             </div>
-        </nav>
-    );
+        </div>
+    </nav>
+);
 }
